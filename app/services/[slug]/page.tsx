@@ -23,73 +23,73 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
   return (
     <>
-      <section className="page-hero service-detail-hero">
-        <div className="container">
-          <Link href="/services" className="back-link">
+      <section className="relative overflow-hidden border-b border-white/10 bg-[#060911] py-24 sm:py-32">
+        <div className="mx-auto max-w-[1400px] px-6 lg:px-8">
+          <Link href="/services" className="mb-6 inline-block font-mono text-xs text-[#00f0ff] hover:underline">
             ← Back to Capabilities Catalog
           </Link>
-          <div className="telemetry-pill">
-            <span className="telemetry-live-dot" />
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#00f0ff]/30 bg-[#00f0ff]/10 px-3.5 py-1 font-mono text-[10px] tracking-wider text-[#00f0ff]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#00f0ff]" />
             <span>SPECIFICATION SPEC // {service.number}</span>
           </div>
-          <p className="eyebrow gold-text">
-            <span className="tiny-diamond" />
+          <p className="inline-flex items-center gap-2.5 font-mono text-[11px] font-semibold tracking-wider text-[#ff6b00] uppercase">
+            <span className="h-1.5 w-1.5 rotate-45 bg-[#ff6b00]" />
             {service.eyebrow}
           </p>
-          <h1>
+          <h1 className="mt-4 mb-6 font-display text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
             {service.title.split(" & ")[0]}
             {service.title.includes(" & ") && (
               <>
                 <br />
-                <em>&amp; {service.title.split(" & ").slice(1).join(" & ")}</em>
+                <em className="text-[#ff6b00] not-italic">&amp; {service.title.split(" & ").slice(1).join(" & ")}</em>
               </>
             )}
           </h1>
-          <p>{service.intro}</p>
+          <p className="max-w-2xl text-base leading-relaxed text-slate-300 sm:text-lg">{service.intro}</p>
         </div>
-        <span className="page-hero-decoration" aria-hidden="true">
-          {service.number}
-        </span>
       </section>
 
-      <section className="detail-body section-pad">
-        <div className="container detail-grid">
+      <section className="border-b border-white/10 bg-[#0a101d] py-20 lg:py-28">
+        <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-12 px-6 lg:grid-cols-[0.28fr_0.72fr] lg:gap-16 lg:px-8">
           <aside>
-            <p className="eyebrow">
-              <span className="tiny-diamond" /> DIVISION ICON
+            <p className="inline-flex items-center gap-2 font-mono text-[11px] font-semibold tracking-wider text-[#00f0ff] uppercase">
+              <span className="h-1.5 w-1.5 rotate-45 bg-[#00f0ff]" /> DIVISION ICON
             </p>
-            <span className="detail-symbol" aria-hidden="true">
+            <span className="my-6 block text-6xl text-slate-300" aria-hidden="true">
               {service.icon}
             </span>
-            <div className="service-sidebar-card">
-              <span>TARGET SECTORS</span>
-              <strong>{service.idealFor}</strong>
+            <div className="rounded-lg border border-white/10 bg-[#0f172a] p-5">
+              <span className="block font-mono text-[10px] text-[#00f0ff]">TARGET SECTORS</span>
+              <strong className="mt-1 block text-sm font-semibold text-white">{service.idealFor}</strong>
             </div>
           </aside>
 
           <div>
-            <h2>
-              Solve the right bottleneck. <em>Architect the durable solution.</em>
+            <h2 className="mb-4 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Solve the right bottleneck. <em className="text-[#ff6b00] not-italic">Architect the durable solution.</em>
             </h2>
-            <p className="detail-lead">{service.detail}</p>
+            <p className="mb-10 text-base leading-relaxed text-slate-300">{service.detail}</p>
 
-            <h3>Core Deliverables &amp; Architectural Milestones</h3>
-            <div className="deliverable-grid">
+            <h3 className="mb-6 font-display text-xl font-bold text-white">Core Deliverables &amp; Architectural Milestones</h3>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {service.deliverables.map((deliverable, i) => (
-                <div className="deliverable" key={deliverable}>
-                  <span>0{i + 1} // MILESTONE</span>
-                  <p>{deliverable}</p>
+                <div className="rounded-lg border border-white/10 bg-[#0f172a] p-5" key={deliverable}>
+                  <span className="font-mono text-xs font-bold text-[#ff6b00]">0{i + 1} // MILESTONE</span>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-300">{deliverable}</p>
                 </div>
               ))}
             </div>
 
-            <div className="ideal-for">
-              <span>DESIGNED FOR US OPERATIONAL REALITY</span>
-              <p>{service.idealFor}</p>
+            <div className="mt-10 rounded-lg border border-[#00f0ff]/30 bg-[#00f0ff]/5 p-6">
+              <span className="font-mono text-xs font-bold text-[#00f0ff]">DESIGNED FOR US OPERATIONAL REALITY</span>
+              <p className="mt-1 text-sm font-semibold text-white">{service.idealFor}</p>
             </div>
 
-            <div style={{ marginTop: "40px" }}>
-              <Link href="/contact" className="button button-amber">
+            <div className="mt-10">
+              <Link
+                href="/contact"
+                className="inline-flex min-h-[48px] items-center justify-center gap-3 rounded-md bg-[#ff6b00] px-7 font-display text-xs font-bold text-black shadow-[0_0_20px_rgba(255,107,0,0.25)] transition-all hover:bg-[#ff8c33]"
+              >
                 Discuss Implementation Scope <span aria-hidden="true">↗</span>
               </Link>
             </div>
@@ -97,10 +97,10 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
         </div>
       </section>
 
-      <section className="next-service">
-        <div className="container">
-          <span>NEXT ENGINEERING CAPABILITY</span>
-          <Link href={`/services/${next.slug}`}>
+      <section className="border-b border-white/10 bg-[#060911] py-8">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 lg:px-8">
+          <span className="font-mono text-xs text-slate-500">NEXT ENGINEERING CAPABILITY</span>
+          <Link href={`/services/${next.slug}`} className="font-display text-base font-bold text-white hover:text-[#ff6b00]">
             {next.title} <span aria-hidden="true">↗</span>
           </Link>
         </div>

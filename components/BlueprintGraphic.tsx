@@ -6,30 +6,43 @@ export function BlueprintGraphic() {
   const [activeLayer, setActiveLayer] = useState<"structural" | "mep" | "telemetry">("structural");
 
   return (
-    <div className="blueprint-graphic" aria-label="Interactive architectural CAD schematic and digital twin visualization">
-      <div className="blueprint-hud-header">
-        <div className="hud-title">
-          <span className="hud-icon">📐</span>
+    <div className="relative w-full overflow-hidden rounded-xl border border-[#00f0ff]/30 bg-[#060c18] shadow-[0_30px_70px_rgba(0,0,0,0.7)]" aria-label="Interactive architectural CAD schematic and digital twin visualization">
+      {/* HUD Header */}
+      <div className="flex h-12 items-center justify-between border-b border-white/10 bg-[#080e1a]/95 px-5">
+        <div className="flex items-center gap-2 font-mono text-[11px] font-bold text-[#00f0ff]">
+          <span>📐</span>
           <span>BIM / CAD DIGITAL SCHEMATIC · PROTOTYPE 04</span>
         </div>
-        <div className="hud-toggles">
+        <div className="flex gap-1.5">
           <button
             type="button"
-            className={`hud-toggle ${activeLayer === "structural" ? "active" : ""}`}
+            className={`rounded px-2.5 py-1 font-mono text-[10px] font-semibold transition-all ${
+              activeLayer === "structural"
+                ? "border border-[#00f0ff]/40 bg-[#00f0ff]/15 text-[#00f0ff]"
+                : "text-slate-400 hover:text-white"
+            }`}
             onClick={() => setActiveLayer("structural")}
           >
             Structural Frame
           </button>
           <button
             type="button"
-            className={`hud-toggle ${activeLayer === "mep" ? "active" : ""}`}
+            className={`rounded px-2.5 py-1 font-mono text-[10px] font-semibold transition-all ${
+              activeLayer === "mep"
+                ? "border border-[#00f0ff]/40 bg-[#00f0ff]/15 text-[#00f0ff]"
+                : "text-slate-400 hover:text-white"
+            }`}
             onClick={() => setActiveLayer("mep")}
           >
             MEP Conduits
           </button>
           <button
             type="button"
-            className={`hud-toggle ${activeLayer === "telemetry" ? "active" : ""}`}
+            className={`rounded px-2.5 py-1 font-mono text-[10px] font-semibold transition-all ${
+              activeLayer === "telemetry"
+                ? "border border-[#00f0ff]/40 bg-[#00f0ff]/15 text-[#00f0ff]"
+                : "text-slate-400 hover:text-white"
+            }`}
             onClick={() => setActiveLayer("telemetry")}
           >
             IoT Telemetry
@@ -37,25 +50,20 @@ export function BlueprintGraphic() {
         </div>
       </div>
 
+      {/* SVG Canvas */}
       <svg
         viewBox="0 0 640 460"
         role="img"
         aria-label="Isometric CAD model with structural framing and laser scan lines"
         xmlns="http://www.w3.org/2000/svg"
-        className="blueprint-svg"
+        className="h-auto w-full"
       >
         <defs>
           <pattern id="cad-grid" width="30" height="30" patternUnits="userSpaceOnUse">
             <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(0, 240, 255, 0.12)" strokeWidth="0.75" />
           </pattern>
-          <linearGradient id="laserBeam" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.8" />
-            <stop offset="50%" stopColor="#ff6b00" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#00f0ff" stopOpacity="0.4" />
-          </linearGradient>
         </defs>
 
-        {/* Blueprint background grid */}
         <rect x="0" y="0" width="640" height="460" fill="url(#cad-grid)" />
 
         {/* Base Foundation Slab Isometric Grid */}
@@ -67,9 +75,8 @@ export function BlueprintGraphic() {
           <path d="M320 440 V460" />
         </g>
 
-        {/* 3D Structural Frame (Towers & Cross Trusses) */}
+        {/* 3D Structural Frame */}
         <g fill="#0c182c" fillOpacity="0.8" stroke="#38bdf8" strokeWidth="1.8" strokeLinejoin="round">
-          {/* Main Tower Central Core */}
           <path d="M190 200 L320 130 L450 200 L320 270 Z" fill="#0f223d" />
           <path d="M190 200 L320 270 V380 L190 310 Z" fill="#0b1b33" />
           <path d="M320 270 L450 200 V310 L320 380 Z" fill="#081426" />
@@ -96,7 +103,7 @@ export function BlueprintGraphic() {
           </g>
         )}
 
-        {/* IoT Telemetry Nodes & Heatmap */}
+        {/* IoT Telemetry Nodes */}
         {activeLayer === "telemetry" && (
           <g>
             <circle cx="320" cy="130" r="14" fill="rgba(0, 240, 255, 0.2)" stroke="#00f0ff" strokeWidth="1.5" />
@@ -107,13 +114,6 @@ export function BlueprintGraphic() {
             <circle cx="450" cy="200" r="4" fill="#22c55e" />
           </g>
         )}
-
-        {/* Architectural Dimension Callouts & Coordinate Labels */}
-        <g stroke="#64748b" strokeWidth="1" strokeDasharray="2 2" fill="none">
-          <line x1="70" y1="330" x2="70" y2="170" />
-          <line x1="190" y1="200" x2="190" y2="120" />
-          <line x1="70" y1="170" x2="190" y2="120" />
-        </g>
 
         {/* Technical Callout Badges */}
         <g fill="#f8fafc" fontFamily="monospace" fontSize="10">
@@ -128,18 +128,19 @@ export function BlueprintGraphic() {
         </g>
       </svg>
 
-      <div className="blueprint-graphic-footer">
-        <div className="meta-item">
-          <span>COORDINATES</span>
-          <strong>37.7749° N, 122.4194° W</strong>
+      {/* Blueprint Footer */}
+      <div className="flex items-center justify-between border-t border-white/10 bg-[#080e1a]/95 px-5 py-3 font-mono text-[10px]">
+        <div>
+          <span className="block text-slate-500">COORDINATES</span>
+          <strong className="text-slate-300">37.7749° N, 122.4194° W</strong>
         </div>
-        <div className="meta-item">
-          <span>TOLERANCE</span>
-          <strong>±0.012 INCHES (LASER VERIFIED)</strong>
+        <div>
+          <span className="block text-slate-500">TOLERANCE</span>
+          <strong className="text-[#00f0ff]">±0.012 INCHES (LASER VERIFIED)</strong>
         </div>
-        <div className="meta-item">
-          <span>DATA COMPLIANCE</span>
-          <strong>AEC / PROCORE READY</strong>
+        <div>
+          <span className="block text-slate-500">COMPLIANCE</span>
+          <strong className="text-[#ff6b00]">AEC / PROCORE READY</strong>
         </div>
       </div>
     </div>

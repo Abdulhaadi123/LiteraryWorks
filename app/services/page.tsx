@@ -12,65 +12,65 @@ export const metadata = pageMeta(
 export default function ServicesPage() {
   return (
     <>
-      <section className="page-hero">
-        <div className="container">
-          <div className="telemetry-pill">
-            <span className="telemetry-live-dot" />
+      <section className="relative overflow-hidden border-b border-white/10 bg-[#060911] py-24 sm:py-32">
+        <div className="mx-auto max-w-[1400px] px-6 lg:px-8">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#00f0ff]/30 bg-[#00f0ff]/10 px-3.5 py-1 font-mono text-[10px] tracking-wider text-[#00f0ff]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#00f0ff]" />
             <span>FULL-STACK ENGINEERING CAPABILITIES</span>
           </div>
-          <p className="eyebrow gold-text">
-            <span className="tiny-diamond" /> CORE EXPERTISE
+          <p className="inline-flex items-center gap-2.5 font-mono text-[11px] font-semibold tracking-wider text-[#ff6b00] uppercase">
+            <span className="h-1.5 w-1.5 rotate-45 bg-[#ff6b00]" /> CORE EXPERTISE
           </p>
-          <h1>
+          <h1 className="mt-4 mb-6 font-display text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
             Engineered for Precision.<br />
-            <em>Built for Measurable Growth.</em>
+            <em className="text-[#ff6b00] not-italic">Built for Measurable Growth.</em>
           </h1>
-          <p>
+          <p className="max-w-2xl text-base leading-relaxed text-slate-300 sm:text-lg">
             We partner with forward-thinking US enterprises, commercial builders, and high-growth operators to design, build, and deploy high-reliability software, autonomous AI systems, and connected digital platforms.
           </p>
         </div>
-        <span className="page-hero-decoration" aria-hidden="true">
-          SYS
-        </span>
       </section>
 
-      <section className="section-pad services-page-section">
-        <div className="container">
-          <div className="section-head-split">
+      <section className="border-b border-white/10 bg-[#0a101d] py-20 lg:py-28">
+        <div className="mx-auto max-w-[1400px] px-6 lg:px-8">
+          <div className="mb-14 grid grid-cols-1 items-end gap-8 lg:grid-cols-[1fr_0.38fr]">
             <div>
-              <p className="eyebrow">
-                <span className="tiny-diamond" /> 01 // CAPABILITIES CATALOG
+              <p className="inline-flex items-center gap-2.5 font-mono text-[11px] font-semibold tracking-wider text-[#00f0ff] uppercase">
+                <span className="h-1.5 w-1.5 rotate-45 bg-[#00f0ff]" /> 01 // CAPABILITIES CATALOG
               </p>
-              <h2>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">
                 Six Specialized Divisions.<br />
-                <em>One Integrated Partner.</em>
+                <em className="text-[#ff6b00] not-italic">One Integrated Partner.</em>
               </h2>
             </div>
-            <div className="head-side">
-              <p>
+            <div>
+              <p className="text-sm text-slate-400">
                 Every engagement blends strategic architecture, rigorous engineering, and long-term operational support.
               </p>
             </div>
           </div>
 
-          <div className="services-grid" style={{ marginTop: "48px" }}>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {services.map((service) => (
               <ServiceCard service={service} key={service.slug} />
             ))}
           </div>
 
           {/* Construction Feature Callout Card */}
-          <div className="service-addon" style={{ marginTop: "64px" }}>
+          <div className="mt-16 flex flex-col items-start justify-between gap-8 rounded-xl border border-white/15 bg-[#0f172a] p-8 sm:p-10 lg:flex-row lg:items-center">
             <div>
-              <p className="eyebrow gold-text">
-                <span className="tiny-diamond" /> SPECIALIZED DIVISION
+              <p className="inline-flex items-center gap-2.5 font-mono text-[11px] font-semibold tracking-wider text-[#ff6b00] uppercase">
+                <span className="h-1.5 w-1.5 rotate-45 bg-[#ff6b00]" /> SPECIALIZED DIVISION
               </p>
-              <h3>Construction Technology &amp; Heavy Asset Intelligence</h3>
-              <p>
+              <h3 className="mt-2 text-2xl font-bold text-white">Construction Technology &amp; Heavy Asset Intelligence</h3>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300">
                 Looking specifically for automated blueprint takeoffs, BIM coordination, field reporting, or subcontractor workflow management? Explore our dedicated ConTech systems.
               </p>
             </div>
-            <Link href="/construction" className="button button-amber">
+            <Link
+              href="/construction"
+              className="inline-flex min-h-[48px] shrink-0 items-center justify-center gap-3 rounded-md bg-[#ff6b00] px-7 font-display text-xs font-bold text-black shadow-[0_0_20px_rgba(255,107,0,0.25)] transition-all hover:bg-[#ff8c33]"
+            >
               Explore ConTech Division <span aria-hidden="true">↗</span>
             </Link>
           </div>
@@ -78,68 +78,73 @@ export default function ServicesPage() {
       </section>
 
       {/* Engineering Standards */}
-      <section className="outcome-section">
-        <div className="container outcome-grid">
-          <div>
-            <p className="eyebrow gold-text">
-              <span className="tiny-diamond" /> 02 // TECHNICAL ASSURANCE
-            </p>
-            <h2>
-              The standards we build by.<br />
-              <em>Zero compromise on quality.</em>
-            </h2>
-          </div>
+      <section className="border-b border-white/10 bg-[#060911] py-20 lg:py-28">
+        <div className="mx-auto max-w-[1400px] px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+            <div>
+              <p className="inline-flex items-center gap-2.5 font-mono text-[11px] font-semibold tracking-wider text-[#ff6b00] uppercase">
+                <span className="h-1.5 w-1.5 rotate-45 bg-[#ff6b00]" /> 02 // TECHNICAL ASSURANCE
+              </p>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">
+                The standards we build by.<br />
+                <em className="text-[#ff6b00] not-italic">Zero compromise on quality.</em>
+              </h2>
+            </div>
 
-          <div className="outcome-points">
-            <article>
-              <span>01</span>
-              <div>
-                <h3>Deterministic AI with Human Guardrails</h3>
-                <p>
-                  We never deploy &ldquo;black box&rdquo; autonomous agents without structured audit logs, verifiable source citations, and enforceable human approval gates for critical actions.
-                </p>
-              </div>
-            </article>
+            <div className="border-t border-white/10">
+              <article className="flex gap-6 border-b border-white/10 py-7">
+                <span className="font-mono text-sm font-bold text-[#ff6b00]">01</span>
+                <div>
+                  <h3 className="mb-2 text-lg font-bold text-white">Deterministic AI with Human Guardrails</h3>
+                  <p className="text-sm leading-relaxed text-slate-400">
+                    We never deploy &ldquo;black box&rdquo; autonomous agents without structured audit logs, verifiable source citations, and enforceable human approval gates for critical actions.
+                  </p>
+                </div>
+              </article>
 
-            <article>
-              <span>02</span>
-              <div>
-                <h3>US Enterprise Compliance &amp; Security</h3>
-                <p>
-                  Zero-trust network architecture, encrypted data at rest/transit, and SOC2 / HIPAA / ISO 27001 readiness embedded into system foundations from day one.
-                </p>
-              </div>
-            </article>
+              <article className="flex gap-6 border-b border-white/10 py-7">
+                <span className="font-mono text-sm font-bold text-[#ff6b00]">02</span>
+                <div>
+                  <h3 className="mb-2 text-lg font-bold text-white">US Enterprise Compliance &amp; Security</h3>
+                  <p className="text-sm leading-relaxed text-slate-400">
+                    Zero-trust network architecture, encrypted data at rest/transit, and SOC2 / HIPAA / ISO 27001 readiness embedded into system foundations from day one.
+                  </p>
+                </div>
+              </article>
 
-            <article>
-              <span>03</span>
-              <div>
-                <h3>Production-Grade Scalability &amp; Observability</h3>
-                <p>
-                  Containerized architectures, automated CI/CD deployments, real-time APM telemetry, and 99.98% SLA benchmarks designed to handle demanding enterprise load.
-                </p>
-              </div>
-            </article>
+              <article className="flex gap-6 border-b border-white/10 py-7">
+                <span className="font-mono text-sm font-bold text-[#ff6b00]">03</span>
+                <div>
+                  <h3 className="mb-2 text-lg font-bold text-white">Production-Grade Scalability &amp; Observability</h3>
+                  <p className="text-sm leading-relaxed text-slate-400">
+                    Containerized architectures, automated CI/CD deployments, real-time APM telemetry, and 99.98% SLA benchmarks designed to handle demanding enterprise load.
+                  </p>
+                </div>
+              </article>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Consultation Banner */}
-      <section className="service-bridge section-pad">
-        <div className="container bridge-grid">
+      <section className="border-b border-white/10 bg-[#0a101d] py-20 lg:py-28">
+        <div className="mx-auto grid max-w-[1400px] grid-cols-1 items-center gap-8 px-6 lg:grid-cols-[1fr_0.8fr] lg:gap-16 lg:px-8">
           <div>
-            <p className="eyebrow gold-text">
-              <span className="tiny-diamond" /> ARCHITECTURAL AUDIT
+            <p className="inline-flex items-center gap-2.5 font-mono text-[11px] font-semibold tracking-wider text-[#ff6b00] uppercase">
+              <span className="h-1.5 w-1.5 rotate-45 bg-[#ff6b00]" /> ARCHITECTURAL AUDIT
             </p>
-            <h2>
-              Not sure which solution <em>fits your operational reality?</em>
+            <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">
+              Not sure which solution <em className="text-[#ff6b00] not-italic">fits your operational reality?</em>
             </h2>
           </div>
           <div>
-            <p>
+            <p className="mb-6 text-base text-slate-300">
               We offer a complimentary 1-hour systems audit to analyze your existing workflows and identify your highest-leverage digital opportunities.
             </p>
-            <Link href="/contact" className="button button-amber">
+            <Link
+              href="/contact"
+              className="inline-flex min-h-[48px] items-center justify-center gap-3 rounded-md bg-[#ff6b00] px-7 font-display text-xs font-bold text-black shadow-[0_0_20px_rgba(255,107,0,0.25)] transition-all hover:bg-[#ff8c33]"
+            >
               Book Architecture Audit <span aria-hidden="true">↗</span>
             </Link>
           </div>
