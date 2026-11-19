@@ -11,7 +11,7 @@ export function ContactForm() {
     event.preventDefault();
     const form = event.currentTarget;
     const fields = Object.fromEntries(new FormData(form));
-    setStatus({ kind: "sending", message: "Encrypting and transmitting your engineering inquiry…" });
+    setStatus({ kind: "sending", message: "Transmitting your engineering consultation inquiry…" });
     try {
       const response = await fetch("/api/inquiry", {
         method: "POST",
@@ -21,17 +21,21 @@ export function ContactForm() {
       const result: { message?: string } = await response.json();
       if (!response.ok) throw new Error(result.message || "We couldn't send this inquiry right now.");
       form.reset();
-      setStatus({ kind: "success", message: "Inquiry received. A senior systems architect will respond within 24 hours." });
+      setStatus({ kind: "success", message: "Inquiry received. A senior systems architect will respond within 24 business hours." });
     } catch (error) {
       setStatus({ kind: "error", message: error instanceof Error ? error.message : "An unexpected error occurred." });
     }
   }
 
   return (
-    <form className="relative grid gap-6 rounded-xl border border-white/15 bg-[#0a101d] p-6 shadow-2xl sm:p-10" onSubmit={handleSubmit} noValidate={false}>
+    <form
+      className="relative grid gap-6 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xl shadow-slate-100 sm:p-10"
+      onSubmit={handleSubmit}
+      noValidate={false}
+    >
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <label className="flex flex-col gap-2 text-xs font-semibold text-slate-300">
-          <span>Full name <strong className="text-[#ff6b00]">*</strong></span>
+        <label className="flex flex-col gap-2 text-xs font-semibold text-slate-700">
+          <span>Full name <strong className="text-[#b48d55]">*</strong></span>
           <input
             name="name"
             required
@@ -39,12 +43,12 @@ export function ContactForm() {
             maxLength={120}
             autoComplete="name"
             placeholder="Sarah Jenkins"
-            className="rounded-md border border-white/15 bg-[#0f172a] px-4 py-3 text-sm text-white placeholder-slate-500 transition-colors focus:border-[#00f0ff] focus:outline-none"
+            className="rounded-lg border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-[#0f2438] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0f2438]"
           />
         </label>
 
-        <label className="flex flex-col gap-2 text-xs font-semibold text-slate-300">
-          <span>Work email <strong className="text-[#ff6b00]">*</strong></span>
+        <label className="flex flex-col gap-2 text-xs font-semibold text-slate-700">
+          <span>Work email <strong className="text-[#b48d55]">*</strong></span>
           <input
             name="email"
             type="email"
@@ -52,52 +56,52 @@ export function ContactForm() {
             maxLength={254}
             autoComplete="email"
             placeholder="sarah@enterprise.com"
-            className="rounded-md border border-white/15 bg-[#0f172a] px-4 py-3 text-sm text-white placeholder-slate-500 transition-colors focus:border-[#00f0ff] focus:outline-none"
+            className="rounded-lg border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-[#0f2438] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0f2438]"
           />
         </label>
 
-        <label className="flex flex-col gap-2 text-xs font-semibold text-slate-300">
-          <span>Company / General Contractor</span>
+        <label className="flex flex-col gap-2 text-xs font-semibold text-slate-700">
+          <span>Company / Organization</span>
           <input
             name="company"
             maxLength={120}
             autoComplete="organization"
             placeholder="Apex Builders / Corp (optional)"
-            className="rounded-md border border-white/15 bg-[#0f172a] px-4 py-3 text-sm text-white placeholder-slate-500 transition-colors focus:border-[#00f0ff] focus:outline-none"
+            className="rounded-lg border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-[#0f2438] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0f2438]"
           />
         </label>
 
-        <label className="flex flex-col gap-2 text-xs font-semibold text-slate-300">
-          <span>Primary Area of Interest <strong className="text-[#ff6b00]">*</strong></span>
+        <label className="flex flex-col gap-2 text-xs font-semibold text-slate-700">
+          <span>Primary Area of Interest <strong className="text-[#b48d55]">*</strong></span>
           <select
             name="interest"
             required
             defaultValue=""
-            className="rounded-md border border-white/15 bg-[#0f172a] px-4 py-3 text-sm text-white transition-colors focus:border-[#00f0ff] focus:outline-none"
+            className="rounded-lg border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 transition-colors focus:border-[#0f2438] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0f2438]"
           >
             <option value="" disabled>Select a capability</option>
             <option>ConTech: Automated AI Blueprint Takeoffs</option>
-            <option>ConTech: BIM & Schedule Conflict Engine</option>
-            <option>Enterprise AI Agents & Workflow Swarms</option>
+            <option>ConTech: BIM &amp; Schedule Conflict Engine</option>
+            <option>Enterprise AI Agents &amp; Workflow Swarms</option>
             <option>Custom Cloud Platform / SaaS Development</option>
-            <option>Legacy ERP, Procore & API Integration</option>
-            <option>Hardened Cloud Infrastructure & DevOps</option>
-            <option>Technical Architecture Audit (1-Hour Free)</option>
+            <option>Legacy ERP, Procore &amp; API Integration</option>
+            <option>Hardened Cloud Infrastructure &amp; DevOps</option>
+            <option>Technical Architecture Audit (1-Hour Complimentary)</option>
             <option>Other Custom Scope</option>
           </select>
         </label>
       </div>
 
-      <label className="flex flex-col gap-2 text-xs font-semibold text-slate-300">
-        <span>Project Overview &amp; Operational Bottleneck <strong className="text-[#ff6b00]">*</strong></span>
+      <label className="flex flex-col gap-2 text-xs font-semibold text-slate-700">
+        <span>Project Overview &amp; Operational Bottleneck <strong className="text-[#b48d55]">*</strong></span>
         <textarea
           name="message"
           required
           minLength={10}
           maxLength={5000}
           rows={5}
-          placeholder="Briefly describe your current workflows, challenges, software stack (e.g. Procore, SAP, Salesforce), and timeline goals."
-          className="rounded-md border border-white/15 bg-[#0f172a] px-4 py-3 text-sm text-white placeholder-slate-500 transition-colors focus:border-[#00f0ff] focus:outline-none"
+          placeholder="Briefly describe your current workflows, operational bottlenecks, software stack (e.g. Procore, SAP, Salesforce), and timeline goals."
+          className="rounded-lg border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-[#0f2438] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0f2438]"
         />
       </label>
 
@@ -109,12 +113,12 @@ export function ContactForm() {
         </label>
       </div>
 
-      <div className="flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-4 sm:flex-row sm:items-center">
-        <p className="max-w-sm text-xs leading-relaxed text-slate-400">
-          All submissions are protected under mutual non-disclosure and SOC2 data privacy guidelines.
+      <div className="flex flex-col items-start justify-between gap-4 border-t border-slate-100 pt-4 sm:flex-row sm:items-center">
+        <p className="max-w-sm text-xs leading-relaxed text-slate-500">
+          All consultations and inquiries are protected under strict mutual confidentiality and non-disclosure standards.
         </p>
         <button
-          className="inline-flex min-h-[48px] items-center justify-center gap-3 rounded-md bg-[#ff6b00] px-7 font-display text-xs font-bold text-black shadow-[0_0_20px_rgba(255,107,0,0.25)] transition-all hover:bg-[#ff8c33] disabled:opacity-50"
+          className="inline-flex min-h-[48px] items-center justify-center gap-3 rounded-lg bg-[#0f2438] px-7 font-display text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#183652] hover:shadow-md disabled:opacity-50"
           type="submit"
           disabled={status.kind === "sending"}
         >
@@ -125,12 +129,12 @@ export function ContactForm() {
 
       {status.kind !== "idle" && (
         <div
-          className={`rounded-md p-3.5 text-xs font-semibold ${
+          className={`rounded-lg p-4 text-xs font-medium ${
             status.kind === "success"
-              ? "border border-[#22c55e] bg-[#22c55e]/15 text-[#22c55e]"
+              ? "border border-emerald-300 bg-emerald-50 text-emerald-800"
               : status.kind === "error"
-              ? "border border-[#ef4444] bg-[#ef4444]/15 text-[#ef4444]"
-              : "border border-[#00f0ff] bg-[#00f0ff]/15 text-[#00f0ff]"
+              ? "border border-rose-300 bg-rose-50 text-rose-800"
+              : "border border-slate-300 bg-slate-100 text-slate-700"
           }`}
           role="status"
           aria-live="polite"

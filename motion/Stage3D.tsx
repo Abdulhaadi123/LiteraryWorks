@@ -83,7 +83,7 @@ export function Stage3D({ scene, eyebrow, title, description, steps, labels }: S
         const isVisible = !point.behind && (currentScene.isLabelVisible?.(anchor.key) ?? true);
 
         label.style.opacity = isVisible ? "1" : "0";
-        label.style.transform = isVisible ? "translateX(0)" : "translateX(16px)";
+        label.style.transform = isVisible ? "translateX(0)" : "translateX(12px)";
         line.style.opacity = isVisible ? "1" : "0";
         dot.style.opacity = isVisible ? "1" : "0";
 
@@ -212,64 +212,64 @@ export function Stage3D({ scene, eyebrow, title, description, steps, labels }: S
   return (
     <section
       ref={sectionRef}
-      className="experience-runway"
+      className="experience-runway bg-[#f8fafc] border-t border-b border-slate-200"
       style={{ "--scene-vh": "340svh" } as CSSProperties}
       data-pace
-      aria-label="Interactive 3D Architectural Digital Twin and AI Systems Tower"
+      aria-label="Interactive 3D Architectural Systems Model"
     >
       <div className="experience-stage">
         <div className="experience-grid mx-auto grid min-h-[860px] max-w-[1400px] grid-cols-1 items-center gap-8 px-6 py-20 lg:grid-cols-[minmax(360px,0.4fr)_minmax(0,0.6fr)] lg:gap-12 lg:px-8">
           <div className="relative z-10 py-6">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#00f0ff]/30 bg-[#00f0ff]/10 px-3.5 py-1 font-mono text-[10px] tracking-wider text-[#00f0ff]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#00f0ff] shadow-[0_0_8px_#00f0ff]" />
-              <span>LIVE 3D DIGITAL TWIN · EXPLODED CAD VIEW</span>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#c29b61]" />
+              <span>ARCHITECTURAL SCALE MODEL · EXPLODED VIEW</span>
             </div>
 
-            <p className="inline-flex items-center gap-2.5 font-mono text-[11px] font-semibold tracking-wider text-[#00f0ff] uppercase">
-              <span className="h-1.5 w-1.5 rotate-45 bg-[#00f0ff]" />
+            <p className="inline-flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-slate-500">
+              <span className="h-1.5 w-1.5 rotate-45 bg-[#c29b61]" />
               {eyebrow}
             </p>
 
-            <h2 className="mt-3 mb-5 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">
+            <h2 className="mt-3 mb-5 font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-5xl">
               {title}
             </h2>
 
-            <p className="mb-8 max-w-lg text-base leading-relaxed text-slate-300">
+            <p className="mb-8 max-w-lg text-base leading-relaxed text-slate-600">
               {description}
             </p>
 
-            <div className="border-t border-white/10">
+            <div className="border-t border-slate-200">
               {steps.map((step, i) => (
                 <div
-                  className={`flex gap-4 border-b border-white/10 py-4 transition-opacity duration-300 ${
+                  className={`flex gap-4 border-b border-slate-200 py-4 transition-opacity duration-300 ${
                     i === activeStep ? "opacity-100" : "opacity-40"
                   }`}
                   key={step.title}
                 >
-                  <div className="font-mono text-xs font-bold text-[#ff6b00]">0{i + 1}</div>
+                  <div className="font-mono text-xs font-bold text-[#b48d55]">0{i + 1}</div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">{step.title}</h3>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-400">{step.text}</p>
+                    <h3 className="text-sm font-bold text-slate-900">{step.title}</h3>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-600">{step.text}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             <div className="mt-6">
-              <div className="h-0.5 w-full bg-white/15 overflow-hidden" aria-hidden="true">
+              <div className="h-1 w-full bg-slate-200 overflow-hidden rounded-full" aria-hidden="true">
                 <span
-                  className="block h-full origin-left bg-gradient-to-r from-[#00f0ff] to-[#ff6b00]"
+                  className="block h-full origin-left bg-[#0f2438] rounded-full transition-transform"
                   style={{ transform: `scaleX(${progress})` }}
                 />
               </div>
-              <div className="mt-2 flex justify-between font-mono text-[9px] text-slate-500">
+              <div className="mt-2 flex justify-between font-mono text-[10px] text-slate-500">
                 <span>01 Substructure</span>
                 <span>03 Infrastructure</span>
                 <span>06 Governance</span>
               </div>
             </div>
 
-            <p className="mt-6 font-mono text-[10px] tracking-widest text-[#00f0ff]">
+            <p className="mt-6 font-mono text-[11px] tracking-wider text-slate-600">
               SCROLL TO INSPECT ARCHITECTURAL SUBSYSTEMS <span aria-hidden="true">↓</span>
             </p>
           </div>
@@ -284,19 +284,12 @@ export function Stage3D({ scene, eyebrow, title, description, steps, labels }: S
                       data-model-line={label.key}
                       points=""
                       fill="none"
-                      stroke="url(#lineGradient)"
+                      stroke="#94a3b8"
                       strokeWidth="1.2"
-                      strokeDasharray="4 2"
                     />
-                    <circle data-model-dot={label.key} r="4" cx="0" cy="0" fill="#00f0ff" />
+                    <circle data-model-dot={label.key} r="3.5" cx="0" cy="0" fill="#0f2438" />
                   </g>
                 ))}
-                <defs>
-                  <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.8" />
-                    <stop offset="100%" stopColor="#ff6b00" stopOpacity="0.9" />
-                  </linearGradient>
-                </defs>
               </svg>
 
               {labels.map((label, i) => (
@@ -306,20 +299,19 @@ export function Stage3D({ scene, eyebrow, title, description, steps, labels }: S
                   className="model-label"
                   style={{ top: `${8 + i * 14.5}%` }}
                 >
-                  <div className="rounded-md border border-[#00f0ff]/40 bg-[#0b1220]/90 p-3 shadow-xl backdrop-blur-md">
+                  <div className="rounded-lg border border-slate-200 bg-white/95 p-3 shadow-md backdrop-blur-sm">
                     <div className="mb-1 flex items-center justify-between">
-                      <span className="font-mono text-[9px] font-semibold tracking-wider text-[#00f0ff]">{label.detail}</span>
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#ff6b00]" />
+                      <span className="font-mono text-[10px] font-semibold tracking-wider text-slate-500">{label.detail}</span>
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#c29b61]" />
                     </div>
-                    <b className="block text-xs font-bold text-white">{label.label}</b>
+                    <b className="block text-xs font-bold text-slate-900">{label.label}</b>
                   </div>
                 </div>
               ))}
 
-              <div className="absolute bottom-3 left-3 z-10 flex gap-4 font-mono text-[9px] tracking-wider text-slate-500">
-                <span>SYSTEM ID: LW-TWIN-2026</span>
-                <span>STATUS: ACTIVE SCRUB</span>
-                <span>BIM / AI: SYNCED</span>
+              <div className="absolute bottom-3 left-3 z-10 flex gap-4 font-mono text-[10px] tracking-wider text-slate-500">
+                <span>MODEL ID: LW-STUDY-06</span>
+                <span>STATUS: ARCHITECTURAL EXPLODED VIEW</span>
               </div>
             </div>
           </div>

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#060911",
+  themeColor: "#ffffff",
 };
 
 // Skill Rule 3: The rule that matters most: motion is opt-in.

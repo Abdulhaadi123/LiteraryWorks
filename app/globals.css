@@ -1,25 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  --color-obsidian-950: #04070d;
-  --color-obsidian-900: #060911;
-  --color-obsidian-850: #080d19;
-  --color-obsidian-800: #0a101d;
-  --color-obsidian-750: #0c1424;
-  --color-obsidian-700: #0f172a;
-  --color-obsidian-600: #142038;
-  --color-obsidian-500: #1e2c48;
+  --color-canvas: #ffffff;
+  --color-canvas-subtle: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1f5f9;
+  
+  --color-ink-900: #0f172a;
+  --color-ink-800: #1e293b;
+  --color-ink-700: #334155;
+  --color-ink-600: #475569;
+  --color-ink-500: #64748b;
+  --color-ink-400: #94a3b8;
 
-  --color-amber-forge: #ff6b00;
-  --color-amber-forge-light: #ff8c33;
-  --color-amber-glow: rgba(255, 107, 0, 0.25);
+  --color-brand-navy: #0f2438;
+  --color-brand-navy-light: #1e3a5f;
+  --color-brand-gold: #c29b61;
+  --color-brand-gold-light: #e8d7b8;
+  --color-brand-accent: #2563eb;
 
-  --color-blueprint-cyan: #00f0ff;
-  --color-blueprint-light: #38bdf8;
-  --color-cyan-glow: rgba(0, 240, 255, 0.2);
-
-  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Cabinet Grotesk', 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
@@ -30,14 +31,14 @@
 
   html {
     scroll-behavior: smooth;
-    background-color: #060911;
-    color: #f8fafc;
+    background-color: #ffffff;
+    color: #0f172a;
   }
 
   body {
     margin: 0;
-    background-color: #060911;
-    color: #cbd5e1;
+    background-color: #ffffff;
+    color: #334155;
     font-family: var(--font-body);
     font-size: 15px;
     line-height: 1.65;
@@ -51,8 +52,8 @@
   }
 
   ::selection {
-    background: #ff6b00;
-    color: #000;
+    background: #0f2438;
+    color: #ffffff;
   }
 
   a {
@@ -65,20 +66,20 @@
   input:focus-visible,
   select:focus-visible,
   textarea:focus-visible {
-    outline: 2px solid #00f0ff;
-    outline-offset: 4px;
+    outline: 2px solid #0f2438;
+    outline-offset: 3px;
   }
 
   h1, h2, h3, h4 {
     font-family: var(--font-display);
-    color: #f8fafc;
-    letter-spacing: -0.035em;
+    color: #0f172a;
+    letter-spacing: -0.03em;
     font-weight: 700;
   }
 
   em {
     font-style: normal;
-    color: #ff6b00;
+    color: #b48c48;
     font-weight: inherit;
   }
 }
@@ -86,9 +87,10 @@
 /* Skill Rule 5: Pinned Scene Runway Mechanics */
 .experience-runway {
   position: relative;
-  background: radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.03) 0%, transparent 70%), #060911;
+  background: #f8fafc;
   overflow: clip;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .experience-stage {
@@ -108,7 +110,7 @@
 .stage-visual {
   position: relative;
   width: 100%;
-  height: min(720px, calc(100svh - 110px));
+  height: min(740px, calc(100svh - 110px));
   min-height: 520px;
 }
 
@@ -133,7 +135,7 @@
 .model-label {
   position: absolute;
   z-index: 3;
-  right: -20px;
+  right: -10px;
   width: 220px;
   pointer-events: none;
   opacity: 0;
@@ -147,8 +149,8 @@ html.motion .experience-runway:not(.xp-failed) {
 
 html.motion .experience-runway:not(.xp-failed) .experience-stage {
   position: sticky;
-  top: 78px;
-  height: calc(100svh - 78px);
+  top: 76px;
+  height: calc(100svh - 76px);
 }
 
 html.motion .experience-runway:not(.xp-failed) .experience-grid {

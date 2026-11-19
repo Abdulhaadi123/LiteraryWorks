@@ -5,39 +5,34 @@ export function ServiceCard({ service }: { service: Service }) {
   return (
     <Link
       href={`/services/${service.slug}`}
-      className="group relative flex flex-col justify-between rounded-xl border border-white/10 bg-[#0a101d] p-8 transition-all duration-300 hover:-translate-y-1 hover:border-[#00f0ff]/50 hover:bg-[#0f172a] hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_30px_rgba(0,240,255,0.08)]"
+      className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-8 transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl"
       data-reveal="rise"
     >
       <div>
         <div className="mb-6 flex items-center justify-between">
-          <span className="font-mono text-xs font-bold text-[#ff6b00]">
+          <span className="font-mono text-xs font-bold text-slate-400">
             {service.number} // 06
           </span>
-          {service.badge && (
-            <span className="rounded border border-[#00f0ff]/30 bg-[#00f0ff]/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-[#00f0ff]">
-              {service.badge}
-            </span>
-          )}
-          <span className="text-2xl text-slate-300 transition-transform duration-300 group-hover:scale-110" aria-hidden="true">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-xl text-slate-700 transition-colors group-hover:bg-[#0f2438] group-hover:text-white" aria-hidden="true">
             {service.icon}
-          </span>
+          </div>
         </div>
 
-        <div className="mb-2 font-mono text-[11px] tracking-wider text-[#00f0ff] uppercase">
+        <div className="mb-2 font-mono text-[11px] font-semibold tracking-wider text-[#b48d55] uppercase">
           {service.eyebrow}
         </div>
-        <h3 className="mb-3 font-display text-2xl font-bold tracking-tight text-white transition-colors group-hover:text-[#00f0ff]">
+        <h3 className="mb-3 font-display text-2xl font-bold tracking-tight text-slate-900 transition-colors group-hover:text-[#0f2438]">
           {service.title}
         </h3>
-        <p className="text-sm leading-relaxed text-slate-400">
+        <p className="text-sm leading-relaxed text-slate-600">
           {service.intro}
         </p>
       </div>
 
-      <div className="mt-8 border-t border-white/10 pt-5">
-        <span className="flex items-center justify-between font-display text-xs font-bold text-white transition-colors group-hover:text-[#ff6b00]">
-          <span>Explore Architecture &amp; Deliverables</span>
-          <span className="text-base text-[#ff6b00] transition-transform duration-200 group-hover:translate-x-1 group-hover:-translate-y-0.5" aria-hidden="true">
+      <div className="mt-8 border-t border-slate-100 pt-5">
+        <span className="flex items-center justify-between font-display text-xs font-bold text-slate-900 transition-colors group-hover:text-[#b48d55]">
+          <span>Explore Capability</span>
+          <span className="text-base transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true">
             ↗
           </span>
         </span>

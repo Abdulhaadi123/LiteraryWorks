@@ -1,147 +1,73 @@
-"use client";
-
-import { useState } from "react";
-
 export function BlueprintGraphic() {
-  const [activeLayer, setActiveLayer] = useState<"structural" | "mep" | "telemetry">("structural");
-
   return (
-    <div className="relative w-full overflow-hidden rounded-xl border border-[#00f0ff]/30 bg-[#060c18] shadow-[0_30px_70px_rgba(0,0,0,0.7)]" aria-label="Interactive architectural CAD schematic and digital twin visualization">
-      {/* HUD Header */}
-      <div className="flex h-12 items-center justify-between border-b border-white/10 bg-[#080e1a]/95 px-5">
-        <div className="flex items-center gap-2 font-mono text-[11px] font-bold text-[#00f0ff]">
-          <span>📐</span>
-          <span>BIM / CAD DIGITAL SCHEMATIC · PROTOTYPE 04</span>
-        </div>
-        <div className="flex gap-1.5">
-          <button
-            type="button"
-            className={`rounded px-2.5 py-1 font-mono text-[10px] font-semibold transition-all ${
-              activeLayer === "structural"
-                ? "border border-[#00f0ff]/40 bg-[#00f0ff]/15 text-[#00f0ff]"
-                : "text-slate-400 hover:text-white"
-            }`}
-            onClick={() => setActiveLayer("structural")}
-          >
-            Structural Frame
-          </button>
-          <button
-            type="button"
-            className={`rounded px-2.5 py-1 font-mono text-[10px] font-semibold transition-all ${
-              activeLayer === "mep"
-                ? "border border-[#00f0ff]/40 bg-[#00f0ff]/15 text-[#00f0ff]"
-                : "text-slate-400 hover:text-white"
-            }`}
-            onClick={() => setActiveLayer("mep")}
-          >
-            MEP Conduits
-          </button>
-          <button
-            type="button"
-            className={`rounded px-2.5 py-1 font-mono text-[10px] font-semibold transition-all ${
-              activeLayer === "telemetry"
-                ? "border border-[#00f0ff]/40 bg-[#00f0ff]/15 text-[#00f0ff]"
-                : "text-slate-400 hover:text-white"
-            }`}
-            onClick={() => setActiveLayer("telemetry")}
-          >
-            IoT Telemetry
-          </button>
-        </div>
+    <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-[#0f2438] p-6 shadow-xl" aria-label="Illustration of an architectural building and construction planning grid">
+      <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 font-mono text-[11px] text-slate-300">
+        <span>ARCHITECTURAL &amp; MEP COORDINATION</span>
+        <span className="text-[#e8d7b8]">DIGITAL PRECISION</span>
       </div>
 
-      {/* SVG Canvas */}
       <svg
-        viewBox="0 0 640 460"
+        viewBox="0 0 580 440"
         role="img"
-        aria-label="Isometric CAD model with structural framing and laser scan lines"
+        aria-label="Isometric architectural building design"
         xmlns="http://www.w3.org/2000/svg"
         className="h-auto w-full"
       >
         <defs>
-          <pattern id="cad-grid" width="30" height="30" patternUnits="userSpaceOnUse">
-            <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(0, 240, 255, 0.12)" strokeWidth="0.75" />
+          <pattern id="bp-grid" width="26" height="26" patternUnits="userSpaceOnUse">
+            <path d="M 26 0 L 0 0 0 26" fill="none" stroke="#38546d" strokeWidth="0.6" opacity="0.3" />
           </pattern>
         </defs>
 
-        <rect x="0" y="0" width="640" height="460" fill="url(#cad-grid)" />
+        <rect x="0" y="0" width="580" height="440" fill="url(#bp-grid)" />
 
-        {/* Base Foundation Slab Isometric Grid */}
-        <g fill="none" stroke="#1d3b5c" strokeWidth="1.2">
-          <path d="M70 330 L320 440 L570 300 L320 190 Z" />
-          <path d="M110 334 L320 422 L530 300" strokeDasharray="3 3" />
-          <path d="M150 338 L320 404 L490 300" strokeDasharray="3 3" />
-          <path d="M70 330 V350 L320 460 L570 320 V300" />
-          <path d="M320 440 V460" />
+        {/* Foundation Grid */}
+        <g fill="none" stroke="#52728c" strokeWidth="1.1" opacity="0.7">
+          <path d="M80 300 278 400 510 270 311 170 80 300Z" />
+          <path d="M105 303 280 388 484 270" />
+          <path d="M126 306 279 380 465 270" />
+          <path d="M123 336 277 415 510 288" />
+          <path d="M277 415V388" />
+          <path d="M80 300v20l43 18" />
         </g>
 
-        {/* 3D Structural Frame */}
-        <g fill="#0c182c" fillOpacity="0.8" stroke="#38bdf8" strokeWidth="1.8" strokeLinejoin="round">
-          <path d="M190 200 L320 130 L450 200 L320 270 Z" fill="#0f223d" />
-          <path d="M190 200 L320 270 V380 L190 310 Z" fill="#0b1b33" />
-          <path d="M320 270 L450 200 V310 L320 380 Z" fill="#081426" />
+        {/* Isometric Building Volume */}
+        <g strokeLinejoin="round" stroke="#e2e8f0" strokeWidth="2">
+          <path d="m147 145 159-85 154 84-158 87Z" fill="#ffffff" />
+          <path d="m147 145 155 86v138L147 285Z" fill="#e2e8f0" />
+          <path d="m302 231 158-87v138l-158 87Z" fill="#cbd5e1" />
         </g>
 
-        {/* Diagonal Cross-Bracing Trusses */}
-        {activeLayer === "structural" && (
-          <g stroke="#ff6b00" strokeWidth="1.5" strokeDasharray="4 2">
-            <line x1="190" y1="200" x2="320" y2="380" />
-            <line x1="190" y1="310" x2="320" y2="270" />
-            <line x1="320" y1="270" x2="450" y2="310" />
-            <line x1="320" y1="380" x2="450" y2="200" />
-          </g>
-        )}
+        {/* Structural Divisions */}
+        <g fill="none" stroke="#64748b" strokeWidth="1.4">
+          <path d="M147 185 302 271 460 184M147 228 302 313 460 225M147 265l155 86 158-87" />
+          <path d="M191 168v139M244 197v140M354 203v140M406 173v140" />
+        </g>
 
-        {/* MEP Conduit Lines */}
-        {activeLayer === "mep" && (
-          <g fill="none" stroke="#00f0ff" strokeWidth="2.5">
-            <path d="M130 360 L230 310 L320 350 L420 300 L510 340" />
-            <path d="M230 310 V220 L320 170 V120" />
-            <circle cx="230" cy="310" r="5" fill="#ff6b00" />
-            <circle cx="320" cy="350" r="5" fill="#00f0ff" />
-            <circle cx="420" cy="300" r="5" fill="#ff6b00" />
-          </g>
-        )}
+        {/* Highlight Accents */}
+        <path d="m302 231 158-87" stroke="#c29b61" strokeWidth="3" />
+        <path d="M302 231v138" stroke="#c29b61" strokeWidth="3" />
 
-        {/* IoT Telemetry Nodes */}
-        {activeLayer === "telemetry" && (
-          <g>
-            <circle cx="320" cy="130" r="14" fill="rgba(0, 240, 255, 0.2)" stroke="#00f0ff" strokeWidth="1.5" />
-            <circle cx="320" cy="130" r="4" fill="#00f0ff" />
-            <circle cx="190" cy="200" r="12" fill="rgba(255, 107, 0, 0.2)" stroke="#ff6b00" strokeWidth="1.5" />
-            <circle cx="190" cy="200" r="4" fill="#ff6b00" />
-            <circle cx="450" cy="200" r="12" fill="rgba(34, 197, 94, 0.2)" stroke="#22c55e" strokeWidth="1.5" />
-            <circle cx="450" cy="200" r="4" fill="#22c55e" />
-          </g>
-        )}
+        {/* Drafting Callouts */}
+        <g stroke="#c29b61" strokeWidth="1" fill="none">
+          <path d="M334 80 422 35h99" />
+          <path d="M390 315l95 44h55" />
+        </g>
 
-        {/* Technical Callout Badges */}
-        <g fill="#f8fafc" fontFamily="monospace" fontSize="10">
-          <rect x="40" y="145" width="120" height="22" rx="3" fill="#08101e" stroke="#38bdf8" strokeWidth="0.8" />
-          <text x="50" y="160" fill="#38bdf8">ELEV: +142.50 FT</text>
+        <g fill="#c29b61">
+          <circle cx="334" cy="80" r="4" />
+          <circle cx="390" cy="315" r="4" />
+        </g>
 
-          <rect x="475" y="170" width="130" height="22" rx="3" fill="#08101e" stroke="#ff6b00" strokeWidth="0.8" />
-          <text x="485" y="185" fill="#ff6b00">BIM CLASH: 0 DETECTED</text>
-
-          <rect x="235" y="425" width="170" height="22" rx="3" fill="#08101e" stroke="#22c55e" strokeWidth="0.8" />
-          <text x="245" y="440" fill="#22c55e">FOUNDATION: REINFORCED</text>
+        <g fill="#e8d7b8" fontFamily="sans-serif" fontSize="11" letterSpacing="1.5">
+          <text x="422" y="27">STRUCTURE / 01</text>
+          <text x="477" y="350">SYSTEMS / 02</text>
         </g>
       </svg>
 
-      {/* Blueprint Footer */}
-      <div className="flex items-center justify-between border-t border-white/10 bg-[#080e1a]/95 px-5 py-3 font-mono text-[10px]">
-        <div>
-          <span className="block text-slate-500">COORDINATES</span>
-          <strong className="text-slate-300">37.7749° N, 122.4194° W</strong>
-        </div>
-        <div>
-          <span className="block text-slate-500">TOLERANCE</span>
-          <strong className="text-[#00f0ff]">±0.012 INCHES (LASER VERIFIED)</strong>
-        </div>
-        <div>
-          <span className="block text-slate-500">COMPLIANCE</span>
-          <strong className="text-[#ff6b00]">AEC / PROCORE READY</strong>
-        </div>
+      <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
+        <span>PHYSICAL PROJECTS</span>
+        <span>DIGITAL PRECISION</span>
       </div>
     </div>
   );
