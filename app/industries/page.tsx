@@ -2,10 +2,111 @@ import Link from "next/link";
 import { industries } from "@/lib/content";
 import { pageMeta } from "@/lib/seo";
 
-export const metadata = pageMeta("Industries", "Discover how LiteraryWorks approaches AI, software, automation and technology solutions for industries across the US.", "/industries");
+export const metadata = pageMeta(
+  "Target Industries & Sectors",
+  "How LiteraryWorks engineers specialized software, AI systems, and ConTech workflows across commercial construction, healthcare, logistics, and enterprise SaaS.",
+  "/industries"
+);
 
 export default function IndustriesPage() {
-  return <><section className="page-hero page-hero-navy"><div className="container"><p className="eyebrow gold-text"><span className="tiny-diamond"/> INDUSTRIES & OPPORTUNITIES</p><h1>Built around <em>your reality.</em></h1><p>An AI workflow for a service firm should not look like an operations platform for a logistics team. Context comes first.</p></div><span className="page-hero-decoration" aria-hidden="true">∞</span></section>
-  <section className="industries-section section-pad"><div className="container"><p className="section-intro-text">These are examples of where software and AI can remove friction. We do not assume every challenge needs the same tool — we learn the process, identify constraints and propose a practical solution.</p><div className="industry-list">{industries.map(industry=><div className="industry-row" key={industry.number}><span className="industry-number">{industry.number}</span><h3>{industry.name}</h3><p>{industry.detail}</p><span className="industry-arrow" aria-hidden="true">↗</span></div>)}</div></div></section>
-  <section className="service-bridge section-pad"><div className="container bridge-grid"><div><p className="eyebrow"><span className="tiny-diamond"/> YOUR INDUSTRY, YOUR CHALLENGE</p><h2>We make space for <em>specifics.</em></h2></div><div><p>Don&apos;t see your field listed? We work from business problems, not fixed industry templates.</p><Link className="button button-navy" href="/contact">Discuss your use case <span aria-hidden="true">↗</span></Link></div></div></section></>;
+  return (
+    <>
+      <section className="page-hero">
+        <div className="container">
+          <div className="telemetry-pill">
+            <span className="telemetry-live-dot" />
+            <span>US SECTOR SPECIALIZATION</span>
+          </div>
+          <p className="eyebrow gold-text">
+            <span className="tiny-diamond" /> INDUSTRY VERTICALS
+          </p>
+          <h1>
+            Engineered for the Realities of<br />
+            <em>Regulated &amp; Complex Sectors.</em>
+          </h1>
+          <p>
+            We don&apos;t apply one-size-fits-all templates. We study the operational constraints, compliance rules, and data flows of each industry to build systems that fit your team&apos;s daily reality.
+          </p>
+        </div>
+        <span className="page-hero-decoration" aria-hidden="true">
+          SEC
+        </span>
+      </section>
+
+      <section className="section-pad">
+        <div className="container">
+          <div className="section-head-split">
+            <div>
+              <p className="eyebrow">
+                <span className="tiny-diamond" /> 01 // SECTORS IN FOCUS
+              </p>
+              <h2>
+                Where our technology delivers<br />
+                <em>the highest operational leverage.</em>
+              </h2>
+            </div>
+            <div className="head-side">
+              <p>
+                From jobsite field coordination to high-security data rooms, discover how our custom architectures perform.
+              </p>
+            </div>
+          </div>
+
+          <div className="industry-list" style={{ marginTop: "48px" }}>
+            {industries.map((item) => (
+              <div className="industry-row" key={item.number}>
+                <span className="industry-number">{item.number}</span>
+                <div className="industry-content">
+                  <h3>{item.name}</h3>
+                  <span className="industry-tag">{item.tag}</span>
+                </div>
+                <p>{item.detail}</p>
+                <span className="industry-arrow" aria-hidden="true">
+                  ↗
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Construction Highlight */}
+          <div className="service-addon" style={{ marginTop: "64px" }}>
+            <div>
+              <p className="eyebrow gold-text">
+                <span className="tiny-diamond" /> FLAGSHIP SECTOR
+              </p>
+              <h3>Commercial Construction &amp; AEC Technology</h3>
+              <p>
+                Learn how our automated blueprint takeoffs, BIM conflict detection, and submittal automation pipelines are saving general contractors hundreds of hours per project.
+              </p>
+            </div>
+            <Link href="/construction" className="button button-amber">
+              View ConTech Overview <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Conversion Banner */}
+      <section className="service-bridge section-pad">
+        <div className="container bridge-grid">
+          <div>
+            <p className="eyebrow gold-text">
+              <span className="tiny-diamond" /> CUSTOM SYSTEM ARCHITECTURE
+            </p>
+            <h2>
+              Operating in a niche or <em>highly regulated market?</em>
+            </h2>
+          </div>
+          <div>
+            <p>
+              Let&apos;s discuss your industry&apos;s specific compliance, security, and integration challenges in a confidential engineering audit.
+            </p>
+            <Link href="/contact" className="button button-amber">
+              Schedule Industry Consultation <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+    </>
+  );
 }

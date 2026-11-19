@@ -1,25 +1,190 @@
 export type Service = {
- slug:string; number:string; eyebrow:string; title:string; intro:string; detail:string; deliverables:string[]; idealFor:string; icon:string;
+  slug: string;
+  number: string;
+  eyebrow: string;
+  title: string;
+  intro: string;
+  detail: string;
+  deliverables: string[];
+  idealFor: string;
+  icon: string;
+  badge?: string;
 };
-export const services:Service[]=[
- {slug:"ai-agents-automation",number:"01",eyebrow:"WORKFLOW INTELLIGENCE",title:"AI Agents & Automation",intro:"Move repetitive work off your team’s plate, with the right people still in control.",detail:"An agent should do more than generate text. We design assistants and automations that understand approved business knowledge, work across connected tools, and route consequential decisions to the right people. The goal is less friction, clearer ownership, and workflows your team can trust.",deliverables:["Map high-friction workflows and choose the right automation opportunities","Build retrieval-grounded copilots and task-focused agent workflows","Connect agents to CRM, ERP, support and internal tools with scoped permissions","Add human approvals, logs, evaluations and operational monitoring"],idealFor:"Operations, customer support, finance, internal enablement and knowledge-heavy teams",icon:"✳"},
- {slug:"custom-software-saas",number:"02",eyebrow:"DIGITAL PRODUCT ENGINEERING",title:"Custom Software & SaaS",intro:"Turn spreadsheets, scattered tools and complicated handoffs into one useful product.",detail:"When off-the-shelf software forces your business to work around it, a well-designed custom system can make the experience simpler. We help define, design and engineer portals, multi-tenant SaaS products, internal applications and operational dashboards around real user needs.",deliverables:["Product discovery, workflow mapping and scope definition","Responsive portals, dashboards and customer-facing SaaS experiences","Secure workspaces, permissions, billing integrations and API architecture","Testing, release pipelines and iterative feature delivery"],idealFor:"US businesses modernizing internal systems, and founders launching digital products",icon:"⌘"},
- {slug:"enterprise-ai-integrations",number:"03",eyebrow:"CONNECTED OPERATIONS",title:"Enterprise AI & Integrations",intro:"Give disconnected teams and systems a dependable way to work together.",detail:"Important information is often spread across applications, databases and documents. We build the connections that make it usable: approved data access, integration services, knowledge retrieval and AI-assisted workflows that preserve business rules and accountability.",deliverables:["API and event-driven integrations across existing software","Permission-aware knowledge search and retrieval","Reliable data pipelines, synchronization and workflow orchestration","Monitoring, error handling and implementation handover"],idealFor:"Teams working across CRMs, ERPs, document libraries, internal databases or legacy software",icon:"◇"},
- {slug:"cloud-platform-engineering",number:"04",eyebrow:"RELIABLE FOUNDATIONS",title:"Cloud & Platform Engineering",intro:"Modern infrastructure that keeps software reliable and growth manageable.",detail:"Good infrastructure disappears into the experience. We help plan and implement cloud architecture, deployment automation and observability, with an emphasis on reliability, security and practical operating costs rather than unnecessary complexity.",deliverables:["Cloud architecture assessments and migration plans","CI/CD, environment configuration and infrastructure automation","Logging, monitoring, reliability and cost visibility","Security-minded access and deployment patterns"],idealFor:"Organizations modernizing deployments, growing product teams and cloud-first businesses",icon:"▣"},
- {slug:"web-mobile-experiences",number:"05",eyebrow:"HUMAN-CENTERED PRODUCTS",title:"Web & Mobile Experiences",intro:"Make complex services feel simple through thoughtful design and engineering.",detail:"Your digital experience is where business strategy meets a real person. We build accessible interfaces, responsive websites and connected applications that help customers complete tasks confidently and teams get work done without friction.",deliverables:["UX discovery, prototypes and design systems","Responsive web applications and polished marketing experiences","Mobile interface engineering and backend integration","Accessibility, performance and quality assurance"],idealFor:"Brands, digital product teams and companies replacing outdated customer experiences",icon:"↗"},
- {slug:"ai-strategy-advisory",number:"06",eyebrow:"ROADMAP BEFORE BUILD",title:"AI Strategy & Advisory",intro:"Find the use cases worth pursuing before committing to expensive technology.",detail:"A successful AI initiative starts with a business problem, not a model choice. We assess workflows, data readiness, constraints and the human decisions involved. Then we prioritize feasible opportunities and define an accountable implementation roadmap.",deliverables:["Workflow and AI-readiness discovery","Use-case prioritization based on value, feasibility and risk","Solution architecture, data and security requirements","Prototype scope, success measures and implementation plan"],idealFor:"Leaders evaluating AI, operational modernization and new digital initiatives",icon:"◎"}
+
+export const services: Service[] = [
+  {
+    slug: "ai-agents-automation",
+    number: "01",
+    eyebrow: "AUTONOMOUS OPERATIONS",
+    title: "Enterprise AI Agents & Workflow Swarms",
+    intro: "Eliminate repetitive manual overhead with governed, multi-agent AI systems built for mission-critical reliability.",
+    detail: "We engineer production-grade AI agents that understand approved enterprise knowledge, execute across connected software stacks, and keep humans firmly in control for critical decision checkpoints. Built to handle complex multi-step workflows with deterministic accuracy, audit logs, and SOC2-ready governance.",
+    deliverables: [
+      "Workflow bottleneck discovery and automated efficiency modeling",
+      "RAG-grounded task agents and multi-agent coordination swarms",
+      "Bidirectional integrations with ERP, CRM, and internal databases",
+      "Human-in-the-loop review queues, safety guardrails, and audit logging",
+    ],
+    idealFor: "US enterprises seeking to automate knowledge-heavy operations, client onboarding, and back-office pipelines.",
+    icon: "⚡",
+    badge: "Core AI",
+  },
+  {
+    slug: "contech-built-environment",
+    number: "02",
+    eyebrow: "CONTECH & HEAVY ASSETS",
+    title: "Construction Intelligence & Digital Twins",
+    intro: "Modern software, automated takeoffs, and real-time coordination for commercial builders and engineering firms.",
+    detail: "Bridging the gap between physical job sites and digital precision. We build specialized solutions for commercial contractors, developers, and engineering firms—from AI-assisted blueprint takeoffs and BIM schedule sync to submittal workflows, field-to-office dashboards, and equipment telematics.",
+    deliverables: [
+      "AI-driven blueprint parsing, automated takeoffs, and cost-variance modeling",
+      "BIM and CAD data pipelines with real-time jobsite schedule tracking",
+      "Submittal, RFI, and change-order automated routing and risk flagging",
+      "Field mobile applications with offline-first synchronization",
+    ],
+    idealFor: "General contractors, commercial builders, specialty trades, AEC firms, and real estate developers.",
+    icon: "🏗️",
+    badge: "Industry Focus",
+  },
+  {
+    slug: "custom-software-saas",
+    number: "03",
+    eyebrow: "SCALABLE PLATFORMS",
+    title: "Custom Software & Cloud SaaS Platforms",
+    intro: "Replace fragile spreadsheets and disjointed tools with high-concurrency, purpose-built cloud platforms.",
+    detail: "When off-the-shelf software restricts your competitive edge, we architect tailored digital platforms engineered around your exact operational logic. From customer-facing SaaS products to high-security internal portals, our systems scale effortlessly under demanding enterprise workloads.",
+    deliverables: [
+      "Product architecture, UX design systems, and rapid prototyping",
+      "High-performance Next.js and Node/Python cloud applications",
+      "Multi-tenant architectures, role-based access control (RBAC), and billing",
+      "Automated CI/CD pipelines, unit/integration testing, and SLA monitoring",
+    ],
+    idealFor: "Enterprises scaling bespoke workflows and venture-backed founders launching category-defining platforms.",
+    icon: "⌘",
+    badge: "Engineering",
+  },
+  {
+    slug: "enterprise-ai-integrations",
+    number: "04",
+    eyebrow: "ECOSYSTEM CONNECTIVITY",
+    title: "Legacy Systems Integration & API Pipelines",
+    intro: "Unify siloed enterprise software, ERPs, and databases into a synchronized, intelligent data pipeline.",
+    detail: "Crucial business intelligence is often trapped in disconnected databases, legacy systems, and legacy desktop applications. We engineer robust, event-driven integration layers that connect modern AI capabilities directly into Procore, Autodesk, Salesforce, SAP, Oracle, and custom SQL backends.",
+    deliverables: [
+      "Secure REST and GraphQL API gateways with real-time webhooks",
+      "Bi-directional synchronization between legacy on-prem and cloud systems",
+      "Data ingestion pipelines with schema validation and automated cleansing",
+      "Encrypted data-at-rest and in-transit with comprehensive access logs",
+    ],
+    idealFor: "Organizations operating across fragmented ERP, CRM, document storage, and proprietary databases.",
+    icon: "⬡",
+    badge: "Integration",
+  },
+  {
+    slug: "cloud-platform-engineering",
+    number: "05",
+    eyebrow: "INFRASTRUCTURE & SECURITY",
+    title: "Cloud Infrastructure & Edge Systems",
+    intro: "Resilient cloud architecture designed for 99.99% uptime, strict compliance, and predictable operating costs.",
+    detail: "World-class software demands an unshakeable foundation. We architect and maintain AWS, Azure, and Google Cloud environments built for extreme fault tolerance, zero-downtime rolling deployments, automated disaster recovery, and strict US regulatory compliance.",
+    deliverables: [
+      "Infrastructure as Code (Terraform/Pulumi) and automated container orchestration",
+      "Zero-trust security perimeters, IAM hardening, and SOC2/HIPAA compliance",
+      "Real-time telemetry, APM monitoring, and automated incident recovery",
+      "FinOps optimization to eliminate cloud infrastructure waste",
+    ],
+    idealFor: "Companies needing hardened cloud environments, high availability, and airtight enterprise security.",
+    icon: "☁️",
+    badge: "Cloud / DevOps",
+  },
+  {
+    slug: "ai-strategy-advisory",
+    number: "06",
+    eyebrow: "STRATEGIC ROADMAPS",
+    title: "Technical AI Audits & Executive Roadmaps",
+    intro: "Validate feasibility, quantify ROI, and chart an accountable technical roadmap before writing a single line of code.",
+    detail: "Avoid expensive false starts and speculative tech experiments. Our technical advisory team conducts rigorous operational audits, identifying the exact bottlenecks where AI and automation deliver immediate margin expansion and measurable operational velocity.",
+    deliverables: [
+      "End-to-end operational audit and high-friction process mapping",
+      "Technical feasibility matrix and quantitative ROI estimation",
+      "Data readiness assessment, governance protocol, and risk profiling",
+      "Step-by-step phased execution blueprint with milestones and budget models",
+    ],
+    idealFor: "CEOs, CTOs, and Operations Executives preparing for strategic digital and AI modernization.",
+    icon: "◎",
+    badge: "Strategy",
+  },
 ];
-export const industries=[
- {number:"01",name:"Professional services",detail:"Knowledge search, client onboarding and approval-heavy operations."},
- {number:"02",name:"Healthcare & wellness",detail:"Care-adjacent workflows, secure portals and human-centered software."},
- {number:"03",name:"Logistics & operations",detail:"Order visibility, dispatch workflows and connected reporting."},
- {number:"04",name:"Real estate & construction",detail:"Project coordination, document flow, estimates and field systems."},
- {number:"05",name:"Retail & customer experience",detail:"Service workflows, customer journeys and operational integrations."},
- {number:"06",name:"SaaS & emerging ventures",detail:"New products, subscription platforms and foundations for scale."},
+
+export const industries = [
+  {
+    number: "01",
+    name: "Commercial Construction & AEC",
+    detail: "BIM integration, automated takeoffs, field reporting, submittal workflows, and clash detection.",
+    tag: "High Volume",
+  },
+  {
+    number: "02",
+    name: "Heavy Industry & Supply Chain",
+    detail: "Fleet telematics, inventory optimization, equipment predictive maintenance, and dispatch routing.",
+    tag: "Operational",
+  },
+  {
+    number: "03",
+    name: "Real Estate & Asset Management",
+    detail: "Lease document extraction, tenant portals, portfolio financial modeling, and facility digital twins.",
+    tag: "Commercial",
+  },
+  {
+    number: "04",
+    name: "Financial Services & Private Equity",
+    detail: "Deal flow automation, due-diligence data rooms, compliance audits, and portfolio telemetry.",
+    tag: "Security-Critical",
+  },
+  {
+    number: "05",
+    name: "Healthcare & Life Sciences",
+    detail: "HIPAA-compliant document intelligence, clinical encounter automation, and operational dashboards.",
+    tag: "Compliance",
+  },
+  {
+    number: "06",
+    name: "Enterprise Tech & Scale-ups",
+    detail: "Multi-tenant SaaS architecture, high-concurrency APIs, AI feature integration, and modern cloud DevOps.",
+    tag: "High Growth",
+  },
 ];
-export const approach=[
- {number:"01",title:"Understand",detail:"Map the workflow, the people involved, the bottlenecks and the outcome that matters."},
- {number:"02",title:"Architect",detail:"Agree on scope, data access, safeguards, trade-offs and a realistic delivery plan."},
- {number:"03",title:"Build",detail:"Design, implement and test in focused increments, with feedback throughout."},
- {number:"04",title:"Evolve",detail:"Support adoption, observe how the system performs and improve what needs attention."},
+
+export const approach = [
+  {
+    number: "01",
+    phase: "Discovery",
+    title: "Architectural Diagnosis",
+    detail: "We audit your operational reality, shadow workflows, and pinpoint exact points of data friction and manual waste.",
+  },
+  {
+    number: "02",
+    phase: "Design",
+    title: "Systems Blueprinting",
+    detail: "We define precise technical architecture, data schemas, security perimeters, and measurable KPI benchmarks.",
+  },
+  {
+    number: "03",
+    phase: "Execution",
+    title: "Precision Engineering",
+    detail: "We build and deploy production-ready systems in tight, milestone-driven sprints with continuous verification.",
+  },
+  {
+    number: "04",
+    phase: "Scale",
+    title: "Governance & Scaling",
+    detail: "We institute automated monitoring, human-in-the-loop oversight, team onboarding, and continuous optimization.",
+  },
+];
+
+export const metrics = [
+  { value: "$1.8B+", label: "Capital & Project Flow", note: "Supported across enterprise clients" },
+  { value: "42%", label: "Cycle Time Reduction", note: "Average operational velocity increase" },
+  { value: "99.98%", label: "System Availability", note: "Enterprise cloud SLA benchmark" },
+  { value: "100%", label: "US Market Focus", note: "Engineered to US regulatory & security standards" },
 ];

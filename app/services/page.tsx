@@ -3,10 +3,148 @@ import { services } from "@/lib/content";
 import { ServiceCard } from "@/components/ServiceCard";
 import { pageMeta } from "@/lib/seo";
 
-export const metadata = pageMeta("Technology Services", "Explore LiteraryWorks' AI agents, custom software, SaaS engineering, cloud platforms, enterprise integrations, digital experiences and AI strategy.", "/services");
+export const metadata = pageMeta(
+  "Technology & AI Capabilities",
+  "Explore LiteraryWorks' comprehensive technology engineering services: enterprise AI swarms, ConTech digital twins, custom SaaS, and cloud infrastructure for US organizations.",
+  "/services"
+);
 
 export default function ServicesPage() {
-  return <><section className="page-hero page-hero-navy"><div className="container"><p className="eyebrow gold-text"><span className="tiny-diamond"/> CAPABILITIES / 01 — 06</p><h1>The right technology.<br/><em>For the real problem.</em></h1><p>Explore the capabilities behind better workflows, connected data, purposeful software and responsible AI adoption.</p></div><span className="page-hero-decoration" aria-hidden="true">06</span></section>
-  <section className="section-pad services-page-section"><div className="container"><div className="services-grid">{services.map(service=><ServiceCard key={service.slug} service={service}/>)}</div><div className="service-addon"><div><p className="eyebrow"><span className="tiny-diamond"/> COMPLEMENTARY EXPERTISE / 07</p><h3>Construction & <em>Built Environment</em></h3><p>Project planning, construction coordination and technology for the built world — scoped separately from our core digital services and subject to applicable licensing and availability.</p></div><Link href="/construction" className="button button-navy">Explore construction <span aria-hidden="true">↗</span></Link></div></div></section>
-  <section className="service-bridge section-pad"><div className="container bridge-grid"><div><p className="eyebrow"><span className="tiny-diamond"/> NOT SURE WHERE TO START?</p><h2>A good partnership begins with <em>the right question.</em></h2></div><div><p>Tell us what is slowing you down or what you want to make possible. We&apos;ll help frame the challenge, identify opportunities and decide what comes next.</p><Link href="/contact" className="button button-navy">Discuss your project <span aria-hidden="true">↗</span></Link></div></div></section></>;
+  return (
+    <>
+      <section className="page-hero">
+        <div className="container">
+          <div className="telemetry-pill">
+            <span className="telemetry-live-dot" />
+            <span>FULL-STACK ENGINEERING CAPABILITIES</span>
+          </div>
+          <p className="eyebrow gold-text">
+            <span className="tiny-diamond" /> CORE EXPERTISE
+          </p>
+          <h1>
+            Engineered for Precision.<br />
+            <em>Built for Measurable Growth.</em>
+          </h1>
+          <p>
+            We partner with forward-thinking US enterprises, commercial builders, and high-growth operators to design, build, and deploy high-reliability software, autonomous AI systems, and connected digital platforms.
+          </p>
+        </div>
+        <span className="page-hero-decoration" aria-hidden="true">
+          SYS
+        </span>
+      </section>
+
+      <section className="section-pad services-page-section">
+        <div className="container">
+          <div className="section-head-split">
+            <div>
+              <p className="eyebrow">
+                <span className="tiny-diamond" /> 01 // CAPABILITIES CATALOG
+              </p>
+              <h2>
+                Six Specialized Divisions.<br />
+                <em>One Integrated Partner.</em>
+              </h2>
+            </div>
+            <div className="head-side">
+              <p>
+                Every engagement blends strategic architecture, rigorous engineering, and long-term operational support.
+              </p>
+            </div>
+          </div>
+
+          <div className="services-grid" style={{ marginTop: "48px" }}>
+            {services.map((service) => (
+              <ServiceCard service={service} key={service.slug} />
+            ))}
+          </div>
+
+          {/* Construction Feature Callout Card */}
+          <div className="service-addon" style={{ marginTop: "64px" }}>
+            <div>
+              <p className="eyebrow gold-text">
+                <span className="tiny-diamond" /> SPECIALIZED DIVISION
+              </p>
+              <h3>Construction Technology &amp; Heavy Asset Intelligence</h3>
+              <p>
+                Looking specifically for automated blueprint takeoffs, BIM coordination, field reporting, or subcontractor workflow management? Explore our dedicated ConTech systems.
+              </p>
+            </div>
+            <Link href="/construction" className="button button-amber">
+              Explore ConTech Division <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Engineering Standards */}
+      <section className="outcome-section">
+        <div className="container outcome-grid">
+          <div>
+            <p className="eyebrow gold-text">
+              <span className="tiny-diamond" /> 02 // TECHNICAL ASSURANCE
+            </p>
+            <h2>
+              The standards we build by.<br />
+              <em>Zero compromise on quality.</em>
+            </h2>
+          </div>
+
+          <div className="outcome-points">
+            <article>
+              <span>01</span>
+              <div>
+                <h3>Deterministic AI with Human Guardrails</h3>
+                <p>
+                  We never deploy &ldquo;black box&rdquo; autonomous agents without structured audit logs, verifiable source citations, and enforceable human approval gates for critical actions.
+                </p>
+              </div>
+            </article>
+
+            <article>
+              <span>02</span>
+              <div>
+                <h3>US Enterprise Compliance &amp; Security</h3>
+                <p>
+                  Zero-trust network architecture, encrypted data at rest/transit, and SOC2 / HIPAA / ISO 27001 readiness embedded into system foundations from day one.
+                </p>
+              </div>
+            </article>
+
+            <article>
+              <span>03</span>
+              <div>
+                <h3>Production-Grade Scalability &amp; Observability</h3>
+                <p>
+                  Containerized architectures, automated CI/CD deployments, real-time APM telemetry, and 99.98% SLA benchmarks designed to handle demanding enterprise load.
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* Consultation Banner */}
+      <section className="service-bridge section-pad">
+        <div className="container bridge-grid">
+          <div>
+            <p className="eyebrow gold-text">
+              <span className="tiny-diamond" /> ARCHITECTURAL AUDIT
+            </p>
+            <h2>
+              Not sure which solution <em>fits your operational reality?</em>
+            </h2>
+          </div>
+          <div>
+            <p>
+              We offer a complimentary 1-hour systems audit to analyze your existing workflows and identify your highest-leverage digital opportunities.
+            </p>
+            <Link href="/contact" className="button button-amber">
+              Book Architecture Audit <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+    </>
+  );
 }
