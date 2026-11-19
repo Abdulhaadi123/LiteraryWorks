@@ -56,3 +56,14 @@ Without these, the endpoint responds with HTTP 503 and a transparent message: th
 - [ ] Revisit US state-specific disclosure requirements with counsel.
 
 This is the first implementation, not a live production deployment.
+
+## Editorial redesign (November 2026)
+
+The layout, typography, service copy, brand mark, responsive navigation, contact presentation, construction section, and homepage have been redesigned around a clean light-background visual hierarchy. The hero contains an **illustrative** workflow diagram, not fabricated live customer data. The scroll-driven Three.js scene is now a six-level procedural architecture with anchored HTML callouts and SVG leader lines; each layer builds and separates based only on scroll progress. A separate semantic architecture schematic is available without JavaScript, with reduced motion, on small screens, or when WebGL fails.
+
+### Verification
+
+- `npm run typecheck` and `npm run build` must succeed in a network-enabled Node 22 environment.
+- `.github/workflows/production-verify.yml` runs both commands and uses Playwright to check routes, responsive overflow, navigation, WebGL fallback behavior, reduced-motion and no-JS accessibility. Screenshots are uploaded as a workflow artifact.
+- Local preview screenshots in the design process are **static-markup tests**, not proof of a Next.js production build or WebGL animation performance.
+- Construction work must not be represented as available in a specific US state until licensing, partnerships, contracts and insurance have been verified.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import {usePathname} from "next/navigation";
 import { gsap, ScrollTrigger, loadMotion, motionOn } from "./loadMotion";
 
 function initDeclarativeAnimations(): () => void {
@@ -52,6 +53,7 @@ function initDeclarativeAnimations(): () => void {
 }
 
 export function MotionEngine() {
+  const pathname = usePathname();
   useEffect(() => {
     if (!motionOn()) return;
     let cleanup: (() => void) | undefined;
@@ -68,6 +70,6 @@ export function MotionEngine() {
     };
     window.addEventListener("resize", onResize);
     return () => { disposed = true; cleanup?.(); window.removeEventListener("resize", onResize); };
-  }, []);
+  }, [pathname]);
   return null;
 }

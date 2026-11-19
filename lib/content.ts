@@ -1,96 +1,25 @@
 export type Service = {
-  slug: string;
-  number: string;
-  eyebrow: string;
-  title: string;
-  intro: string;
-  detail: string;
-  deliverables: string[];
-  idealFor: string;
-  icon: string;
+ slug:string; number:string; eyebrow:string; title:string; intro:string; detail:string; deliverables:string[]; idealFor:string; icon:string;
 };
-
-export const services: Service[] = [
-  {
-    slug: "ai-agents-automation",
-    number: "01",
-    eyebrow: "INTELLIGENT SYSTEMS",
-    title: "AI Agents & Automation",
-    intro: "Put intelligent workflows to work across the repetitive and the complex.",
-    detail: "From internal copilots to task-focused AI agents, we design systems that connect to your tools, respect your data, and keep people in control of consequential decisions.",
-    deliverables: ["Workflow discovery and automation maps", "Knowledge-grounded assistants and agent workflows", "Human approval steps, logs and quality controls", "Integration with your existing business systems"],
-    idealFor: "Operations, support, finance and teams with high-volume processes",
-    icon: "✳"
-  },
-  {
-    slug: "custom-software-saas",
-    number: "02",
-    eyebrow: "PRODUCT ENGINEERING",
-    title: "Custom Software & SaaS",
-    intro: "Software built around the way your business actually works.",
-    detail: "We help shape, architect and deliver custom platforms: customer portals, operational dashboards, multi-tenant products and complex internal applications.",
-    deliverables: ["Product strategy and technical discovery", "API-first web platforms and SaaS applications", "Authentication, roles and organization workspaces", "Testing, deployment and iterative delivery"],
-    idealFor: "Founders, growth companies and established organizations",
-    icon: "⌘"
-  },
-  {
-    slug: "enterprise-ai-integrations",
-    number: "03",
-    eyebrow: "CONNECTED ENTERPRISE",
-    title: "Enterprise AI & Integrations",
-    intro: "Bring your data, software and teams into one coherent system.",
-    detail: "Unlock useful intelligence from disconnected tools through thoughtful integration, secure data access and clear operational guardrails.",
-    deliverables: ["API integrations and workflow orchestration", "Search and retrieval across approved knowledge", "Data pipelines and permission-aware information access", "Monitoring, evaluation and operational handover"],
-    idealFor: "Teams operating across CRMs, ERPs, databases and legacy applications",
-    icon: "◇"
-  },
-  {
-    slug: "cloud-platform-engineering",
-    number: "04",
-    eyebrow: "FOUNDATIONS THAT SCALE",
-    title: "Cloud & Platform Engineering",
-    intro: "Reliable infrastructure underneath your next move.",
-    detail: "We design cloud-native foundations, modernize existing deployments and put observability, security and maintainability at the center of platform decisions.",
-    deliverables: ["Cloud architecture and migration planning", "CI/CD and environment automation", "Monitoring, reliability and cost visibility", "Security-minded deployment patterns"],
-    idealFor: "Teams preparing for growth, modernization or operational resilience",
-    icon: "▧"
-  },
-  {
-    slug: "web-mobile-experiences",
-    number: "05",
-    eyebrow: "DIGITAL EXPERIENCES",
-    title: "Web & Mobile Experiences",
-    intro: "Experiences that feel effortless and perform under pressure.",
-    detail: "From polished customer-facing websites to intuitive apps and internal interfaces, we combine thoughtful design with resilient front-end engineering.",
-    deliverables: ["UX strategy, wireframes and design systems", "Responsive websites and web applications", "Mobile application interfaces and back-end integration", "Accessibility and performance optimization"],
-    idealFor: "Brands and businesses that value clarity, usability and conversion",
-    icon: "↗"
-  },
-  {
-    slug: "ai-strategy-advisory",
-    number: "06",
-    eyebrow: "FROM POSSIBILITY TO PLAN",
-    title: "AI Strategy & Advisory",
-    intro: "Find the right use case before investing in the wrong technology.",
-    detail: "We assess business workflows, identify high-value opportunities and turn uncertainty into a practical, accountable technology roadmap.",
-    deliverables: ["AI readiness and workflow assessments", "Opportunity and risk prioritization", "Architecture and implementation roadmaps", "Prototype definition and measurable success criteria"],
-    idealFor: "Decision-makers exploring AI with a focus on tangible outcomes",
-    icon: "◎"
-  }
+export const services:Service[]=[
+ {slug:"ai-agents-automation",number:"01",eyebrow:"WORKFLOW INTELLIGENCE",title:"AI Agents & Automation",intro:"Move repetitive work off your team’s plate, with the right people still in control.",detail:"An agent should do more than generate text. We design assistants and automations that understand approved business knowledge, work across connected tools, and route consequential decisions to the right people. The goal is less friction, clearer ownership, and workflows your team can trust.",deliverables:["Map high-friction workflows and choose the right automation opportunities","Build retrieval-grounded copilots and task-focused agent workflows","Connect agents to CRM, ERP, support and internal tools with scoped permissions","Add human approvals, logs, evaluations and operational monitoring"],idealFor:"Operations, customer support, finance, internal enablement and knowledge-heavy teams",icon:"✳"},
+ {slug:"custom-software-saas",number:"02",eyebrow:"DIGITAL PRODUCT ENGINEERING",title:"Custom Software & SaaS",intro:"Turn spreadsheets, scattered tools and complicated handoffs into one useful product.",detail:"When off-the-shelf software forces your business to work around it, a well-designed custom system can make the experience simpler. We help define, design and engineer portals, multi-tenant SaaS products, internal applications and operational dashboards around real user needs.",deliverables:["Product discovery, workflow mapping and scope definition","Responsive portals, dashboards and customer-facing SaaS experiences","Secure workspaces, permissions, billing integrations and API architecture","Testing, release pipelines and iterative feature delivery"],idealFor:"US businesses modernizing internal systems, and founders launching digital products",icon:"⌘"},
+ {slug:"enterprise-ai-integrations",number:"03",eyebrow:"CONNECTED OPERATIONS",title:"Enterprise AI & Integrations",intro:"Give disconnected teams and systems a dependable way to work together.",detail:"Important information is often spread across applications, databases and documents. We build the connections that make it usable: approved data access, integration services, knowledge retrieval and AI-assisted workflows that preserve business rules and accountability.",deliverables:["API and event-driven integrations across existing software","Permission-aware knowledge search and retrieval","Reliable data pipelines, synchronization and workflow orchestration","Monitoring, error handling and implementation handover"],idealFor:"Teams working across CRMs, ERPs, document libraries, internal databases or legacy software",icon:"◇"},
+ {slug:"cloud-platform-engineering",number:"04",eyebrow:"RELIABLE FOUNDATIONS",title:"Cloud & Platform Engineering",intro:"Modern infrastructure that keeps software reliable and growth manageable.",detail:"Good infrastructure disappears into the experience. We help plan and implement cloud architecture, deployment automation and observability, with an emphasis on reliability, security and practical operating costs rather than unnecessary complexity.",deliverables:["Cloud architecture assessments and migration plans","CI/CD, environment configuration and infrastructure automation","Logging, monitoring, reliability and cost visibility","Security-minded access and deployment patterns"],idealFor:"Organizations modernizing deployments, growing product teams and cloud-first businesses",icon:"▣"},
+ {slug:"web-mobile-experiences",number:"05",eyebrow:"HUMAN-CENTERED PRODUCTS",title:"Web & Mobile Experiences",intro:"Make complex services feel simple through thoughtful design and engineering.",detail:"Your digital experience is where business strategy meets a real person. We build accessible interfaces, responsive websites and connected applications that help customers complete tasks confidently and teams get work done without friction.",deliverables:["UX discovery, prototypes and design systems","Responsive web applications and polished marketing experiences","Mobile interface engineering and backend integration","Accessibility, performance and quality assurance"],idealFor:"Brands, digital product teams and companies replacing outdated customer experiences",icon:"↗"},
+ {slug:"ai-strategy-advisory",number:"06",eyebrow:"ROADMAP BEFORE BUILD",title:"AI Strategy & Advisory",intro:"Find the use cases worth pursuing before committing to expensive technology.",detail:"A successful AI initiative starts with a business problem, not a model choice. We assess workflows, data readiness, constraints and the human decisions involved. Then we prioritize feasible opportunities and define an accountable implementation roadmap.",deliverables:["Workflow and AI-readiness discovery","Use-case prioritization based on value, feasibility and risk","Solution architecture, data and security requirements","Prototype scope, success measures and implementation plan"],idealFor:"Leaders evaluating AI, operational modernization and new digital initiatives",icon:"◎"}
 ];
-
-export const industries = [
-  { number: "01", name: "Professional services", detail: "Knowledge workflows, client portals and operations automation." },
-  { number: "02", name: "Healthcare & wellness", detail: "Thoughtful software experiences and human-centered automation." },
-  { number: "03", name: "Logistics & operations", detail: "Connected workflows, visibility, dashboards and optimization." },
-  { number: "04", name: "Real estate & construction", detail: "Project software, documents, estimating and delivery coordination." },
-  { number: "05", name: "Retail & customer experience", detail: "Smarter service journeys and connected digital channels." },
-  { number: "06", name: "SaaS & emerging ventures", detail: "Launch-ready foundations and scalable product engineering." }
+export const industries=[
+ {number:"01",name:"Professional services",detail:"Knowledge search, client onboarding and approval-heavy operations."},
+ {number:"02",name:"Healthcare & wellness",detail:"Care-adjacent workflows, secure portals and human-centered software."},
+ {number:"03",name:"Logistics & operations",detail:"Order visibility, dispatch workflows and connected reporting."},
+ {number:"04",name:"Real estate & construction",detail:"Project coordination, document flow, estimates and field systems."},
+ {number:"05",name:"Retail & customer experience",detail:"Service workflows, customer journeys and operational integrations."},
+ {number:"06",name:"SaaS & emerging ventures",detail:"New products, subscription platforms and foundations for scale."},
 ];
-
-export const approach = [
-  { number: "01", title: "Understand", detail: "We start with your business problem, the people it affects, and the outcome that matters." },
-  { number: "02", title: "Architect", detail: "We define a clear scope, responsible data flows, design choices and delivery milestones." },
-  { number: "03", title: "Build", detail: "We deliver in focused increments, validate with users, and keep decisions visible." },
-  { number: "04", title: "Evolve", detail: "We measure what works, support adoption and improve the system as needs grow." }
+export const approach=[
+ {number:"01",title:"Understand",detail:"Map the workflow, the people involved, the bottlenecks and the outcome that matters."},
+ {number:"02",title:"Architect",detail:"Agree on scope, data access, safeguards, trade-offs and a realistic delivery plan."},
+ {number:"03",title:"Build",detail:"Design, implement and test in focused increments, with feedback throughout."},
+ {number:"04",title:"Evolve",detail:"Support adoption, observe how the system performs and improve what needs attention."},
 ];

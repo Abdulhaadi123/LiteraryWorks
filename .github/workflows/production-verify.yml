@@ -1,0 +1,49 @@
+name: Verify production build
+
+on:
+  push:
+    branches: [main, 'redesign/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  production-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Check TypeScript
+        run: npm run typecheck
+      - name: Create production build
+        run: npm run build
+      - name: Start production server
+        run: |
+          npm run start -- --hostname 127.0.0.1 --port 3000 > /tmp/literaryworks-server.log 2>&1 &
+          for i in {1..50}; do
+            curl --silent --fail http://127.0.0.1:3000/ -o /dev/null && exit 0
+            sleep 2
+          done
+          cat /tmp/literaryworks-server.log
+          exit 1
+      - name: Install screenshot test browser
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Verify desktop, mobile, fallback and routes
+        run: node scripts/verify-production.mjs
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: literaryworks-production-previews
+          path: previews/*.png
+          if-no-files-found: ignore
+          retention-days: 14
