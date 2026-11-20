@@ -1,147 +1,113 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { topics } from "@/lib/topics";
 
-type Status = { kind: "idle" | "sending" | "success" | "error"; message: string };
+type Status = "idle" | "sending" | "sent" | "error";
 
+/**
+ * The inquiry form. It posts to /api/inquiry, which validates the fields and sends the message with Resend. It only
+ * reports success once the email provider has accepted the message. The "website" field is a honeypot for bots.
+ */
 export function ContactForm() {
-  const [status, setStatus] = useState<Status>({ kind: "idle", message: "" });
+  const [status, setStatus] = useState<Status>("idle");
+  const [message, setMessage] = useState("");
+  const [topic, setTopic] = useState<string>(topics[0].value);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const fields = Object.fromEntries(new FormData(form));
-    setStatus({ kind: "sending", message: "Transmitting your engineering consultation inquiry…" });
+  // /contact?topic=construction-technology opens the form with that service chosen
+  useEffect(() => {
+    const key = new URLSearchParams(window.location.search).get("topic");
+    const hit = topics.find((t) => t.key === key);
+    if (hit) setTopic(hit.value);
+  }, []);
+
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (status === "sending") return;
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    setStatus("sending");
+    setMessage("");
     try {
-      const response = await fetch("/api/inquiry", {
+      const res = await fetch("/api/inquiry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(fields),
+        body: JSON.stringify({
+          name: data.get("name"),
+          email: data.get("email"),
+          company: data.get("company"),
+          interest: data.get("interest"),
+          message: data.get("message"),
+          website: data.get("website"),
+        }),
       });
-      const result: { message?: string } = await response.json();
-      if (!response.ok) throw new Error(result.message || "We couldn't send this inquiry right now.");
+      const json = (await res.json().catch(() => ({}))) as { message?: string };
+      if (!res.ok) {
+        setStatus("error");
+        setMessage(json.message || "Something went wrong. Please try again.");
+        return;
+      }
+      setStatus("sent");
+      setMessage("Thank you. We have your message and will reply by email.");
       form.reset();
-      setStatus({ kind: "success", message: "Inquiry received. A senior systems architect will respond within 24 business hours." });
-    } catch (error) {
-      setStatus({ kind: "error", message: error instanceof Error ? error.message : "An unexpected error occurred." });
+      setTopic(topics[0].value);
+    } catch {
+      setStatus("error");
+      setMessage("We could not reach the server. Please try again in a moment.");
     }
   }
 
   return (
-    <form
-      className="relative grid gap-6 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xl shadow-slate-100 sm:p-10"
-      onSubmit={handleSubmit}
-      noValidate={false}
-    >
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <label className="flex flex-col gap-2 text-xs font-semibold text-slate-700">
-          <span>Full name <strong className="text-[#b48d55]">*</strong></span>
-          <input
-            name="name"
-            required
-            minLength={2}
-            maxLength={120}
-            autoComplete="name"
-            placeholder="Sarah Jenkins"
-            className="rounded-lg border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-[#0f2438] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0f2438]"
-          />
-        </label>
-
-        <label className="flex flex-col gap-2 text-xs font-semibold text-slate-700">
-          <span>Work email <strong className="text-[#b48d55]">*</strong></span>
-          <input
-            name="email"
-            type="email"
-            required
-            maxLength={254}
-            autoComplete="email"
-            placeholder="sarah@enterprise.com"
-            className="rounded-lg border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-[#0f2438] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0f2438]"
-          />
-        </label>
-
-        <label className="flex flex-col gap-2 text-xs font-semibold text-slate-700">
-          <span>Company / Organization</span>
-          <input
-            name="company"
-            maxLength={120}
-            autoComplete="organization"
-            placeholder="Apex Builders / Corp (optional)"
-            className="rounded-lg border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-[#0f2438] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0f2438]"
-          />
-        </label>
-
-        <label className="flex flex-col gap-2 text-xs font-semibold text-slate-700">
-          <span>Primary Area of Interest <strong className="text-[#b48d55]">*</strong></span>
-          <select
-            name="interest"
-            required
-            defaultValue=""
-            className="rounded-lg border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 transition-colors focus:border-[#0f2438] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0f2438]"
-          >
-            <option value="" disabled>Select a capability</option>
-            <option>ConTech: Automated AI Blueprint Takeoffs</option>
-            <option>ConTech: BIM &amp; Schedule Conflict Engine</option>
-            <option>Enterprise AI Agents &amp; Workflow Swarms</option>
-            <option>Custom Cloud Platform / SaaS Development</option>
-            <option>Legacy ERP, Procore &amp; API Integration</option>
-            <option>Hardened Cloud Infrastructure &amp; DevOps</option>
-            <option>Technical Architecture Audit (1-Hour Complimentary)</option>
-            <option>Other Custom Scope</option>
-          </select>
-        </label>
+    <form className="form" onSubmit={onSubmit} noValidate={false}>
+      <div className="row">
+        <div className="field">
+          <label htmlFor="f-name">Your name</label>
+          <input id="f-name" name="name" type="text" autoComplete="name" required minLength={2} maxLength={120} />
+        </div>
+        <div className="field">
+          <label htmlFor="f-email">Work email</label>
+          <input id="f-email" name="email" type="email" autoComplete="email" required maxLength={254} />
+        </div>
       </div>
-
-      <label className="flex flex-col gap-2 text-xs font-semibold text-slate-700">
-        <span>Project Overview &amp; Operational Bottleneck <strong className="text-[#b48d55]">*</strong></span>
+      <div className="row">
+        <div className="field">
+          <label htmlFor="f-company">Company</label>
+          <input id="f-company" name="company" type="text" autoComplete="organization" maxLength={120} />
+        </div>
+        <div className="field">
+          <label htmlFor="f-interest">What do you need help with?</label>
+          <select id="f-interest" name="interest" value={topic} onChange={(e) => setTopic(e.target.value)} required>
+            {topics.map((t) => (
+              <option key={t.key} value={t.value}>
+                {t.value}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div className="field">
+        <label htmlFor="f-message">Tell us about the work</label>
         <textarea
+          id="f-message"
           name="message"
           required
           minLength={10}
           maxLength={5000}
-          rows={5}
-          placeholder="Briefly describe your current workflows, operational bottlenecks, software stack (e.g. Procore, SAP, Salesforce), and timeline goals."
-          className="rounded-lg border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-[#0f2438] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0f2438]"
+          placeholder="What does your team repeat every day? Where does work get stuck?"
         />
-      </label>
-
-      {/* Honeypot anti-spam */}
-      <div className="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
-        <label>
-          Leave this empty
-          <input type="text" name="website" tabIndex={-1} autoComplete="off" />
-        </label>
       </div>
-
-      <div className="flex flex-col items-start justify-between gap-4 border-t border-slate-100 pt-4 sm:flex-row sm:items-center">
-        <p className="max-w-sm text-xs leading-relaxed text-slate-500">
-          All consultations and inquiries are protected under strict mutual confidentiality and non-disclosure standards.
-        </p>
-        <button
-          className="inline-flex min-h-[48px] items-center justify-center gap-3 rounded-lg bg-[#0f2438] px-7 font-display text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#183652] hover:shadow-md disabled:opacity-50"
-          type="submit"
-          disabled={status.kind === "sending"}
-        >
-          {status.kind === "sending" ? "Transmitting…" : "Transmit Inquiry"}
-          <span aria-hidden="true">↗</span>
+      <div className="hp" aria-hidden="true">
+        <label htmlFor="f-website">Website</label>
+        <input id="f-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
+      <div className="form-foot">
+        <button type="submit" className="btn btn-navy" disabled={status === "sending"}>
+          {status === "sending" ? "Sending" : "Send message"}
         </button>
+        <p className="form-status" role="status" aria-live="polite" data-state={status}>
+          {message}
+        </p>
       </div>
-
-      {status.kind !== "idle" && (
-        <div
-          className={`rounded-lg p-4 text-xs font-medium ${
-            status.kind === "success"
-              ? "border border-emerald-300 bg-emerald-50 text-emerald-800"
-              : status.kind === "error"
-              ? "border border-rose-300 bg-rose-50 text-rose-800"
-              : "border border-slate-300 bg-slate-100 text-slate-700"
-          }`}
-          role="status"
-          aria-live="polite"
-        >
-          {status.message}
-        </div>
-      )}
     </form>
   );
 }

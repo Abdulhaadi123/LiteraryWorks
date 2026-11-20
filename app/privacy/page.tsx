@@ -1,62 +1,40 @@
+import { PageHero } from "@/components/ui";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
-  "Privacy Notice & Security Standards",
-  "Information regarding LiteraryWorks Technologies' data handling, SOC2 alignment, and security protocols.",
-  "/privacy"
+  "Privacy notice",
+  "What LiteraryWorks collects through this website, why, who processes it and how to reach us.",
+  "/privacy",
 );
 
+// Plain-language notice for the contact form only. Have counsel review it, and add the business's legal name and
+// contact details, before the site goes live.
 export default function PrivacyPage() {
   return (
     <>
-      <section className="relative overflow-hidden border-b border-slate-200/90 bg-white bg-[radial-gradient(ellipse_at_top_right,rgba(194,155,97,0.08)_0%,transparent_60%)] py-20">
-        <div className="mx-auto max-w-[1400px] px-6 lg:px-8">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#c29b61]/30 bg-[#c29b61]/10 px-3.5 py-1 font-mono text-[11px] font-semibold tracking-wider text-[#9a753a]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#c29b61]" />
-            <span>INFORMATION &amp; SECURITY</span>
-          </div>
-          <h1 className="mt-4 mb-4 font-display text-4xl font-bold tracking-tight text-slate-900 sm:text-6xl">
-            Privacy &amp; Data Security.
-          </h1>
-          <p className="max-w-xl text-base text-slate-600">
-            Transparency, zero-trust data residency, and enterprise compliance.
+      <PageHero kicker="Legal" title="Privacy notice" lead="Last updated: November 2026. This notice explains what this website collects and why." />
+      <section className="section on-white">
+        <div className="wrap-narrow prose">
+          <h2>What we collect</h2>
+          <p>
+            When you send a message through the contact form we collect the details you choose to give us: your name, work email, company, what you need help with, and your message. We do not ask for passwords, payment details or other sensitive information, and we ask that you do not send any.
           </p>
-        </div>
-      </section>
-
-      <section className="border-b border-slate-200/80 bg-slate-50/70 py-16">
-        <div className="mx-auto max-w-3xl px-6 space-y-8 text-sm leading-relaxed text-slate-600">
-          <div className="rounded-xl border border-[#c29b61]/30 bg-[#c29b61]/10 p-5 font-mono text-xs text-[#9a753a]">
-            Enterprise Security Notice — All inquiries and systems comply with US SOC2 Type II, HIPAA, and ISO 27001 data governance baselines.
-          </div>
-
-          <div>
-            <h2 className="mb-3 font-display text-2xl font-bold text-slate-900">1. Information We Collect</h2>
-            <p>
-              When you submit an engineering inquiry via our contact form, we collect your name, business email, organization/contractor name, capability interest, and technical project description. We use this information solely to schedule consultations, assess technical scope, and respond to your inquiry.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="mb-3 font-display text-2xl font-bold text-slate-900">2. Mutual Non-Disclosure &amp; Client Blueprints</h2>
-            <p>
-              LiteraryWorks Technologies LLC enters into mutual non-disclosure agreements (NDAs) prior to receiving proprietary blueprints, CAD files, ERP credentials, or internal operational documentation. Your data is never shared, resold, or used for model training without explicit written consent.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="mb-3 font-display text-2xl font-bold text-slate-900">3. Infrastructure &amp; Data Residency</h2>
-            <p>
-              Client production data is hosted in hardened US-based cloud infrastructure (AWS GovCloud / Azure Commercial) with encrypted storage (AES-256) at rest and TLS 1.3 in transit.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="mb-3 font-display text-2xl font-bold text-slate-900">4. Contacting Security &amp; Compliance</h2>
-            <p>
-              For security disclosures, SOC2 audit packet requests, or compliance inquiries, please contact our engineering team via the consultation portal.
-            </p>
-          </div>
+          <h2>How we use it</h2>
+          <p>
+            We use these details to reply to you, to arrange a call, and to assess whether and how we can help. We do not sell them, and we do not use them for advertising.
+          </p>
+          <h2>Who processes it</h2>
+          <p>
+            Messages are delivered to us by an email delivery provider (Resend), and this website is delivered by a hosting provider. They process data on our behalf to provide those services, and the hosting provider may keep ordinary technical logs, such as IP addresses and pages requested, for security and reliability.
+          </p>
+          <h2>How long we keep it</h2>
+          <p>We keep inquiries for as long as needed to answer them and to follow up, and then delete them.</p>
+          <h2>Cookies</h2>
+          <p>This website does not set advertising or tracking cookies of its own.</p>
+          <h2>Your choices</h2>
+          <p>
+            You can ask us to tell you what we hold about you, to correct it, or to delete it. Send a message through the contact form and mention that it is a privacy request.
+          </p>
         </div>
       </section>
     </>

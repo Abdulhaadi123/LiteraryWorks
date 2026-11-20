@@ -1,0 +1,368 @@
+/* ============ the pinned scene (the skill's "runway") ============
+   Static first: a normal block (phones, tablets, reduced motion, no JavaScript, no WebGL): the headline and the
+   buttons, then the picture, then each beat of the story. Only html.motion, which the head script sets on wide
+   screens without reduced motion, turns it into a tall runway with a sticky stage. A scene that cannot start
+   adds .xp-failed and falls back to the static block. */
+
+.xp {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(180deg, #ffffff 0%, var(--mist) 100%);
+}
+.xp-stage {
+  position: relative;
+  display: grid;
+  row-gap: 2.5rem;
+  padding: calc(var(--header) + 1.25rem) 0 4rem;
+}
+/* the copy's wrappers disappear, so the first beat, the picture and the other beats can be ordered freely */
+.xp-copy,
+.xp-phases {
+  display: contents;
+}
+.xp-phase,
+.xp-poster {
+  width: min(100% - 2 * var(--gutter), 40rem);
+  margin-inline: auto;
+}
+.xp-phase:first-child {
+  order: 1;
+}
+.xp-poster {
+  order: 2;
+}
+.xp-phase:not(:first-child) {
+  order: 3;
+}
+.xp-phase:not(:first-child) {
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+}
+.xp-phase > * + * {
+  margin-top: 1.1rem;
+}
+.poster {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.poster-open {
+  margin-top: 1.5rem;
+}
+/* the opened picture belongs to the static layout only; the live scene shows the opened model itself */
+html.motion .xp:not(.xp-failed) .poster-open {
+  display: none;
+}
+.xp-canvas,
+.xp-hint,
+.xp-track,
+.xp-cursor {
+  display: none;
+}
+
+/* ---- wide screens without motion (reduced motion, or a scene that could not start): the picture beside the copy ---- */
+@media (min-width: 64rem) {
+  html:not(.motion) .xp-stage,
+  .xp.xp-failed .xp-stage {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-content: start;
+    align-items: start;
+    column-gap: clamp(2rem, 5vw, 5rem);
+    width: min(100% - 2 * var(--gutter), 78rem);
+    margin-inline: auto;
+  }
+  html:not(.motion) .xp-phase,
+  .xp.xp-failed .xp-phase {
+    grid-column: 1;
+    width: 100%;
+    margin: 0;
+    order: 0;
+  }
+  html:not(.motion) .xp-poster,
+  .xp.xp-failed .xp-poster {
+    position: sticky;
+    top: calc(var(--header) + 1rem);
+    grid-column: 2;
+    grid-row: 1 / span 8;
+    width: 100%;
+    margin: 0;
+    order: 0;
+  }
+}
+
+/* ---- motion: a tall runway with a sticky stage ---- */
+html.motion .xp:not(.xp-failed) {
+  height: calc(100svh + var(--xp-vh, 360) * 1svh);
+}
+html.motion .xp:not(.xp-failed) .xp-stage {
+  position: sticky;
+  top: 0;
+  display: block;
+  height: 100svh;
+  padding: 0;
+  overflow: hidden;
+  background: radial-gradient(62% 82% at 66% 54%, #ffffff 0%, #f3f7fc 56%, #e9f0f8 100%);
+}
+/* a drafting sheet behind the model, fading out toward the edges */
+html.motion .xp:not(.xp-failed) .xp-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to right, rgba(34, 66, 95, 0.05) 1px, transparent 1px) 0 0 / 72px 72px,
+    linear-gradient(to bottom, rgba(34, 66, 95, 0.05) 1px, transparent 1px) 0 0 / 72px 72px;
+  -webkit-mask-image: radial-gradient(60% 80% at 66% 54%, #000 0%, transparent 100%);
+  mask-image: radial-gradient(60% 80% at 66% 54%, #000 0%, transparent 100%);
+}
+html.motion .xp:not(.xp-failed) .xp-poster {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  margin: 0;
+  padding: 4rem 0 0 32vw;
+  transition: opacity 0.9s ease;
+}
+html.motion .xp:not(.xp-failed) .poster {
+  width: auto;
+  height: min(84%, 44rem);
+  max-width: 62vw;
+  object-fit: contain;
+}
+html.motion .xp.xp-live .xp-poster {
+  opacity: 0;
+}
+html.motion .xp:not(.xp-failed) .xp-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+html.motion .xp.xp-live .xp-canvas {
+  opacity: 1;
+}
+.xp-gl {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+html.motion .xp:not(.xp-failed) .xp-copy {
+  position: absolute;
+  display: block;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+html.motion .xp:not(.xp-failed) .xp-phases {
+  position: relative;
+  display: block;
+  height: 100%;
+}
+html.motion .xp:not(.xp-failed) .xp-phase {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: min(30rem, 34vw);
+  margin: 0;
+  padding: 3.5rem 0 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+html.motion .xp:not(.xp-failed) .xp-phase:first-child {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* the progress track, after a watch's minute track: a ruler with the current chapter beside the fill */
+html.motion .xp:not(.xp-failed) .xp-track {
+  position: absolute;
+  z-index: 4;
+  left: clamp(0.6rem, 1.5vw, 1.5rem);
+  top: 53%;
+  display: block;
+  width: 1rem;
+  height: min(17rem, 36vh);
+  transform: translateY(-50%);
+}
+.xp-track::before,
+.xp-track i {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(to bottom, var(--tick, #aebdd0) 0 1px, transparent 1px 40px) 0 0 / 0.9rem 100% no-repeat,
+    repeating-linear-gradient(to bottom, var(--tick, #aebdd0) 0 1px, transparent 1px 8px) 0 0 / 0.45rem 100% no-repeat;
+}
+.xp-track::before {
+  --tick: #c4d0e0;
+}
+.xp-track i {
+  --tick: var(--blue);
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+}
+/* the chapter number sits above the ruler on narrower windows (it would run into the copy) and beside the fill where there is room */
+.xp-track b {
+  position: absolute;
+  left: 0;
+  top: -1.7rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  color: var(--blue);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.xp-track b.is-on {
+  opacity: 1;
+}
+@media (min-width: 85rem) {
+  .xp-track b {
+    left: 1.35rem;
+    top: calc(var(--p, 0) * 100%);
+    margin-top: -0.5em;
+  }
+}
+html.motion .xp:not(.xp-failed) .xp-hint {
+  position: absolute;
+  z-index: 4;
+  left: max(var(--gutter), calc((100% - 78rem) / 2));
+  bottom: 1.6rem;
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  transition: opacity 0.5s;
+}
+.xp-started .xp-hint {
+  opacity: 0;
+}
+
+/* a fine reticle that follows the pointer over the model (not on touch screens) */
+html.motion .xp:not(.xp-failed) .xp-cursor {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  top: 0;
+  display: block;
+  width: 2.6rem;
+  height: 2.6rem;
+  margin: -1.3rem 0 0 -1.3rem;
+  border: 1px solid rgba(34, 66, 95, 0.5);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+  will-change: transform;
+}
+.xp-cursor.is-on {
+  opacity: 1;
+}
+.xp-cursor::after {
+  content: "";
+  position: absolute;
+  inset: calc(50% - 2px);
+  border-radius: 50%;
+  background: var(--navy);
+}
+.xp-cursor span {
+  position: absolute;
+  left: calc(100% + 0.55rem);
+  top: 50%;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--navy);
+  transform: translateY(-50%);
+}
+@media (pointer: coarse) {
+  html.motion .xp:not(.xp-failed) .xp-cursor {
+    display: none;
+  }
+}
+
+/* ---- labels that follow points on the model, joined to it by leader lines ---- */
+.xp-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.xp-lines g {
+  color: var(--navy);
+}
+.xp-lines polyline {
+  stroke: currentColor;
+  stroke-opacity: 0.55;
+  stroke-width: 1;
+  stroke-linejoin: round;
+  fill: none;
+}
+.xp-lines circle {
+  fill: var(--blue);
+}
+.xp-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+.xp-labels li {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  gap: 0.7rem;
+  width: var(--xp-col, 12.5rem);
+  will-change: transform, opacity;
+}
+.xp-labels .n {
+  flex: none;
+  padding-top: 0.2rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  color: var(--blue);
+}
+.xp-labels b {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+.xp-labels i {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  font-style: normal;
+  line-height: 1.32;
+  color: var(--body);
+}

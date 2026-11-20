@@ -1,20 +1,41 @@
 import type { Metadata, Viewport } from "next";
-import { Header } from "@/components/Header";
+import localFont from "next/font/local";
+import type { ReactNode } from "react";
 import { Footer } from "@/components/Footer";
-import { MotionEngine } from "@/motion/MotionEngine";
-import { siteUrl } from "@/lib/seo";
+import { Header } from "@/components/Header";
+import { MobileCta } from "@/components/MobileCta";
+import { ogImage, siteName, siteUrl } from "@/lib/seo";
+import { headScript } from "@/motion/head";
+import { MotionRoot } from "@/motion/MotionRoot";
 import "./globals.css";
+
+/**
+ * Inter, the typeface Sparkix and FAYD use: one variable file (27 KB: weights 400 to 800 and the Western European
+ * characters, see app/fonts/README.txt; SIL Open Font License, so it lives in the repository and the build needs
+ * no network). next/font preloads it and adds a size-matched fallback, so the swap does not move the text.
+ */
+const inter = localFont({
+  src: "./fonts/inter-latin-400-800.woff2",
+  variable: "--font-inter",
+  weight: "400 800",
+  style: "normal",
+  display: "swap",
+  preload: true,
+  adjustFontFallback: "Arial",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "LiteraryWorks Technologies | US Enterprise AI & Built Environment Systems",
-    template: "%s | LiteraryWorks Technologies",
+    default: `${siteName} | AI, software and cloud systems for U.S. businesses`,
+    template: `%s | ${siteName}`,
   },
   description:
-    "LiteraryWorks Technologies LLC engineers autonomous AI systems, specialized ConTech digital twins, automated takeoffs, and modern cloud platforms for US enterprises and commercial builders.",
-  applicationName: "LiteraryWorks",
-  icons: { icon: "/brand-mark.svg" },
+    "LiteraryWorks designs and builds AI automation, web and mobile apps and cloud systems for U.S. businesses. Start with a free 1-hour AI audit.",
+  applicationName: siteName,
+  openGraph: { siteName, type: "website", locale: "en_US", url: siteUrl, images: [ogImage] },
+  twitter: { card: "summary_large_image", images: [ogImage.url] },
+  alternates: { canonical: "/" },
   robots: { index: true, follow: true },
 };
 
@@ -24,29 +45,22 @@ export const viewport: Viewport = {
   themeColor: "#ffffff",
 };
 
-// Skill Rule 3: The rule that matters most: motion is opt-in.
-// A tiny inline script in <head> sets html.motion only if the screen is wide (>=64rem)
-// and prefers-reduced-motion is not set. It removes the class after 8 seconds if the engine hasn't started.
-const motionBootstrap = `(function(){var d=document.documentElement;d.classList.add('js');var q=window.matchMedia('(min-width: 64rem) and (prefers-reduced-motion: no-preference)');function change(){if(q.matches){d.classList.add('motion')}else{d.classList.remove('motion','motion-ready')}}change();if(q.addEventListener)q.addEventListener('change',change);setTimeout(function(){if(!d.classList.contains('motion-ready'))d.classList.remove('motion')},8000)})();`;
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en">
+    // `suppressHydrationWarning`: the head script adds classes (js, motion) to <html> before React hydrates
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: motionBootstrap }} />
+        <script dangerouslySetInnerHTML={{ __html: headScript }} />
       </head>
       <body>
-        <a className="skip-link" href="#main-content">
+        <a className="skip-link" href="#main">
           Skip to content
         </a>
         <Header />
-        <main id="main-content">{children}</main>
+        <main id="main">{children}</main>
         <Footer />
-        <MotionEngine />
+        <MobileCta />
+        <MotionRoot />
       </body>
     </html>
   );

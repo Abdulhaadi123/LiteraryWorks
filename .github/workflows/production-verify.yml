@@ -18,8 +18,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Check TypeScript
         run: npm run typecheck
       - name: Create production build
@@ -33,12 +34,17 @@ jobs:
           done
           cat /tmp/literaryworks-server.log
           exit 1
-      - name: Install screenshot test browser
-        run: |
-          npm install --no-save --no-audit --no-fund playwright@1.57.0
-          npx playwright install --with-deps chromium
-      - name: Verify desktop, mobile, fallback and routes
-        run: node scripts/verify-production.mjs
+      - name: Verify pages, desktop 3D, phone, reduced motion, no-JavaScript and the inquiry API
+        env:
+          CI: 'true'
+          CHROME_PATH: google-chrome
+        run: node scripts/verify-production.mjs http://127.0.0.1:3000
+      - name: Measure load speed (for the log, not a gate)
+        continue-on-error: true
+        env:
+          CI: 'true'
+          CHROME_PATH: google-chrome
+        run: node scripts/perf-report.mjs http://127.0.0.1:3000 / /services
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
