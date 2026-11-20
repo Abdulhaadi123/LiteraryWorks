@@ -1,5 +1,6 @@
 import { ContactForm } from "@/components/ContactForm";
-import { PageHero } from "@/components/ui";
+import { Faq, PageHero, SectionHead } from "@/components/ui";
+import { faqs } from "@/lib/content";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
@@ -40,6 +41,13 @@ export default function ContactPage() {
             </ol>
           </div>
           <ContactForm />
+        </div>
+      </section>
+
+      <section className="section on-mist">
+        <div className="wrap two-col">
+          <SectionHead kicker="Questions" title={<>Before you <em>write.</em></>} lead="How the audit works, what it costs and who it is for." />
+          <Faq items={faqs} />
         </div>
       </section>
     </>

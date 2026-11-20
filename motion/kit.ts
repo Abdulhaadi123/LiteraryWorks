@@ -56,7 +56,7 @@ export interface Panel {
  * the front. The face shows its colours exactly as drawn (like a screen: it is not lit), the bevel catches the
  * studio light, and a soft shadow sits just behind: together that reads as an object and not a sticker.
  */
-export function makePanel(w: number, h: number, tex: THREE.Texture, shadow: THREE.Texture | null, opts: { radius?: number; depth?: number } = {}): Panel {
+export function makePanel(w: number, h: number, tex: THREE.Texture, shadow: THREE.Texture | null, opts: { radius?: number; depth?: number; back?: number } = {}): Panel {
   const bevel = 0.035;
   const depth = opts.depth ?? 0.06;
   const shape = roundedShape(w - bevel * 2, h - bevel * 2, (opts.radius ?? 0.16) - bevel);
@@ -81,7 +81,7 @@ export function makePanel(w: number, h: number, tex: THREE.Texture, shadow: THRE
     geo.addGroup(caps.start + half, half, 0);
     geo.addGroup(sides.start, sides.count, 1);
   }
-  const back = new THREE.MeshBasicMaterial({ color: 0xe6ecf1, toneMapped: false });
+  const back = new THREE.MeshBasicMaterial({ color: opts.back ?? 0xe6ecf1, toneMapped: false });
   const face = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
   const edge = new THREE.MeshPhysicalMaterial({
     color: 0xd5dee6,

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { SceneHero } from "@/components/SceneHero";
+import { Rhythm } from "@/components/Sections";
 import { Checks, SectionHead } from "@/components/ui";
-import { engagement, principles } from "@/lib/content";
+import { principles } from "@/lib/content";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
@@ -124,26 +125,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="section on-white">
-        <div className="wrap">
-          <SectionHead
-            kicker="How we work"
-            title={
-              <>
-                Four phases, <em>start to finish.</em>
-              </>
-            }
-          />
-          <ol className="steps" data-stagger>
-            {engagement.map((s) => (
-              <li key={s.title}>
-                <h3>{s.title}</h3>
-                <p>{s.text}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
+      <Rhythm />
 
       <section className="section on-mist">
         <div className="wrap split">

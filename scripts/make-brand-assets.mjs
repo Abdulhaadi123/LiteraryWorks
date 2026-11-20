@@ -31,17 +31,17 @@ const pages = {
   "/og.html": `<!doctype html><meta charset="utf-8"><style>
     @font-face { font-family: Inter; font-weight: 100 900; src: url(/inter.woff2) format("woff2"); }
     * { box-sizing: border-box; margin: 0; }
-    body { width: 1200px; height: 630px; overflow: hidden; font-family: Inter, Arial, sans-serif; background: radial-gradient(46% 70% at 76% 50%, rgba(34,66,95,.10) 0%, rgba(34,66,95,0) 72%), linear-gradient(180deg, #ffffff 0%, #f4f6f7 100%); position: relative; }
-    .grid { position: absolute; inset: 0; background: radial-gradient(rgba(34,66,95,.2) 1px, transparent 1.5px) 0 0/28px 28px; -webkit-mask-image: radial-gradient(60% 90% at 76% 50%, #000, transparent); }
-    .logo { position: absolute; left: 76px; top: 64px; display: flex; align-items: center; gap: 14px; color: #182f46; }
+    body { width: 1200px; height: 630px; overflow: hidden; font-family: Inter, Arial, sans-serif; background: radial-gradient(60% 80% at 76% 45%, rgba(63,130,220,.42) 0%, rgba(63,130,220,0) 70%), radial-gradient(40% 50% at 14% 100%, rgba(115,201,74,.16) 0%, rgba(115,201,74,0) 70%), linear-gradient(180deg, #17344f 0%, #0d2033 60%, #091828 100%); position: relative; }
+    .grid { position: absolute; inset: 0; background: radial-gradient(rgba(160,200,255,.2) 1px, transparent 1.5px) 0 0/28px 28px; -webkit-mask-image: radial-gradient(60% 90% at 76% 50%, #000, transparent); }
+    .logo { position: absolute; left: 76px; top: 64px; display: flex; align-items: center; gap: 14px; color: #fff; }
     .logo i { display: block; width: 58px; height: 58px; }
     .logo b { display: block; font-size: 30px; font-weight: 800; line-height: .9; letter-spacing: -.05em; }
-    h1 { position: absolute; left: 76px; top: 190px; width: 520px; font-size: 62px; font-weight: 700; line-height: 1.03; letter-spacing: -.04em; color: #191716; }
-    h1 em { font-style: normal; color: #22425f; text-decoration: underline; text-decoration-color: #73c94a; text-decoration-thickness: .085em; text-underline-offset: .14em; text-decoration-skip-ink: none; }
-    p { position: absolute; left: 76px; bottom: 72px; width: 520px; font-size: 25px; font-weight: 500; line-height: 1.35; color: #4b5262; }
-    img { position: absolute; right: -30px; top: 53%; width: 640px; transform: translateY(-50%); }
+    h1 { position: absolute; left: 76px; top: 190px; width: 520px; font-size: 62px; font-weight: 700; line-height: 1.03; letter-spacing: -.04em; color: #fff; }
+    h1 em { font-style: normal; color: #fff; text-decoration: underline; text-decoration-color: #73c94a; text-decoration-thickness: .085em; text-underline-offset: .14em; text-decoration-skip-ink: none; }
+    p { position: absolute; left: 76px; bottom: 72px; width: 520px; font-size: 25px; font-weight: 500; line-height: 1.35; color: rgba(226,236,255,.84); }
+    img { position: absolute; right: 46px; top: 50%; width: 548px; transform: translateY(-50%); border-radius: 26px; border: 1px solid rgba(255,255,255,.16); box-shadow: 0 40px 80px -30px rgba(0,0,0,.75); }
   </style><div class="grid"></div>
-  <div class="logo"><i>${mark("#22425f", "#73c94a")}</i><span><b>Literary</b><b>Works</b></span></div>
+  <div class="logo"><i>${mark("#ffffff", "#73c94a")}</i><span><b>Literary</b><b>Works</b></span></div>
   <h1>AI and software, <em>working as one system.</em></h1>
   <p>AI, software and cloud engineering for U.S. businesses.</p>
   <img src="/poster.webp" alt="">`,

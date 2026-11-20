@@ -47,13 +47,13 @@ export function createEnv(renderer: THREE.WebGLRenderer, seed: string): ModelEnv
 
 /** Each kind of model is its own chunk, fetched only by the page that shows it (and by the deck, which shows them all). */
 export const modelLoaders: Record<string, () => Promise<{ default: ModelBuilder }>> = {
-  hero: () => import("./hero"),
+  hero: () => import("./core"),
   audit: () => import("./audit"),
   about: () => import("./journey"),
   "ai-automation": () => import("./flow"),
   "ai-voice-systems": () => import("./voice"),
   "saas-platforms": () => import("./layers"),
-  "enterprise-software": () => import("./tower"),
+  "enterprise-software": () => import("./wall"),
   "ai-web-apps": () => import("./browser"),
   "ai-mobile-apps": () => import("./appui"),
   "ui-ux-design": () => import("./design"),

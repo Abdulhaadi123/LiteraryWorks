@@ -2,6 +2,8 @@ import * as THREE from "three";
 import { createStage, lerp, quint, TAU, win } from "../engine";
 import { blobTexture } from "../kit";
 import { createEnv, hash, modelLoaders, rng } from "../models/env";
+import { fitFrame } from "../models/fit";
+import { dressStage, type Dressing } from "../stage";
 import type { SceneAnchor, SceneCtx, SceneHandle, SceneLayout } from "../types";
 
 /**
@@ -13,7 +15,7 @@ import type { SceneAnchor, SceneCtx, SceneHandle, SceneLayout } from "../types";
 
 const FOV = 28;
 /** The room the model leaves round its box, in the model's own units. */
-const MARGIN = 0.55;
+const MARGIN = 0.4;
 
 export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   const gl = ctx.gl;
@@ -30,23 +32,38 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   const env = createEnv(renderer, variant);
   const loader = modelLoaders[variant] ?? modelLoaders.hero;
   const model = await (await loader()).default(env, false);
+  fitFrame(model);
   scene.add(model.group);
   const textures = env.textures;
   const hint = model.camera ?? { az: [-0.34, 0.2], elev: [0.17, 0.1] };
 
-  const haloTex = blobTexture("120,170,200", 0.5);
-  const shadowTex = blobTexture("20,40,60", 0.5);
-  const dustTex = blobTexture("90,134,170", 0.9);
+  // a scene on the deep-blue ground gets the glossy floor, the coloured rim lights and the soft lights out of focus
+  const dark = ctx.data?.tone === "dark";
+  const dress: Dressing | null = dark ? dressStage(gl, scene, camera, textures) : null;
+  if (dark) {
+    scene.environmentIntensity = 0.7;
+    scene.traverse((o) => {
+      if ((o as THREE.HemisphereLight).isHemisphereLight) (o as THREE.HemisphereLight).intensity = 0.42;
+    });
+  }
+
+  const haloTex = blobTexture(dark ? "70,130,230" : "120,170,200", dark ? 0.6 : 0.5);
+  const shadowTex = blobTexture(dark ? "2,8,18" : "20,40,60", 0.5);
+  const dustTex = blobTexture(dark ? "170,215,255" : "90,134,170", 0.9);
   textures.push(haloTex, shadowTex, dustTex);
-  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, transparent: true, depthWrite: false, opacity: 0.5 }));
+  const halo = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: haloTex, transparent: true, depthWrite: false, opacity: 0.5, blending: dark ? THREE.AdditiveBlending : THREE.NormalBlending, toneMapped: !dark }),
+  );
+  if (dark) halo.layers.set(1);
   scene.add(halo);
 
   /* ---- a soft ground under a model that stands on nothing ---- */
   const blobGeo = new THREE.PlaneGeometry(1, 1);
-  const ground = new THREE.Mesh(blobGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, opacity: 0.4 }));
+  const ground = new THREE.Mesh(blobGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, opacity: dark ? 0.55 : 0.4 }));
   ground.rotation.x = -Math.PI / 2;
   ground.renderOrder = -1;
   ground.visible = !!model.ground;
+  if (dark) ground.layers.set(1);
   scene.add(ground);
 
   /* ---- a fine dust in the air ---- */
@@ -64,7 +81,11 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   }
   const dustGeo = new THREE.BufferGeometry();
   dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
-  const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ map: dustTex, size: 0.16, transparent: true, depthWrite: false, opacity: 0.7, sizeAttenuation: true }));
+  const dust = new THREE.Points(
+    dustGeo,
+    new THREE.PointsMaterial({ map: dustTex, size: dark ? 0.2 : 0.16, transparent: true, depthWrite: false, opacity: dark ? 0.55 : 0.7, sizeAttenuation: true, blending: dark ? THREE.AdditiveBlending : THREE.NormalBlending }),
+  );
+  if (dark) dust.layers.set(1);
   scene.add(dust);
 
   /* ---- progress ---- */
@@ -77,7 +98,10 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   const t2 = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
 
   const handle: SceneHandle = {
-    resize: (w, h) => gl.resize(w, h),
+    resize: (w, h) => {
+      gl.resize(w, h);
+      dress?.resize(gl.size.w, gl.size.h);
+    },
     layout: (l) => {
       lay = l;
     },
@@ -91,6 +115,7 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
       const before = gl.ratio;
       gl.setRatio(before - 0.25);
       if (gl.ratio >= before - 0.001) return false;
+      dress?.resize(gl.size.w, gl.size.h);
       st.render();
       return true;
     },
@@ -125,16 +150,18 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
       camera.lookAt(target);
       camera.updateMatrixWorld();
 
+      const floorY = model.floorY ?? f.cy - f.hh;
       if (model.ground) {
-        ground.position.set(f.cx, model.floorY ?? f.cy - f.hh, 0);
+        ground.position.set(f.cx, floorY, 0);
         const size = Math.max(f.hw * 2.5, 4);
         ground.scale.set(size, size * 0.55, 1);
       }
+      dress?.update({ floorY, cx: f.cx, hw: f.hw, p, l });
       // the glow sits well behind the model, on the line from the eye through its middle, so it never cuts through it
       view.subVectors(target, camera.position).normalize();
       halo.position.copy(target).addScaledVector(view, 6);
       halo.scale.setScalar((f.hw * 2 + 1) * (1 + 6 / dist));
-      (halo.material as THREE.SpriteMaterial).opacity = lerp(0.4, 0.62, l);
+      (halo.material as THREE.SpriteMaterial).opacity = dark ? lerp(0.3, 0.5, l) : lerp(0.4, 0.62, l);
       dust.rotation.y = p * 0.5;
       dust.rotation.x = p * 0.1;
     },
@@ -150,6 +177,7 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
     },
     dispose() {
       model.dispose?.();
+      dress?.dispose();
       textures.forEach((t) => t.dispose());
       blobGeo.dispose();
       dustGeo.dispose();

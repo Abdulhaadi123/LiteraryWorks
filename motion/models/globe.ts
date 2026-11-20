@@ -1,128 +1,279 @@
 import * as THREE from "three";
-import { lerp, quint, TAU, win } from "../engine";
-import { COLOR, makeBeam, type Beam } from "../kit";
-import { makeRack } from "../devices";
-import { glass, marker, smoothstep, unlit } from "./parts";
+import { clamp01, lerp, quint, TAU } from "../engine";
+import { bandGeometry, chrome, stageMetal, circleLine, GLOW, glowTex, lightColumn, lightSprite, lit, tickMarks } from "./glow";
 import type { Frame, Model, ModelBuilder } from "./types";
 
 /**
- * Cloud and DevOps: a globe of regions. A globe turns as the page scrolls; the regions our systems run in light up,
- * and lines arc between them, each carrying small lights. A rack and a monitoring screen stand beside it.
+ * Cloud and DevOps: a planet drawn in points of light, turning on a projector base. Eleven regions light up on it and
+ * arcs of light run between them carrying small pulses (deployments and traffic); a ring of marks round it is the
+ * monitoring, and a satellite keeps watch on an orbit. The scroll turns the planet and draws the arcs in.
  */
 
-const R = 1.9;
-const CY = 2.3;
-// New York, San Francisco, London, Berlin, Dubai, Mumbai, Singapore, Tokyo, Sydney, Sao Paulo
-const REGIONS: [number, number][] = [[40.7, -74], [37.8, -122.4], [51.5, -0.1], [52.5, 13.4], [25.2, 55.3], [19.1, 72.9], [1.35, 103.8], [35.7, 139.7], [-33.9, 151.2], [-23.5, -46.6]];
-const LINKS: [number, number][] = [[0, 2], [2, 5], [5, 7], [7, 8], [1, 0], [2, 4], [4, 6], [9, 0], [3, 6], [6, 8], [1, 7]];
+const R = 2.45;
+const G = new THREE.Vector3(0, 3.9, 0);
 
-const toVec = (lat: number, lon: number, r: number) => {
-  const la = THREE.MathUtils.degToRad(lat);
-  const lo = THREE.MathUtils.degToRad(lon);
-  return new THREE.Vector3(r * Math.cos(la) * Math.cos(lo), r * Math.sin(la), -r * Math.cos(la) * Math.sin(lo));
+const hash3 = (x: number, y: number, z: number) => {
+  const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453;
+  return s - Math.floor(s);
+};
+const sm = (t: number) => t * t * (3 - 2 * t);
+function vnoise(x: number, y: number, z: number) {
+  const xi = Math.floor(x);
+  const yi = Math.floor(y);
+  const zi = Math.floor(z);
+  const u = sm(x - xi);
+  const v = sm(y - yi);
+  const w = sm(z - zi);
+  const c = (i: number, j: number, k: number) => hash3(xi + i, yi + j, zi + k);
+  return lerp(lerp(lerp(c(0, 0, 0), c(1, 0, 0), u), lerp(c(0, 1, 0), c(1, 1, 0), u), v), lerp(lerp(c(0, 0, 1), c(1, 0, 1), u), lerp(c(0, 1, 1), c(1, 1, 1), u), v), w);
+}
+const fbm = (x: number, y: number, z: number) => {
+  let a = 0.5;
+  let s = 0;
+  let f = 1;
+  for (let i = 0; i < 4; i++) {
+    s += a * vnoise(x * f, y * f, z * f);
+    f *= 2.07;
+    a *= 0.5;
+  }
+  return s;
 };
 
-const build: ModelBuilder = async (env, mini) => {
+/** [latitude, longitude] of the regions. */
+const REGIONS: [number, number][] = [
+  [39, -77],
+  [37, -122],
+  [41, -96],
+  [51.5, 0],
+  [50, 8.7],
+  [25, 55],
+  [19, 73],
+  [1.3, 103.8],
+  [35.7, 139.7],
+  [-33.9, 151.2],
+  [-23.5, -46.6],
+];
+const LINKS: [number, number][] = [
+  [0, 3],
+  [0, 10],
+  [1, 8],
+  [8, 7],
+  [7, 6],
+  [3, 5],
+  [4, 6],
+  [1, 2],
+  [2, 0],
+  [9, 7],
+  [5, 7],
+  [3, 4],
+];
+const unit = (lat: number, lon: number) => {
+  const p = (lat * Math.PI) / 180;
+  const l = (lon * Math.PI) / 180;
+  return new THREE.Vector3(Math.cos(p) * Math.sin(l), Math.sin(p), Math.cos(p) * Math.cos(l));
+};
+
+const ATM_V = /* glsl */ `
+varying vec3 vN; varying vec3 vV;
+void main() {
+  vN = normalize(normalMatrix * normal);
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vV = -mv.xyz;
+  gl_Position = projectionMatrix * mv;
+}`;
+const ATM_F = /* glsl */ `
+uniform float uOpacity; varying vec3 vN; varying vec3 vV;
+void main() {
+  float f = pow(1.0 - clamp(dot(normalize(vN), normalize(vV)), 0.0, 1.0), 2.6);
+  gl_FragColor = vec4(mix(vec3(0.25, 0.55, 1.0), vec3(0.45, 0.95, 0.8), f * 0.6), f * uOpacity);
+}`;
+
+const build: ModelBuilder = async (env) => {
   const group = new THREE.Group();
-  const monitorTex = await env.shot("cordial", 1024, 640);
+  const rnd = env.rnd;
 
-  /* ---- the globe: a pale ball with a grid of latitude and longitude, turning ---- */
+  /* ---- the projector base and its beam ---- */
+  const baseMat = stageMetal();
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.75, 1.95, 0.24, 80), baseMat);
+  base.position.y = 0.12;
+  const base2 = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.45, 0.16, 80), baseMat);
+  base2.position.y = 0.32;
+  const rimA = new THREE.Mesh(new THREE.TorusGeometry(1.77, 0.018, 8, 120), lit(GLOW.green, 0.9));
+  rimA.rotation.x = Math.PI / 2;
+  rimA.position.y = 0.245;
+  const rimB = new THREE.Mesh(new THREE.TorusGeometry(1.27, 0.014, 8, 120), lit(GLOW.sky, 0.8));
+  rimB.rotation.x = Math.PI / 2;
+  rimB.position.y = 0.405;
+  const beamH = G.y - R - 0.45;
+  const beam = lightColumn(0x7cc4ff, 0.55, 1.15, beamH);
+  beam.mesh.position.y = 0.42 + beamH / 2;
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "110,190,255"), transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  pool.rotation.x = -Math.PI / 2;
+  pool.position.y = 0.42;
+  pool.scale.set(3.4, 3.4, 1);
+  group.add(base, base2, rimA, rimB, beam.mesh, pool);
+
+  /* ---- the planet ---- */
   const globe = new THREE.Group();
-  globe.position.y = CY;
+  globe.position.copy(G);
   group.add(globe);
-  const ball = new THREE.Mesh(new THREE.SphereGeometry(R * 0.995, 72, 52), new THREE.MeshPhysicalMaterial({ color: 0xe9f1f8, roughness: 0.28, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.1, envMapIntensity: 0.9 }));
-  globe.add(ball);
-  const pts: number[] = [];
-  const seg = (a: THREE.Vector3, b: THREE.Vector3) => pts.push(a.x, a.y, a.z, b.x, b.y, b.z);
-  for (let lat = -60; lat <= 60; lat += 20) {
-    for (let k = 0; k < 96; k++) seg(toVec(lat, (k / 96) * 360, R), toVec(lat, ((k + 1) / 96) * 360, R));
-  }
-  for (let lon = 0; lon < 360; lon += 20) {
-    for (let k = 0; k < 64; k++) seg(toVec(-85 + (k / 64) * 170, lon, R), toVec(-85 + ((k + 1) / 64) * 170, lon, R));
-  }
-  const gridGeo = new THREE.BufferGeometry();
-  gridGeo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
-  globe.add(new THREE.LineSegments(gridGeo, new THREE.LineBasicMaterial({ color: 0x3e6d97, transparent: true, opacity: 0.42 })));
+  const tilt = new THREE.Group();
+  tilt.rotation.set(0.3, 0, 0.41);
+  globe.add(tilt);
+  const spin = new THREE.Group();
+  tilt.add(spin);
+  spin.add(new THREE.Mesh(new THREE.SphereGeometry(R * 0.985, 96, 64), new THREE.MeshBasicMaterial({ color: 0x07182c, toneMapped: false })));
 
-  /* ---- the regions and the arcs between them ---- */
-  const nodeGeo = new THREE.SphereGeometry(0.075, 16, 12);
-  const haloGeo = new THREE.SphereGeometry(0.17, 16, 12);
-  const nodes = REGIONS.map(([la, lo]) => {
+  // points of light: the land bright, the sea faint
+  const N = 9000;
+  const pos = new Float32Array(N * 3);
+  const col = new Float32Array(N * 3);
+  const GOLD = Math.PI * (3 - Math.sqrt(5));
+  for (let i = 0; i < N; i++) {
+    const y = 1 - (2 * (i + 0.5)) / N;
+    const r = Math.sqrt(1 - y * y);
+    const th = i * GOLD;
+    const x = Math.cos(th) * r;
+    const z = Math.sin(th) * r;
+    const land = fbm(x * 1.8 + 4.1, y * 1.8 + 2.3, z * 1.8 + 9.7) > 0.5;
+    const k = land ? 0.7 + rnd() * 0.3 : 0.07 + rnd() * 0.09;
+    pos[i * 3] = x * R * 1.004;
+    pos[i * 3 + 1] = y * R * 1.004;
+    pos[i * 3 + 2] = z * R * 1.004;
+    col[i * 3] = (land ? 0.55 : 0.2) * k;
+    col[i * 3 + 1] = (land ? 0.86 : 0.42) * k;
+    col[i * 3 + 2] = (land ? 1 : 0.8) * k;
+  }
+  const dotsGeo = new THREE.BufferGeometry();
+  dotsGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  dotsGeo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  const dots = new THREE.Points(dotsGeo, new THREE.PointsMaterial({ size: 0.27, map: glowTex(env, "255,255,255"), vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, toneMapped: false }));
+  dots.frustumCulled = false;
+  spin.add(dots);
+
+  // the air round it
+  const atm = new THREE.Mesh(
+    new THREE.SphereGeometry(R * 1.1, 64, 48),
+    new THREE.ShaderMaterial({ uniforms: { uOpacity: { value: 0.9 } }, vertexShader: ATM_V, fragmentShader: ATM_F, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+  );
+  globe.add(atm);
+  const aura = lightSprite(env, "80,150,255", 12, 0.34);
+  globe.add(aura);
+
+  // the regions: a light and a ring that goes out from it
+  const nodes = REGIONS.map(([lat, lon], i) => {
+    const u = unit(lat, lon);
     const g = new THREE.Group();
-    g.position.copy(toVec(la, lo, R + 0.02));
-    g.add(new THREE.Mesh(nodeGeo, unlit(0x73c94a)));
-    g.add(new THREE.Mesh(haloGeo, new THREE.MeshBasicMaterial({ color: 0x73c94a, transparent: true, opacity: 0.25, depthWrite: false, toneMapped: false })));
-    globe.add(g);
-    return g;
-  });
-  const links = (mini ? LINKS.slice(0, 7) : LINKS).map(([i, j]) => {
-    const a = toVec(...REGIONS[i], R + 0.02);
-    const b = toVec(...REGIONS[j], R + 0.02);
-    const ctrl = a.clone().add(b).multiplyScalar(0.5).normalize().multiplyScalar(R + a.distanceTo(b) * 0.5);
-    const curve = new THREE.QuadraticBezierCurve3(a, ctrl, b);
-    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 40, 0.014, 6), new THREE.MeshBasicMaterial({ color: 0x73c94a, transparent: true, opacity: 0, toneMapped: false }));
-    globe.add(tube);
-    const light = new THREE.Mesh(nodeGeo, unlit(0xffffff));
-    globe.add(light);
-    return { curve, tube, light };
+    g.position.copy(u).multiplyScalar(R * 1.006);
+    const dot = lightSprite(env, i % 3 === 0 ? "140,235,110" : "150,215,255", 0.62, 0.95);
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 10), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }));
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.1, 0.125, 40), lit(i % 3 === 0 ? GLOW.green : GLOW.sky, 0.8));
+    ring.lookAt(u.clone().multiplyScalar(4));
+    g.add(dot, core);
+    g.add(ring);
+    spin.add(g);
+    return { g, ring };
   });
 
-  /* ---- a rack and a monitoring screen ---- */
-  const rack = makeRack();
-  rack.group.scale.setScalar(0.62);
-  group.add(rack.group);
-  const screen = glass(env, monitorTex, 2.6, 1.62, { radius: 0.14, depth: 0.06 });
-  group.add(screen.group);
-  const wireA: Beam = makeBeam(COLOR.green, 0.014);
-  const wireB: Beam = makeBeam(COLOR.green, 0.014);
-  group.add(wireA.mesh, wireB.mesh);
+  // the arcs between them, and a pulse on each
+  const SEG = 72;
+  const arcs = LINKS.map(([i, j], k) => {
+    const a = unit(...REGIONS[i]);
+    const b = unit(...REGIONS[j]);
+    const lift = 0.18 + (a.angleTo(b) / Math.PI) * 0.7;
+    const pts: THREE.Vector3[] = [];
+    for (let s = 0; s < SEG; s++) {
+      const t = s / (SEG - 1);
+      pts.push(a.clone().lerp(b, t).normalize().multiplyScalar(R * 1.006 + lift * Math.sin(Math.PI * t) * R * 0.5));
+    }
+    const geo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), SEG, 0.017, 5, false);
+    const green = k % 3 === 0;
+    const line = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: green ? 0x84e255 : 0x9fd0ff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+    spin.add(line);
+    const pulse = new THREE.Group();
+    pulse.add(new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 10), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false })));
+    pulse.add(lightSprite(env, green ? "140,235,110" : "150,215,255", 0.55, 0.9));
+    spin.add(pulse);
+    return { pts, geo, pulse, line };
+  });
+  // a point on the middle of one arc, for a tag
+  const arcTag = new THREE.Object3D();
+  arcTag.position.copy(arcs[2].pts[Math.floor(SEG / 2)]);
+  spin.add(arcTag);
 
-  const A = new THREE.Vector3();
-  const B = new THREE.Vector3();
-  const frame: Frame = { cx: 0, cy: CY, hw: 4.8, hh: 2.9 };
+  /* ---- monitoring: a ring of marks round the planet, and a satellite on a wider orbit ---- */
+  const hudPivot = new THREE.Group();
+  hudPivot.rotation.set(0.3, 0, 0.2);
+  const hud = new THREE.Group();
+  hud.add(new THREE.Mesh(bandGeometry(3.45, 0.05, 0.12), chrome(0xe3ecf6, 0.24)));
+  hud.add(tickMarks(3.45, 0.05, 0.12, 144));
+  const hudArc = new THREE.Mesh(new THREE.TorusGeometry(3.45, 0.026, 8, 48, 1.1), lit(GLOW.green, 0.95));
+  const hudArcHolder = new THREE.Group();
+  hudArcHolder.rotation.x = Math.PI / 2;
+  hudArcHolder.add(hudArc);
+  hud.add(hudArcHolder);
+  hudPivot.add(hud);
+  globe.add(hudPivot);
+
+  const orbitPivot = new THREE.Group();
+  orbitPivot.rotation.set(-0.5, 0, 0.35);
+  orbitPivot.add(circleLine(3.95, GLOW.sky, 0.3));
+  const sat = new THREE.Group();
+  sat.add(new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.14, 0.3), chrome(0xdbe6f2, 0.25)));
+  [-1, 1].forEach((s) => {
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.012, 0.2), new THREE.MeshBasicMaterial({ color: 0x4f9bff, toneMapped: false }));
+    wing.position.x = s * 0.3;
+    sat.add(wing);
+  });
+  sat.add(lightSprite(env, "150,215,255", 0.9, 0.7));
+  orbitPivot.add(sat);
+  globe.add(orbitPivot);
+
+  const frame: Frame = { cx: 0, cy: 3.3, hw: 4.1, hh: 3.5 };
   const model: Model = {
     group,
-    tags: [marker(group, 1.55, CY + 1.55, 0.7), marker(screen.group, -1.0, 0.65, 0.07), rack.tagObj],
-    camera: { az: [-0.3, 0.3], elev: [0.16, 0.1] },
-    ground: true,
+    tags: [nodes[0].g, sat, arcTag],
+    camera: { az: [-0.28, 0.2], elev: [0.18, 0.1] },
     floorY: 0,
     set(a, l, p) {
-      const eG = quint(win(a, 0, 0.55));
-      globe.scale.setScalar(Math.max(0.001, lerp(0.6, 1, eG)));
-      globe.rotation.y = p * TAU * 0.5 + 0.6;
-      globe.rotation.z = 0.2;
-      nodes.forEach((n, i) => n.scale.setScalar(Math.max(0.001, quint(win(a, 0.2 + i * 0.03, 0.55 + i * 0.03)) * (1 + 0.18 * Math.sin(p * TAU * 6 + i)) * (0.75 + 0.25 * l))));
-      links.forEach((ln, i) => {
-        const e = quint(win(a, 0.35 + i * 0.04, 0.8 + i * 0.02));
-        (ln.tube.material as THREE.MeshBasicMaterial).opacity = 0.7 * e;
-        const t = (((p * 2.2 + i * 0.29) % 1) + 1) % 1;
-        ln.light.position.copy(ln.curve.getPoint(t));
-        ln.light.scale.setScalar(Math.max(0.001, e * l * Math.sin(t * Math.PI) * 1.4));
+      spin.rotation.y = 0.4 + p * 1.6;
+      atm.rotation.y = p;
+      // the arcs are drawn in one after another
+      arcs.forEach((arc, k) => {
+        const g = clamp01((a * 1.7 - k * 0.07) / 0.6);
+        arc.geo.setDrawRange(0, Math.max(60, Math.floor(quint(g) * SEG) * 30));
+        arc.line.visible = g > 0.01;
+        const on = g > 0.98 && l > 0.02;
+        arc.pulse.visible = on;
+        if (on) {
+          const u = (p * (2.2 + (k % 3) * 0.5) + k * 0.19) % 1;
+          const f = u * (SEG - 1);
+          const i0 = Math.floor(f);
+          arc.pulse.position.lerpVectors(arc.pts[i0], arc.pts[Math.min(SEG - 1, i0 + 1)], f - i0);
+          arc.pulse.scale.setScalar(0.7 + 0.5 * Math.sin(u * Math.PI));
+        }
       });
-      const eR = quint(win(a, 0.2, 0.8));
-      rack.group.position.set(lerp(-5.2, -3.45, eR), lerp(1.9, 0.82, eR), lerp(-1.5, 1.2, eR));
-      rack.group.rotation.y = lerp(0.9, 0.35, eR);
-      rack.tick(p);
-      rack.power(1);
-      const eM = quint(win(a, 0.3, 0.9));
-      screen.group.position.set(lerp(5.2, 3.3, eM), lerp(4.2, 1.55, eM), lerp(-1, 1.0, eM));
-      screen.group.rotation.set(0, lerp(-1, -0.4, eM), 0);
-      // two lines tie the rack and the screen to the globe
+      nodes.forEach((n, i) => {
+        const g = clamp01((a * 1.6 - i * 0.05) / 0.5);
+        n.g.scale.setScalar(Math.max(0.001, quint(g)));
+        const s = (p * 2.4 + i * 0.31) % 1;
+        n.ring.scale.setScalar(0.5 + 2.4 * s);
+        (n.ring.material as THREE.MeshBasicMaterial).opacity = (1 - s) * 0.8 * g;
+      });
+      hud.rotation.y = p * 1.3;
+      hudArc.rotation.z = p * TAU * 0.5;
+      const ang = p * TAU * 0.9 + 0.8;
+      sat.position.set(Math.cos(ang) * 3.95, 0, Math.sin(ang) * 3.95);
+      sat.rotation.y = -ang;
+      (rimA.material as THREE.MeshBasicMaterial).opacity = 0.5 + 0.5 * l;
+      (rimB.material as THREE.MeshBasicMaterial).opacity = 0.45 + 0.45 * l;
+      beam.mat.uniforms.uOpacity.value = 0.2 + 0.25 * l;
+      (pool.material as THREE.MeshBasicMaterial).opacity = 0.3 + 0.25 * l;
       group.updateMatrixWorld(true);
-      A.copy(rack.group.position).add(B.set(0, 1.3 * 0.62, 0));
-      wireA.aim(A, B.set(-1.5, CY - 0.4, 0.4), smoothstep(0.7, 1, eR));
-      A.copy(screen.group.position);
-      wireB.aim(A, B.set(1.5, CY - 0.4, 0.4), smoothstep(0.7, 1, eM));
-      frame.hw = lerp(5.8, 4.9, quint(win(a, 0.1, 0.9)));
     },
     frame: () => frame,
-    dispose() {
-      nodeGeo.dispose();
-      haloGeo.dispose();
-      gridGeo.dispose();
-    },
   };
-  model.set(0, 0, 0);
+  model.set(1, 1, 0.5);
   return model;
 };
 

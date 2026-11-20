@@ -32,6 +32,8 @@ export interface Model {
   ground?: boolean;
   /** Where the middle of its ground is, in its own units (default: under the frame's middle). */
   floorY?: number;
+  /** False when the model keeps its own frame up to date as it opens (the camera frames what the model reports, not what it measures). */
+  fit?: boolean;
   /** Frees what it made (geometries and materials are freed with the scene; textures through `env.textures`). */
   dispose?(): void;
 }

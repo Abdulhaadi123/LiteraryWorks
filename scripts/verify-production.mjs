@@ -298,7 +298,7 @@ async function main() {
       if (r.tags) {
         await copyAt(page, r.id, 0.55);
         const shown = await page.ev("[...document.querySelectorAll('.xp-labels li')].filter(e => Number(getComputedStyle(e).opacity) > 0.9).length");
-        check(shown === r.tags, `${r.name}: all ${r.tags} tags show once the devices are connected`, `${shown} shown`);
+        check(shown === r.tags, `${r.name}: all ${r.tags} tags show once the scene is connected`, `${shown} shown`);
       }
       // the picture is there and it moves with the scroll
       await copyAt(page, r.id, r.at[1]);

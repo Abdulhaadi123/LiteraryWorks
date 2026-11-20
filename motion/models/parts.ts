@@ -54,8 +54,8 @@ export function drawn(env: ModelEnv, w: number, h: number, draw: (g: CanvasRende
 }
 
 /** A glass panel with a picture on its face (and a soft shadow behind it, unless told otherwise). */
-export function glass(env: ModelEnv, tex: THREE.Texture, w: number, h: number, opts: { depth?: number; radius?: number; shadow?: boolean } = {}): Panel {
-  return makePanel(w, h, tex, opts.shadow === false ? null : env.shadow, { radius: opts.radius, depth: opts.depth });
+export function glass(env: ModelEnv, tex: THREE.Texture, w: number, h: number, opts: { depth?: number; radius?: number; shadow?: boolean; back?: number } = {}): Panel {
+  return makePanel(w, h, tex, opts.shadow === false ? null : env.shadow, { radius: opts.radius, depth: opts.depth, back: opts.back });
 }
 
 /** A rounded slab with a bevelled edge, centred on the origin, its front toward +z. */

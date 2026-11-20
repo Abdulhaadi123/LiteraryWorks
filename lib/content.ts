@@ -460,3 +460,127 @@ export const moreBuilt = [
   { name: "Monetiza", text: "A fintech app that recommends financial products and acts as a planning co-pilot." },
   { name: "OTA-GPT", text: "Automates guest messaging and bookings for online travel agencies." },
 ];
+
+/** The four phases of an engagement in full: the goal, what we do and what you get. (The short form is `engagement`.) */
+export interface Phase {
+  n: string;
+  title: string;
+  goal: string;
+  does: string[];
+  gets: string[];
+}
+
+export const phases: Phase[] = [
+  {
+    n: "01",
+    title: "Discover",
+    goal: "Understand how the work really runs.",
+    does: [
+      "Talk to the people who do the work, not only the people who manage it",
+      "Map each workflow step by step, with its handoffs",
+      "Find where time, money and attention are lost",
+      "Rank the opportunities by impact and effort",
+    ],
+    gets: ["A map of how your work really runs", "A ranked list of opportunities", "A plain-language plan, yours to keep"],
+  },
+  {
+    n: "02",
+    title: "Design",
+    goal: "Decide what to build, and how it fits.",
+    does: [
+      "Choose what to automate and what to leave to people",
+      "Draw the architecture around the tools you already use",
+      "Design the interface with the people who will use it",
+      "Agree the scope, the milestones and how success is measured",
+    ],
+    gets: ["System architecture and a clickable design", "A fixed scope and a fixed quote", "A delivery plan with milestones"],
+  },
+  {
+    n: "03",
+    title: "Deploy",
+    goal: "Build it in small releases you can judge.",
+    does: [
+      "Build in short stages and show you each one",
+      "Connect it to your data, your CRM and your tools",
+      "Test with real cases, including the awkward ones",
+      "Launch with training, monitoring and a way back",
+    ],
+    gets: ["Working software in your hands early", "Documentation your team can use", "A secure, monitored production system"],
+  },
+  {
+    n: "04",
+    title: "Optimize",
+    goal: "Measure it, then make it better.",
+    does: [
+      "Track the results against the plan",
+      "Watch what people really use, and what they skip",
+      "Tune the models, the prompts and the workflows",
+      "Add the next piece only when the last one has paid for itself",
+    ],
+    gets: ["A results report in plain language", "A backlog ranked by return", "Support from the people who built it"],
+  },
+];
+
+/** Before and after, for the page that says what changes once the work runs on a system. */
+export const transformation: [string, string][] = [
+  ["Manual follow-ups", "Automated follow-ups"],
+  ["Delayed responses", "Instant handling"],
+  ["Scattered data", "One central system"],
+  ["Guess-based decisions", "Structured insight"],
+];
+
+/** What you leave the free hour with. */
+export const auditOutputs = [
+  { title: "Workflow review", text: "A walk through how your work really runs, step by step." },
+  { title: "Inefficiency map", text: "Where time and money are being lost, named." },
+  { title: "AI opportunities", text: "Two or three high-impact automations, with the reasoning." },
+  { title: "Direction", text: "A clear next step, even if you do not work with us." },
+];
+
+/** How a project runs day to day (the about page). */
+export const rhythm = [
+  {
+    icon: "clipboard" as const,
+    title: "What we need from you",
+    items: [
+      "One person who can decide and answer questions",
+      "A few hours with the people who do the work",
+      "Access to the tools and data we will connect to",
+      "Honest feedback after every release",
+    ],
+  },
+  {
+    icon: "package" as const,
+    title: "What you get from us",
+    items: [
+      "A written plan before any build",
+      "Working releases you can try, not slide decks",
+      "Direct access to the people building it",
+      "A documented handover, whether or not we stay on",
+    ],
+  },
+  {
+    icon: "book" as const,
+    title: "How we communicate",
+    items: [
+      "Plain language in updates, proposals and invoices",
+      "Decisions written down where everyone can find them",
+      "Problems raised early, with options attached",
+      "One place to see what is done and what is next",
+    ],
+  },
+];
+
+/** The case study that shows each service in practice (a service with no case study of its own is left out). */
+export const caseForService: Record<string, string> = {
+  "ai-automation": "internal-ai-assistant",
+  "ai-voice-systems": "ai-voice-system",
+  "saas-platforms": "ai-sales-coaching",
+  "enterprise-software": "fleet-logistics-platform",
+  "ai-web-apps": "ai-medical-scribe",
+  "ui-ux-design": "ai-medical-scribe",
+  "cloud-devops": "predictive-maintenance",
+};
+
+/** Everything the case studies were built with, once each. */
+export const techUsed: string[] = [...new Set(cases.flatMap((c) => c.tech))];

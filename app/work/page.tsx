@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CasesDeck } from "@/components/ServicesDeck";
+import { AuditStrip, Industries } from "@/components/Sections";
 import { CaseCards, PageHero, Portfolio, SectionHead } from "@/components/ui";
 import { moreBuilt } from "@/lib/content";
 import { pageMeta } from "@/lib/seo";
@@ -72,6 +73,10 @@ export default function WorkPage() {
           <Portfolio items={moreBuilt} />
         </div>
       </section>
+
+      <Industries tone="white" />
+
+      <AuditStrip tone="mist" />
     </>
   );
 }

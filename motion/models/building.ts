@@ -1,184 +1,352 @@
 import * as THREE from "three";
-import { lerp, quint, TAU, win } from "../engine";
-import { COLOR, makeBeam, type Beam } from "../kit";
-import { C, dot, drawn, glass, glossy, marker, unlit } from "./parts";
+import { clamp01, lerp, quint, smooth, TAU, win } from "../engine";
+import { darkGlass, GLOW, glowTex, lightSprite, lit, makeScreen, stageMetal } from "./glow";
+import { drawn, fillRR, rr } from "./parts";
+import { uiTexture } from "./ui";
 import type { Frame, Model, ModelBuilder } from "./types";
 
 /**
- * Construction technology: a building going up. A blueprint on the ground, a tower crane over it, and the floors of
- * a building coming down onto each other one after another as the page scrolls, each drawn in a fine line first;
- * a screen with one of our own project views stands beside it.
+ * Construction technology: a building going up, floor by floor, on a blueprint. A tower crane lifts each glass floor
+ * from the stock pile, swings it over the site and lowers it onto the stack; a ghost of the finished building stands
+ * round it, dimension lines measure it, the windows light as it runs and a project view stands beside it. On a page
+ * the building is built as it is scrolled; once it is finished the crane keeps lifting the next floor onto the roof.
  */
 
-const FLOORS = 8;
-const FH = 0.52;
-const FW = 2.3;
-const FD = 1.7;
-const PW = 8.4;
-const PD = 5.6;
+const FLOORS = 10;
+const START = 3;
+const cap = () => new THREE.MeshStandardMaterial({ color: 0x0c2038, metalness: 0.3, roughness: 0.5, envMapIntensity: 0.2 });
+const FW = 2.6;
+const FH = 0.36;
+const PITCH = 0.46;
+const BX = -0.7;
+const BASE = 0.2;
+const MAST = new THREE.Vector3(-3.4, 0, -1.3);
+const JIB_Y = 7.3;
+const PILE = new THREE.Vector3(2.8, BASE + FH / 2 + 0.02, 0.6);
+const HOIST = 6.2;
 
-const build: ModelBuilder = async (env, mini) => {
-  const group = new THREE.Group();
-  const view = await env.shot("kalibur", 1024, 640);
-
-  /* ---- the blueprint ---- */
-  const plan = drawn(env, 1260, 840, (g, w, h) => {
+function blueprint(env: Parameters<ModelBuilder>[0]): THREE.CanvasTexture {
+  return drawn(env, 1024, 1024, (g, w, h) => {
     const bg = g.createLinearGradient(0, 0, w, h);
-    bg.addColorStop(0, "#2d557a");
-    bg.addColorStop(1, "#1b3752");
+    bg.addColorStop(0, "#14375a");
+    bg.addColorStop(1, "#0a2038");
     g.fillStyle = bg;
     g.fillRect(0, 0, w, h);
-    for (let x = 0; x <= w; x += 30) {
-      g.fillStyle = x % 150 === 0 ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.07)";
-      g.fillRect(x, 0, 1.5, h);
+    for (let i = 0; i <= w; i += 32) {
+      g.fillStyle = i % 128 === 0 ? "rgba(170,210,255,0.26)" : "rgba(170,210,255,0.1)";
+      g.fillRect(i, 0, 1.5, h);
+      g.fillRect(0, i, w, 1.5);
     }
-    for (let y = 0; y <= h; y += 30) {
-      g.fillStyle = y % 150 === 0 ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.07)";
-      g.fillRect(0, y, w, 1.5);
-    }
-    g.strokeStyle = "rgba(255,255,255,0.55)";
+    // the site boundary, and the footprint of the building
+    g.setLineDash([18, 12]);
+    g.strokeStyle = "rgba(132,226,85,0.8)";
+    g.lineWidth = 4;
+    rr(g, 60, 60, w - 120, h - 120, 10);
+    g.stroke();
+    g.setLineDash([]);
+    const fx = ((BX - FW / 2 + 4.2) / 8.4) * w;
+    const fw = (FW / 8.4) * w;
+    const fy = (4.2 - FW / 2) / 8.4 * h;
+    fillRR(g, fx, fy, fw, fw, 6, "rgba(111,178,255,0.18)");
+    rr(g, fx, fy, fw, fw, 6);
+    g.strokeStyle = "rgba(190,224,255,0.9)";
     g.lineWidth = 3;
-    g.strokeRect(430, 250, 400, 340);
-    g.strokeRect(430, 250, 190, 150);
-    g.strokeRect(620, 400, 210, 190);
-    g.beginPath();
-    g.arc(430, 540, 60, -Math.PI / 2, 0);
-    g.moveTo(830, 330);
-    g.lineTo(870, 330);
-    g.moveTo(430, 660);
-    g.lineTo(830, 660);
-    g.moveTo(430, 650);
-    g.lineTo(430, 670);
-    g.moveTo(830, 650);
-    g.lineTo(830, 670);
     g.stroke();
     g.beginPath();
-    g.arc(1120, 160, 46, 0, TAU);
-    g.moveTo(1120, 120);
-    g.lineTo(1120, 200);
+    g.moveTo(fx, fy);
+    g.lineTo(fx + fw, fy + fw);
+    g.moveTo(fx + fw, fy);
+    g.lineTo(fx, fy + fw);
+    g.strokeStyle = "rgba(190,224,255,0.35)";
+    g.lineWidth = 2;
     g.stroke();
-    [0, 1, 2].forEach((i) => {
-      g.fillStyle = "rgba(255,255,255,0.35)";
-      g.fillRect(90, 110 + i * 26, 220 - i * 50, 8);
+    // corner marks and a dimension line
+    g.strokeStyle = "#84e255";
+    g.lineWidth = 7;
+    g.lineCap = "round";
+    [
+      [60, 60, 1, 1],
+      [w - 60, 60, -1, 1],
+      [60, h - 60, 1, -1],
+      [w - 60, h - 60, -1, -1],
+    ].forEach(([x, y, sx, sy]) => {
+      g.beginPath();
+      g.moveTo(x, y + sy * 60);
+      g.lineTo(x, y);
+      g.lineTo(x + sx * 60, y);
+      g.stroke();
     });
-    dot(g, 140, 740, 10, C.green);
+    g.strokeStyle = "rgba(190,224,255,0.7)";
+    g.lineWidth = 3;
+    g.beginPath();
+    g.moveTo(fx, fy + fw + 56);
+    g.lineTo(fx + fw, fy + fw + 56);
+    g.moveTo(fx, fy + fw + 40);
+    g.lineTo(fx, fy + fw + 72);
+    g.moveTo(fx + fw, fy + fw + 40);
+    g.lineTo(fx + fw, fy + fw + 72);
+    g.stroke();
+    fillRR(g, fx + fw / 2 - 50, fy + fw + 78, 100, 14, 7, "rgba(190,224,255,0.5)");
   });
-  const plate = glass(env, plan, PW, PD, { depth: 0.16, radius: 0.3, shadow: false });
-  plate.group.rotation.x = -Math.PI / 2;
-  plate.group.position.y = 0.08;
-  group.add(plate.group);
+}
 
-  /* ---- the building: floors with windows, each in a fine line as well ---- */
-  const windows = (lit: number) =>
-    drawn(env, 512, 128, (g, w, h) => {
-      g.fillStyle = "#f4f7fa";
-      g.fillRect(0, 0, w, h);
-      for (let i = 0; i < 8; i++) {
-        const on = (i * 5 + lit) % 7 < 2;
-        g.fillStyle = on ? (i % 2 ? C.green : C.amber) : "#3a6486";
-        g.fillRect(14 + i * 62, 30, 42, 68);
-      }
+function facade(env: Parameters<ModelBuilder>[0], seed: number): THREE.CanvasTexture {
+  return drawn(env, 256, 64, (g, w, h) => {
+    g.fillStyle = "#0e2b47";
+    g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 7; i++) {
+      const warm = (i * 7 + seed * 3) % 5 === 0;
+      g.fillStyle = warm ? "rgba(255,214,140,0.75)" : "rgba(150,210,255,0.6)";
+      g.fillRect(10 + i * 35, 16, 24, 30);
+    }
+    g.fillStyle = "rgba(190,224,255,0.5)";
+    g.fillRect(0, 0, w, 3);
+    g.fillRect(0, h - 3, w, 3);
+  });
+}
+
+function lattice(): { mast: THREE.BufferGeometry; jib: THREE.BufferGeometry } {
+  const m: number[] = [];
+  const seg = (a: number[], b: number[], out: number[]) => out.push(...a, ...b);
+  // the mast: four corners, a ring at every level, a diagonal on every face
+  const c = 0.26;
+  const corners: [number, number][] = [
+    [-c, -c],
+    [c, -c],
+    [c, c],
+    [-c, c],
+  ];
+  const y1 = JIB_Y;
+  corners.forEach(([x, z]) => seg([x, 0.1, z], [x, y1, z], m));
+  for (let y = 0.1; y < y1 - 0.01; y += 0.55) {
+    const yn = Math.min(y1, y + 0.55);
+    corners.forEach(([x, z], i) => {
+      const [nx, nz] = corners[(i + 1) % 4];
+      seg([x, y, z], [nx, y, nz], m);
+      seg([x, y, z], [nx, yn, nz], m);
     });
-  const winA = windows(0);
-  const winB = windows(3);
-  const white = glossy(0xf4f7fa, 0.4, 0.5);
-  const boxGeo = new THREE.BoxGeometry(FW, FH, FD);
-  const edgeGeo = new THREE.EdgesGeometry(boxGeo);
-  const sideA = new THREE.MeshStandardMaterial({ map: winA, roughness: 0.5, metalness: 0.1 });
-  const sideB = new THREE.MeshStandardMaterial({ map: winB, roughness: 0.5, metalness: 0.1 });
-  const edgeMat = new THREE.LineBasicMaterial({ color: 0x22425f });
-  const tower = new THREE.Group();
-  tower.position.set(0.25, 0.16, -0.1);
-  group.add(tower);
-  const floors = Array.from({ length: mini ? 6 : FLOORS }, (_, k) => {
-    const side = k % 2 ? sideB : sideA;
-    const mesh = new THREE.Mesh(boxGeo, [side, side, white, white, side, side]);
-    mesh.add(new THREE.LineSegments(edgeGeo, edgeMat));
-    mesh.scale.set(1 - k * 0.018, 1, 1);
-    tower.add(mesh);
-    return mesh;
-  });
-  const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 12), unlit(0x73c94a));
-  tower.add(beacon);
+  }
+  const j: number[] = [];
+  // the jib: three chords with struts, out to 7 and back to -2.6, and the tower that carries it
+  const chord = (x0: number, x1: number) => {
+    seg([x0, JIB_Y + 0.5, 0], [x1, JIB_Y + 0.5, 0], j);
+    seg([x0, JIB_Y, -0.22], [x1, JIB_Y, -0.22], j);
+    seg([x0, JIB_Y, 0.22], [x1, JIB_Y, 0.22], j);
+    const dir = x1 > x0 ? 1 : -1;
+    for (let k = 0; k < Math.abs(x1 - x0) / 0.5; k++) {
+      const a = x0 + dir * k * 0.5;
+      const b = a + dir * 0.5;
+      seg([a, JIB_Y, -0.22], [b, JIB_Y + 0.5, 0], j);
+      seg([a, JIB_Y, 0.22], [b, JIB_Y + 0.5, 0], j);
+      seg([b, JIB_Y, -0.22], [b, JIB_Y, 0.22], j);
+    }
+  };
+  chord(-0.3, 7.2);
+  chord(-0.3, -2.7);
+  seg([0, JIB_Y + 0.5, 0], [0, JIB_Y + 1.5, 0], j);
+  seg([0, JIB_Y + 1.5, 0], [6.4, JIB_Y + 0.5, 0], j);
+  seg([0, JIB_Y + 1.5, 0], [-2.5, JIB_Y + 0.5, 0], j);
+  const mg = new THREE.BufferGeometry();
+  mg.setAttribute("position", new THREE.Float32BufferAttribute(m, 3));
+  const jg = new THREE.BufferGeometry();
+  jg.setAttribute("position", new THREE.Float32BufferAttribute(j, 3));
+  return { mast: mg, jib: jg };
+}
 
-  /* ---- the tower crane ---- */
+const build: ModelBuilder = async (env) => {
+  const group = new THREE.Group();
+
+  /* ---- the site: a blueprint on a slab of dark glass ---- */
+  const site = new THREE.Mesh(new THREE.BoxGeometry(8.4, 0.2, 8.4), [stageMetal(), stageMetal(), new THREE.MeshBasicMaterial({ map: blueprint(env), toneMapped: false }), stageMetal(), stageMetal(), stageMetal()]);
+  site.position.y = 0.1;
+  group.add(site);
+  const siteEdge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(8.4, 0.2, 8.4)), new THREE.LineBasicMaterial({ color: GLOW.sky, transparent: true, opacity: 0.7, toneMapped: false }));
+  siteEdge.position.y = 0.1;
+  group.add(siteEdge);
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "110,190,255"), transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  pool.rotation.x = -Math.PI / 2;
+  pool.position.set(BX, 0.22, 0);
+  pool.scale.set(6.5, 6.5, 1);
+  group.add(pool);
+
+  /* ---- the building: ten floors of glass, and the ghost of the whole ---- */
+  const floors = Array.from({ length: FLOORS }, (_, i) => {
+    const fm = new THREE.MeshBasicMaterial({ map: facade(env, i), toneMapped: false });
+    const geo = new THREE.BoxGeometry(FW, FH, FW);
+    const mesh = new THREE.Mesh(geo, [fm, fm, cap(), cap(), fm, fm]);
+    const g = new THREE.Group();
+    g.add(mesh);
+    g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: GLOW.sky, transparent: true, opacity: 0.85, toneMapped: false })));
+    group.add(g);
+    return { g, fm };
+  });
+  const carried = new THREE.Group();
+  {
+    const fm = new THREE.MeshBasicMaterial({ map: facade(env, 3), toneMapped: false });
+    const geo = new THREE.BoxGeometry(FW, FH, FW);
+    carried.add(new THREE.Mesh(geo, [fm, fm, cap(), cap(), fm, fm]));
+    carried.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: GLOW.green, toneMapped: false })));
+    group.add(carried);
+  }
+  const stockFm = new THREE.MeshBasicMaterial({ map: facade(env, 5), color: 0x777777, toneMapped: false });
+  const stock = new THREE.Mesh(new THREE.BoxGeometry(FW, FH * 0.9, FW), [stockFm, stockFm, cap(), cap(), stockFm, stockFm]);
+  stock.position.set(PILE.x, BASE + FH * 0.45, PILE.z);
+  group.add(stock, new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(FW, FH * 0.9, FW)), new THREE.LineBasicMaterial({ color: GLOW.sky, transparent: true, opacity: 0.45, toneMapped: false })));
+  group.children[group.children.length - 1].position.copy(stock.position);
+  const totalH = FLOORS * PITCH;
+  const ghost = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(FW + 0.04, totalH, FW + 0.04)), new THREE.LineBasicMaterial({ color: GLOW.sky, transparent: true, opacity: 0.28, toneMapped: false }));
+  ghost.position.set(BX, BASE + totalH / 2 - FH / 2, 0);
+  group.add(ghost);
+
+  // dimension lines: the height, with ticks and a chip
+  const dim = new THREE.Group();
+  const dl = (a: number[], b: number[]) => dim.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]), new THREE.LineBasicMaterial({ color: 0x84e255, transparent: true, opacity: 0.9, toneMapped: false })));
+  const dx = BX + FW / 2 + 0.7;
+  const dz = -FW / 2 - 0.2;
+  dl([dx, BASE, dz], [dx, BASE + totalH, dz]);
+  dl([dx - 0.18, BASE, dz], [dx + 0.18, BASE, dz]);
+  dl([dx - 0.18, BASE + totalH, dz], [dx + 0.18, BASE + totalH, dz]);
+  group.add(dim);
+
+  /* ---- the crane ---- */
   const crane = new THREE.Group();
-  crane.position.set(-3.1, 0.16, -0.9);
+  crane.position.copy(MAST);
   group.add(crane);
-  const navy = glossy(0x22425f, 0.35, 0.8);
-  const footing = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.24, 0.7), navy);
-  footing.position.y = 0.12;
-  crane.add(footing);
-  const mast = new THREE.Mesh(new THREE.BoxGeometry(0.16, 4.8, 0.16), navy);
-  mast.position.y = 2.64;
-  crane.add(mast);
-  const head = new THREE.Group();
-  head.position.y = 5.05;
-  crane.add(head);
-  const jib = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.12, 0.16), glossy(0x73c94a, 0.4, 0.5));
-  jib.position.x = 1.7;
-  head.add(jib);
-  const counter = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.34, 0.34), navy);
-  counter.position.x = -1.0;
-  head.add(counter);
-  const trolley = new THREE.Group();
-  head.add(trolley);
-  const cable = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1, 6), unlit(0x191716));
-  cable.geometry.translate(0, -0.5, 0);
-  trolley.add(cable);
-  const hook = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.2, 0.16), navy);
-  trolley.add(hook);
-  const peak = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.3, 4), navy);
-  peak.position.y = 5.35;
-  crane.add(peak);
+  const lat = lattice();
+  const latMat = new THREE.LineBasicMaterial({ color: 0xbfe0ff, transparent: true, opacity: 0.85, toneMapped: false });
+  const mastLines = new THREE.LineSegments(lat.mast, latMat);
+  crane.add(mastLines);
+  const slew = new THREE.Group();
+  slew.position.y = 0;
+  crane.add(slew);
+  slew.add(new THREE.LineSegments(lat.jib, latMat));
+  const weight = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.6), stageMetal());
+  weight.position.set(-2.3, JIB_Y - 0.1, 0);
+  slew.add(weight);
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.5, 0.5), darkGlass(GLOW.navy, 0.2));
+  cab.position.set(0.55, JIB_Y - 0.2, 0.42);
+  slew.add(cab);
+  const trolley = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.14, 0.4), new THREE.MeshBasicMaterial({ color: 0x84e255, toneMapped: false }));
+  slew.add(trolley);
+  const beacon = lightSprite(env, "255,120,120", 0.7, 0.9);
+  beacon.position.set(0, JIB_Y + 1.6, 0);
+  slew.add(beacon);
+  // the cable and the hook's four straps
+  const cableGeo = new THREE.BufferGeometry().setFromPoints(Array.from({ length: 10 }, () => new THREE.Vector3()));
+  const cable = new THREE.LineSegments(cableGeo, new THREE.LineBasicMaterial({ color: 0xdff1ff, transparent: true, opacity: 0.9, toneMapped: false }));
+  cable.frustumCulled = false;
+  group.add(cable);
 
-  /* ---- a screen beside it ---- */
-  const screen = glass(env, view, 2.3, 1.44, { radius: 0.13, depth: 0.06 });
-  group.add(screen.group);
-  const wire: Beam = makeBeam(COLOR.green, 0.014);
-  group.add(wire.mesh);
-  const A = new THREE.Vector3();
-  const B = new THREE.Vector3();
+  // the sweep through the building as it runs
+  const scan = new THREE.Mesh(new THREE.PlaneGeometry(FW + 1.2, FW + 1.2), new THREE.MeshBasicMaterial({ map: glowTex(env, "140,210,255"), transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }));
+  scan.rotation.x = -Math.PI / 2;
+  scan.position.x = BX;
+  group.add(scan);
 
-  const frame: Frame = { cx: 0, cy: 2.6, hw: 4.9, hh: 3.1 };
+  // the project view
+  const project = makeScreen(env, uiTexture(env, "tasks", 480, 384, 21, "#84e255"), 1.9, 1.5, { accent: GLOW.sky, depth: 0.08, radius: 0.12, glow: 0.2 });
+  project.group.rotation.order = "YXZ";
+  group.add(project.group);
+
+  const tagBlue = new THREE.Object3D();
+  tagBlue.position.set(-3.6, 0.35, 3.4);
+  const tagRoof = new THREE.Object3D();
+  tagRoof.position.set(BX, BASE + totalH + 0.1, 0);
+  group.add(tagBlue, tagRoof);
+
+  const frame: Frame = { cx: 0.1, cy: 4.0, hw: 4.6, hh: 4.15 };
+  const L = new THREE.Vector3();
+  const T = new THREE.Vector3();
+  const roof = BASE + FLOORS * PITCH - FH / 2 + FH / 2;
+  /** The load's path: up from the pile, swung over the site and lowered to `yTarget`. */
+  const carryAt = (f: number, yTarget: number, out: THREE.Vector3) => {
+    const lift = smooth(win(f, 0, 0.26));
+    const swing = smooth(win(f, 0.24, 0.6));
+    const lower = smooth(win(f, 0.58, 0.92));
+    out.x = lerp(PILE.x, BX, swing);
+    out.z = lerp(PILE.z, 0, swing);
+    out.y = lerp(lerp(PILE.y, HOIST, lift), yTarget, lower);
+  };
   const model: Model = {
     group,
-    tags: [marker(group, -PW / 2 + 0.8, 0.3, PD / 2 - 0.5), marker(tower, FW / 2, floors.length * FH - 0.2, FD / 2), marker(screen.group, -0.9, 0.62, 0.07)],
-    camera: { az: [-0.55, 0.4], elev: [0.3, 0.22] },
-    ground: true,
+    tags: [tagBlue, tagRoof, project.top],
+    camera: { az: [-0.35, -0.12], elev: [0.22, 0.14] },
     floorY: 0,
     set(a, l, p) {
-      const eP = quint(win(a, 0, 0.5));
-      plate.group.scale.set(lerp(0.7, 1, eP), lerp(0.7, 1, eP), 1);
-      plate.group.rotation.z = lerp(0.5, 0, eP);
-      floors.forEach((f, k) => {
-        const e = quint(win(a, 0.06 + k * 0.085, 0.4 + k * 0.085));
-        f.position.set(0, FH / 2 + k * FH + (1 - e) * 5.5, 0);
-        f.rotation.y = (1 - e) * (k % 2 ? 0.9 : -0.9);
+      const built = a >= 0.999;
+      const fb = START + a * (FLOORS - START);
+      const c = Math.min(FLOORS - 1, Math.floor(fb));
+      let f: number;
+      let yTarget: number;
+      if (built) {
+        f = (p * 1.5) % 1;
+        yTarget = roof + FH * 0.5;
+      } else {
+        f = fb - c;
+        yTarget = BASE + c * PITCH;
+      }
+      floors.forEach((fl, i) => {
+        const placed = built || i < c || (i === c && f > 0.94);
+        fl.g.visible = placed;
+        fl.g.position.set(BX, BASE + i * PITCH, 0);
+        const k = clamp01(0.45 + 0.55 * l * (0.6 + 0.4 * Math.sin(p * 18 + i * 1.7)));
+        fl.fm.color.setScalar(k);
       });
-      beacon.position.set(0, floors.length * FH + 0.2, 0);
-      beacon.scale.setScalar(Math.max(0.001, quint(win(a, 0.7, 1)) * (0.7 + 0.5 * Math.sin(p * TAU * 6)) * (0.4 + 0.6 * l)));
-      // the crane turns over the site, and its hook goes up and down
-      head.rotation.y = lerp(0.9, -0.3, eP) + 0.22 * Math.sin(p * TAU * 1.4);
-      trolley.position.x = 2.2 + 0.9 * Math.sin(p * TAU * 2.1);
-      const drop = 1.2 + 1.1 * (0.5 + 0.5 * Math.sin(p * TAU * 3.3));
-      cable.scale.y = drop;
-      hook.position.y = -drop - 0.1;
-      const eS = quint(win(a, 0.3, 0.9));
-      screen.group.position.set(lerp(6.5, 3.3, eS), lerp(4, 1.55, eS), lerp(-1, 1.6, eS));
-      screen.group.rotation.set(0, lerp(-1, -0.42, eS), 0);
+      // the floor on the hook
+      carryAt(f, yTarget, L);
+      const showCarry = built ? f < 0.94 : f <= 0.94;
+      carried.visible = showCarry && (built || a > 0.001);
+      carried.position.copy(L);
+      carried.scale.setScalar(built ? 1 - 0.0 * f : 1);
+      stock.visible = true;
+      ghost.visible = true;
+      (ghost.material as THREE.LineBasicMaterial).opacity = built ? 0.16 : 0.3;
+      // the crane turns to the load, the trolley runs out to it, the cable comes down
+      const dxm = L.x - MAST.x;
+      const dzm = L.z - MAST.z;
+      const phi = Math.atan2(-dzm, dxm);
+      const r = Math.hypot(dxm, dzm);
+      slew.rotation.y = phi;
+      trolley.position.set(r, JIB_Y - 0.12, 0);
+      T.set(MAST.x + Math.cos(phi) * r, JIB_Y - 0.12, MAST.z - Math.sin(phi) * r);
+      const top = L.y + FH / 2;
+      const hookY = top + 0.9;
+      const pos = cableGeo.attributes.position as THREE.BufferAttribute;
+      pos.setXYZ(0, T.x, T.y, T.z);
+      pos.setXYZ(1, T.x, hookY, T.z);
+      const c4: [number, number][] = [
+        [-FW / 2 + 0.2, -FW / 2 + 0.2],
+        [FW / 2 - 0.2, -FW / 2 + 0.2],
+        [FW / 2 - 0.2, FW / 2 - 0.2],
+        [-FW / 2 + 0.2, FW / 2 - 0.2],
+      ];
+      c4.forEach(([ox, oz], i) => {
+        pos.setXYZ(2 + i * 2, T.x, hookY, T.z);
+        pos.setXYZ(3 + i * 2, L.x + ox, top, L.z + oz);
+      });
+      pos.needsUpdate = true;
+      cable.visible = carried.visible;
+      beacon.visible = Math.sin(p * 70) > 0;
+      // the scan sweeps up through the building
+      const sy = BASE + ((p * 1.3) % 1) * (FLOORS * PITCH);
+      scan.position.set(BX, sy, 0);
+      scan.visible = l > 0.05;
+      (scan.material as THREE.MeshBasicMaterial).opacity = 0.34 * l;
+      // the project view
+      const e = quint(clamp01((a * 1.4 - 0.2) / 0.6));
+      project.group.position.set(3.5, 2.0 + 0.06 * Math.sin(p * TAU * 2), 2.0);
+      project.group.rotation.y = -0.45;
+      project.group.scale.setScalar(Math.max(0.001, e));
+      (project.light.material as THREE.SpriteMaterial).opacity = (0.1 + 0.14 * l) * e;
+      (siteEdge.material as THREE.LineBasicMaterial).opacity = 0.45 + 0.4 * l;
+      (pool.material as THREE.MeshBasicMaterial).opacity = 0.16 + 0.16 * l;
+      dim.visible = a > 0.05;
       group.updateMatrixWorld(true);
-      A.copy(screen.group.position);
-      wire.aim(A, B.set(1.4, floors.length * FH * 0.5 + 0.3, 0.4), eS > 0.99 ? 1 : 0);
-      frame.hw = lerp(6.2, 4.9, quint(win(a, 0.1, 0.9)));
     },
     frame: () => frame,
-    dispose() {
-      boxGeo.dispose();
-      edgeGeo.dispose();
-    },
   };
-  model.set(0, 0, 0);
+  model.set(1, 1, 0.5);
+  void lit;
   return model;
 };
 

@@ -43,17 +43,15 @@
   display: block;
   width: 100%;
   height: auto;
+  /* the still is the scene on its own deep-blue ground, shown as a card */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1.25rem;
+  box-shadow: 0 34px 60px -36px rgba(2, 10, 20, 0.85);
 }
 .poster-open {
   margin-top: 1.5rem;
 }
-/* the first frame of the scene (the devices still loose) belongs to the live layout only, the wired-together set to the static one */
-.poster-first {
-  display: none;
-}
-html.motion .xp:not(.xp-failed) .poster-first {
-  display: block;
-}
+/* the live scene fades in over the stage's own ground, so the still belongs to the static layout only */
 html.motion .xp:not(.xp-failed) .poster-ring {
   display: none;
 }
@@ -122,13 +120,22 @@ html.motion .xp:not(.xp-failed) .xp-stage::before {
   -webkit-mask-image: radial-gradient(58% 78% at 70% 50%, #000 0%, transparent 100%);
   mask-image: radial-gradient(58% 78% at 70% 50%, #000 0%, transparent 100%);
 }
+/* the deep-blue studio ground: blue light behind the set, a little green low on the left, a pale light at the top right, a darker floor,
+   and a fine grain over all of it; the scene draws the glossy floor, the rim lights and the depth on top */
 html.motion .xp.xp-dark:not(.xp-failed) .xp-stage {
   background:
-    radial-gradient(46% 60% at 73% 48%, rgba(120, 170, 205, 0.3) 0%, rgba(120, 170, 205, 0) 72%),
-    linear-gradient(180deg, #22425f 0%, #162b40 100%);
+    radial-gradient(60% 70% at 74% 42%, rgba(63, 130, 220, 0.42) 0%, rgba(63, 130, 220, 0) 70%),
+    radial-gradient(40% 50% at 22% 96%, rgba(115, 201, 74, 0.16) 0%, rgba(115, 201, 74, 0) 70%),
+    radial-gradient(34% 44% at 96% 6%, rgba(143, 210, 255, 0.2) 0%, rgba(143, 210, 255, 0) 70%),
+    radial-gradient(120% 90% at 50% 100%, #07121e 0%, rgba(7, 18, 30, 0) 62%),
+    linear-gradient(180deg, #17344f 0%, #0d2033 58%, #091828 100%);
 }
 html.motion .xp.xp-dark:not(.xp-failed) .xp-stage::before {
-  background: radial-gradient(rgba(160, 200, 255, 0.28) 1px, transparent 1.5px) 0 0 / 28px 28px;
+  z-index: 3;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 180px 180px;
+  opacity: 0.05;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 html.motion .xp:not(.xp-failed) .xp-poster {
   position: absolute;
@@ -199,6 +206,99 @@ html.motion .xp:not(.xp-failed) .xp-phase:first-child {
   pointer-events: auto;
 }
 
+/* the progress rail: a slim green line down the left side that fills as the scene plays, so a visitor can see how much is left;
+   on a deck it also marks where each item starts and counts them */
+.xp-rail {
+  display: none;
+}
+html.motion .xp:not(.xp-failed) .xp-rail {
+  position: absolute;
+  z-index: 4;
+  left: max(1.1rem, calc(max(var(--gutter), (100% - 78rem) / 2) - 2.7rem));
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.xp-rail-num {
+  display: none;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--fg-faint);
+}
+.xp-rail-num b {
+  font-weight: 700;
+  color: var(--navy);
+}
+@media (min-width: 80rem) {
+  .xp-rail-num {
+    display: block;
+  }
+}
+.xp-rail-line {
+  position: relative;
+  display: block;
+  width: 3px;
+  height: min(15rem, 32vh);
+  border-radius: 3px;
+  background: rgba(34, 66, 95, 0.16);
+}
+.xp-rail-line i {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #9be07a 0%, var(--green) 100%);
+  box-shadow: 0 0 10px rgba(115, 201, 74, 0.55);
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+}
+.xp-rail-tick {
+  position: absolute;
+  left: 50%;
+  width: 9px;
+  height: 2px;
+  margin: -1px 0 0 -1px;
+  border-radius: 2px;
+  background: rgba(34, 66, 95, 0.3);
+}
+.xp-rail-tick.is-on {
+  background: var(--green);
+}
+.xp-rail-dot {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 0 2px var(--green),
+    0 0 14px rgba(115, 201, 74, 0.85);
+}
+.xp-dark .xp-rail-line {
+  background: rgba(255, 255, 255, 0.2);
+}
+.xp-dark .xp-rail-tick {
+  background: rgba(255, 255, 255, 0.38);
+}
+.xp-dark .xp-rail-tick.is-on {
+  background: var(--green);
+}
+.xp-dark .xp-rail-num {
+  color: rgba(214, 228, 255, 0.72);
+}
+.xp-dark .xp-rail-num b {
+  color: #fff;
+}
 html.motion .xp:not(.xp-failed) .xp-hint {
   position: absolute;
   z-index: 4;
@@ -330,12 +430,26 @@ html.motion .xp:not(.xp-failed) .xp-hint {
   --accent: var(--green);
   --line: rgba(255, 255, 255, 0.16);
   color: var(--fg);
-  background: linear-gradient(180deg, #22425f 0%, #162b40 100%);
+  background: linear-gradient(180deg, #17344f 0%, #0d2033 60%, #091828 100%);
 }
 .xp-dark .kicker {
   border: 0;
   background: none;
   color: #dfe9f0;
+}
+.xp-dark :focus-visible {
+  outline-color: var(--sky);
+}
+.xp-dark .btn-line {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.42);
+  box-shadow: none;
+}
+.xp-dark .btn-line:hover {
+  border-color: #fff;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
 }
 .xp-dark .h-lg em,
 .xp-dark .h-hero em {
@@ -397,9 +511,9 @@ html.motion .xp:not(.xp-failed) .xp-phase .checks {
   margin-top: 1.5rem;
 }
 
-/* an inner page whose scene does not run looks like the other inner pages */
-html:not(.motion) .xp-compact,
-.xp-compact.xp-failed {
+/* an inner page whose scene does not run looks like the other inner pages (a dark one stays dark) */
+html:not(.motion) .xp-compact:not(.xp-dark),
+.xp-compact:not(.xp-dark).xp-failed {
   background:
     radial-gradient(46% 70% at 88% 18%, rgba(96, 150, 255, 0.24) 0%, rgba(96, 150, 255, 0) 72%),
     radial-gradient(40% 60% at 4% 4%, rgba(170, 205, 255, 0.4) 0%, rgba(170, 205, 255, 0) 70%),

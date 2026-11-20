@@ -6,7 +6,7 @@ import { services } from "@/lib/services";
 import { Checks } from "./ui";
 import { Phase, Xp } from "./Xp";
 
-/** The first part of the scene is the devices flying in onto the drum (it matches INTRO in motion/scenes/deck.ts). */
+/** The first part of the scroll is the intro copy, over the first scene (it matches INTRO in motion/scenes/deck.ts). */
 const INTRO = 0.09;
 
 interface DeckItem {
@@ -21,9 +21,9 @@ interface DeckItem {
 }
 
 /**
- * A 3D deck: a drum of devices that turns one place for each item as the page scrolls, with the copy for the item at
- * the front beside it. Where the scene does not run (phones, reduced motion, no WebGL) the deck is not rendered and
- * `fallback`, the plain list, is shown in its place.
+ * A 3D deck: one scene at a time, and the camera moves on to the next for each item as the page scrolls, with the copy
+ * for the item in front beside it. Where the scene does not run (phones, reduced motion, no WebGL) the deck is not
+ * rendered and `fallback`, the plain list, is shown in its place.
  */
 function Deck({
   id,
@@ -51,6 +51,8 @@ function Deck({
         scene="deck"
         tone="dark"
         className="xp-deck"
+        railSteps={n}
+        railIntro={INTRO}
         vh={vh}
         aria={aria}
         labels={[]}
@@ -97,7 +99,7 @@ export function ServicesDeck({ id, intro, fallback }: { id: string; intro: React
       id={id}
       variant="services"
       vh={640}
-      aria="A rotating deck of nine small 3D scenes, one for each service, each a different kind of animation with our own projects in it: a workflow pipeline for AI and automation, a ring of sound for AI voice systems, a stack of layers for SaaS platforms, a tower of screens for enterprise software, a browser for AI web apps, an app pulled apart for AI mobile apps, a wireframe becoming a design for UI and UX design, a globe for cloud and DevOps, and a building going up for construction technology. Each comes to the front in turn."
+      aria="Nine 3D scenes, one for each service, shown one at a time, each a different kind of animation: a gate that sorts a stream of requests for AI and automation, a ring of sound for AI voice systems, four layers pulled apart for SaaS platforms, a wall of live dashboards for enterprise software, a browser built of layers for AI web apps, an app pulled apart for AI mobile apps, a wireframe painted into a design for UI and UX design, a planet of cloud regions for cloud and DevOps, and a building going up with a crane for construction technology."
       intro={intro}
       fallback={fallback}
       items={services.map((s) => ({

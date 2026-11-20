@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SceneHero } from "@/components/SceneHero";
-import { Checks, SectionHead, ServiceCards } from "@/components/ui";
+import { Timeline } from "@/components/Sections";
+import { CaseImage, Checks, SectionHead, ServiceCards } from "@/components/ui";
+import { caseBySlug, caseForService } from "@/lib/content";
 import { servicePages } from "@/lib/service-pages";
 import { serviceBySlug, services } from "@/lib/services";
 import { pageMeta } from "@/lib/seo";
@@ -27,6 +29,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
   const p = servicePages[slug];
   if (!s || !p) notFound();
 
+  const practice = caseBySlug(caseForService[slug] ?? "");
   const related = services.filter((x) => x.slug !== slug && (x.group === s.group || x.group === "AI")).slice(0, 3);
 
   return (
@@ -34,6 +37,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
       <SceneHero
         id="top"
         variant={slug}
+        tone="dark"
         kicker={`${s.group} / Service`}
         title={s.name}
         lead={p.summary}
@@ -129,18 +133,42 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
               </>
             }
           />
-          <ol className="steps" data-stagger>
-            {p.steps.map((x) => (
-              <li key={x.title}>
-                <h3>{x.title}</h3>
-                <p>{x.text}</p>
-              </li>
-            ))}
-          </ol>
+          <Timeline steps={p.steps} />
         </div>
       </section>
 
-      <section className="section on-mist">
+      {practice ? (
+        <section className="section on-mist">
+          <div className="wrap">
+            <SectionHead kicker="In practice" title={<>See it <em>at work.</em></>} lead="One of our case studies that shows this service in a real business." />
+            <article className="in-practice" data-reveal>
+              <Link href={`/work/${practice.slug}`} className="in-practice-img" tabIndex={-1} aria-hidden="true">
+                <CaseImage slug={practice.slug} sizes="(min-width: 64rem) 560px, 92vw" />
+              </Link>
+              <div className="in-practice-text">
+                <p className="kicker">{practice.tags.slice(0, 3).join(" · ")}</p>
+                <h3 className="h-md">
+                  <Link href={`/work/${practice.slug}`}>{practice.title}</Link>
+                </h3>
+                <p className="case-lead">{practice.summary}</p>
+                <dl className="metrics">
+                  {practice.results.slice(0, 3).map((r) => (
+                    <div key={r.label}>
+                      <dt>{r.value}</dt>
+                      <dd>{r.label}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <Link href={`/work/${practice.slug}`} className="card-link">
+                  <span>Read the case study</span>
+                </Link>
+              </div>
+            </article>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="section on-white">
         <div className="wrap">
           <SectionHead kicker="Related" title={<>More ways we <em>can help.</em></>} />
           <ServiceCards items={related} />

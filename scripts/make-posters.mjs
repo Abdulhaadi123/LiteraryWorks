@@ -1,7 +1,7 @@
-// Renders the home story's still pictures from the live 3D scene: the devices loose (system-hero), wired to the AI
-// core (system-ring) and closed up into one set (system-dash), as WebP with a transparent background, in
-// public/scene/. Phones, tablets, reduced motion and the moment before WebGL is ready show these, so what they see
-// is the real scene and not a drawing of it.
+// Renders the home story's still pictures from the live 3D scene: the nine tiles joined to the AI core (system-ring)
+// and locked into one halo (system-dash), as WebP on the scene's own deep-blue ground (a few tens of kB each, where
+// the same pictures with a transparent background were over 200 kB), in public/scene/. Phones, tablets, reduced
+// motion and a browser without WebGL show these, so what they see is the real scene and not a drawing of it.
 //
 //   npm run build && npm run start -- -p 3000      (in another terminal)
 //   node scripts/make-posters.mjs http://127.0.0.1:3000
@@ -109,10 +109,9 @@ async function openPage(port) {
   return { send, ev, close: () => ws.close() };
 }
 
-/** Hides everything except the canvas, so the picture is the scene on a clear ground. */
+/** Hides everything except the stage (its ground and the canvas), so the picture is the scene as it stands on the page. */
 const STILL_CSS = `
-  .site-header, .mobile-cta, .xp-copy, .xp-lines, .xp-labels, .xp-hint, .xp-poster { display: none !important; }
-  html, body, .xp, .xp-stage { background: transparent !important; }
+  .site-header, .mobile-cta, .xp-copy, .xp-lines, .xp-labels, .xp-hint, .xp-poster, .xp-rail { display: none !important; }
   .xp-stage::before { display: none !important; }
 `;
 
@@ -123,7 +122,6 @@ async function main() {
   try {
     await page.send("Page.enable");
     await page.send("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: DPR, mobile: false });
-    await page.send("Emulation.setDefaultBackgroundColorOverride", { color: { r: 0, g: 0, b: 0, a: 0 } });
     await page.send("Page.navigate", { url: `${base}/?still` });
     for (let i = 0; i < 120; i++) {
       try {
@@ -174,22 +172,20 @@ async function main() {
       const sy = await page.ev("scrollY");
       for (const [file, px] of [[`${name}.webp`, cap], [`${name}-800.webp`, 800]]) {
         const scale = Math.min(1, px / (w * DPR));
-        const shot = await page.send("Page.captureScreenshot", { format: "webp", quality: 82, fromSurface: true, clip: { x, y: y + sy, width: w, height: h, scale } });
+        const shot = await page.send("Page.captureScreenshot", { format: "webp", quality: 68, fromSurface: true, clip: { x, y: y + sy, width: w, height: h, scale } });
         const bytes = Buffer.from(shot.data, "base64");
         writeFileSync(join(out, file), bytes);
         console.log(`  ${file}  ${Math.round(w * DPR * scale)}x${Math.round(h * DPR * scale)}  ${(bytes.length / 1024).toFixed(0)} kB`);
         if (px === cap) {
-          // the corner must be clear (or the still would show a box on the page) and the scene must be in it
-          const s = await page.ev(`(async () => { const img = new Image(); img.src = "data:image/webp;base64,${shot.data}"; await img.decode(); const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0); const d = g.getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 200) n++; return { corner: d[3], solid: n / (d.length / 4) }; })()`);
-          if (s.corner > 2) throw new Error(`${file}: the background is not transparent (alpha ${s.corner}); the renderer or the browser lost it`);
-          if (s.solid < 0.08) throw new Error(`${file}: the scene is missing from the picture (${(s.solid * 100).toFixed(1)}% solid)`);
+          // the scene must be in the picture: some of it is bright (the ground alone is dark blue)
+          const s = await page.ev(`(async () => { const img = new Image(); img.src = "data:image/webp;base64,${shot.data}"; await img.decode(); const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0); const d = g.getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11 > 150) n++; return { bright: n / (d.length / 4) }; })()`);
+          if (s.bright < 0.01) throw new Error(`${file}: the scene is missing from the picture (${(s.bright * 100).toFixed(2)}% bright)`);
         }
       }
     };
 
-    await render("system-hero", 0, 1200);
     await render("system-ring", 0.4, 1200);
-    await render("system-dash", 0.86, 1200, 1.45);
+    await render("system-dash", 0.86, 1200);
     console.log("\nDone. Keep the width, height and srcset sizes in components/Posters.tsx in step with the sizes printed above.");
   } finally {
     page.close();

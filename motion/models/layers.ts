@@ -1,180 +1,266 @@
 import * as THREE from "three";
-import { lerp, quint, TAU, win } from "../engine";
-import { C, dot, drawn, fillRR, glass, marker, plateTexture, skel } from "./parts";
+import { clamp01, lerp, quint, TAU } from "../engine";
+import { darkGlass, GLOW, lightColumn, lit, makeScreen, type Screen } from "./glow";
+import { drawn, rr } from "./parts";
+import { uiTexture } from "./ui";
 import type { Frame, Model, ModelBuilder } from "./types";
 
 /**
- * SaaS platforms: the layers of a product. Four slabs start loose, settle into one stack and then pull apart into a
- * clear exploded view: the interface (one of our own products on its face), the API, the data and the cloud under
- * it, joined by lines that carry small lights up and down.
+ * SaaS platforms: the layers of a product, pulled apart. Four plates of dark glass, the interface on top, then the API,
+ * the data and the cloud, each with the things that live on it standing on its surface (blocks of interface, gateways,
+ * databases, servers). Lines of light join them and small packets run up and down between the layers. On a page the
+ * stack starts closed and opens as it is scrolled; the servers blink once it runs.
  */
 
-const W = 4.3;
-const D = 2.8;
+const PW = 5.6;
+const PD = 3.6;
 const T = 0.16;
-const GAP = 1.15;
-const PX = 1024;
-const PY = Math.round((PX * D) / W);
+const NAMES = ["cloud", "data", "api", "interface"];
+
+/** The surface of a plate that has things standing on it: a fine grid, brackets in its corners, a few bars of text. */
+function gridTexture(env: Parameters<ModelBuilder>[0], accent: string, seed: number): THREE.CanvasTexture {
+  return drawn(env, 896, 576, (g, w, h) => {
+    const bg = g.createLinearGradient(0, 0, w, h);
+    bg.addColorStop(0, "#143453");
+    bg.addColorStop(1, "#0a1f35");
+    g.fillStyle = bg;
+    g.fillRect(0, 0, w, h);
+    const lit = g.createRadialGradient(w * 0.25, 0, 0, w * 0.25, 0, w);
+    lit.addColorStop(0, "rgba(130,195,255,0.22)");
+    lit.addColorStop(1, "rgba(130,195,255,0)");
+    g.fillStyle = lit;
+    g.fillRect(0, 0, w, h);
+    for (let x = 0; x <= w; x += 56) {
+      g.fillStyle = x % 224 === 0 ? "rgba(170,210,255,0.2)" : "rgba(170,210,255,0.09)";
+      g.fillRect(x, 0, 1.5, h);
+    }
+    for (let y = 0; y <= h; y += 56) {
+      g.fillStyle = y % 224 === 0 ? "rgba(170,210,255,0.2)" : "rgba(170,210,255,0.09)";
+      g.fillRect(0, y, w, 1.5);
+    }
+    g.strokeStyle = accent;
+    g.lineWidth = 6;
+    g.lineCap = "round";
+    [
+      [30, 30, 1, 1],
+      [w - 30, 30, -1, 1],
+      [30, h - 30, 1, -1],
+      [w - 30, h - 30, -1, -1],
+    ].forEach(([x, y, sx, sy]) => {
+      g.beginPath();
+      g.moveTo(x, y + sy * 46);
+      g.lineTo(x, y);
+      g.lineTo(x + sx * 46, y);
+      g.stroke();
+    });
+    g.fillStyle = "rgba(190,224,255,0.3)";
+    for (let i = 0; i < 3; i++) rr(g, 70, 64 + i * 22, 150 - i * 36 + (seed % 3) * 8, 9, 4.5), g.fill();
+    rr(g, 1.5, 1.5, w - 3, h - 3, 28);
+    g.strokeStyle = "rgba(170,210,255,0.28)";
+    g.lineWidth = 3;
+    g.stroke();
+  });
+}
 
 const build: ModelBuilder = async (env) => {
   const group = new THREE.Group();
-  const spin = new THREE.Group();
-  group.add(spin);
+  const stack = new THREE.Group();
+  group.add(stack);
 
-  /* ---- the four faces ---- */
-  const ui = await env.shot("vendibly", PX, PY);
-  const api = plateTexture(env, PX, PY, (g, w, h) => {
-    const nodes: [number, number][] = [[150, 160], [340, 330], [560, 180], [740, 370], [890, 190], [470, 520], [200, 500]];
-    const edges = [[0, 1], [1, 2], [2, 3], [3, 4], [1, 5], [5, 6], [6, 1], [2, 5], [3, 5]];
-    g.strokeStyle = C.sky;
-    g.lineWidth = 6;
-    edges.forEach(([i, j]) => {
-      g.beginPath();
-      g.moveTo(...nodes[i]);
-      g.lineTo(...nodes[j]);
-      g.stroke();
-    });
-    nodes.forEach(([x, y], i) => {
-      dot(g, x, y, 36, C.white);
-      g.strokeStyle = C.navy;
-      g.lineWidth = 7;
-      g.beginPath();
-      g.arc(x, y, 36, 0, TAU);
-      g.stroke();
-      dot(g, x, y, 11, i === 2 || i === 5 ? C.green : C.navy);
-      skel(g, x + 48, y - 16, 70, 10, C.rule);
-      skel(g, x + 48, y + 2, 46, 8, C.pale);
-    });
-    skel(g, 60, h - 56, 220, 12, C.navy);
+  const edgeMat = (color: number, opacity = 0.8) => new THREE.LineBasicMaterial({ color, transparent: true, opacity, toneMapped: false });
+  /** A block of dark glass with a lit edge. */
+  const block = (w: number, h: number, d: number, color = GLOW.sky): THREE.Group => {
+    const g = new THREE.Group();
+    const geo = new THREE.BoxGeometry(w, h, d);
+    g.add(new THREE.Mesh(geo, darkGlass(GLOW.navy, 0.25)));
+    g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat(color)));
+    return g;
+  };
+
+  /* ---- the four plates ---- */
+  const plates = NAMES.map((name, k) => {
+    const g = new THREE.Group();
+    const tex = name === "interface" ? uiTexture(env, "page", 896, 576, 4, "#84e255") : gridTexture(env, name === "cloud" ? "#84e255" : "#8fd2ff", k);
+    const s = makeScreen(env, tex, PW, PD, { accent: name === "interface" ? GLOW.green : GLOW.sky, depth: T, radius: 0.22, glow: 0.16, back: null });
+    s.group.rotation.x = -Math.PI / 2;
+    g.add(s.group);
+    const top = new THREE.Group();
+    top.position.y = T / 2 + (name === "interface" ? 0.005 : 0.01);
+    g.add(top);
+    stack.add(g);
+    return { g, s, top, name };
   });
-  const data = plateTexture(env, PX, PY, (g, w, h) => {
-    [190, 512, 834].forEach((x, i) => {
-      const gr = g.createLinearGradient(x - 90, 0, x + 90, 0);
-      gr.addColorStop(0, "#2f5a82");
-      gr.addColorStop(1, "#1d3a56");
-      g.fillStyle = gr;
-      g.fillRect(x - 90, 170, 180, 190);
-      [170, 265, 360].forEach((y) => {
-        g.beginPath();
-        g.ellipse(x, y, 90, 34, 0, 0, TAU);
-        g.fillStyle = y === 170 ? "#5d8fb9" : "rgba(255,255,255,0.12)";
-        g.fill();
-      });
-      g.beginPath();
-      g.ellipse(x, 360, 90, 34, 0, 0, Math.PI);
-      g.fillStyle = "#1d3a56";
-      g.fill();
-      dot(g, x + 50, 290, 8, i === 1 ? C.amber : C.green);
+
+  // interface: a card, a button, a toggle standing off the page
+  {
+    const t = plates[3].top;
+    const card = block(1.7, 0.12, 1.0, GLOW.sky);
+    card.position.set(-1.4, 0.06, -0.55);
+    const btn = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.7, 6, 14), new THREE.MeshBasicMaterial({ color: 0x84e255, toneMapped: false }));
+    btn.rotation.z = Math.PI / 2;
+    btn.position.set(0.7, 0.14, 0.95);
+    const toggle = block(0.95, 0.1, 0.42, GLOW.sky);
+    toggle.position.set(1.65, 0.05, -0.8);
+    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 14), new THREE.MeshBasicMaterial({ color: 0x84e255, toneMapped: false }));
+    knob.position.set(1.95, 0.16, -0.8);
+    t.add(card, btn, toggle, knob);
+  }
+  // API: gateways, six-sided, joined by lines
+  const gates: THREE.Mesh[] = [];
+  {
+    const t = plates[2].top;
+    const P: [number, number][] = [
+      [-1.9, -0.9],
+      [-0.6, -1.0],
+      [0.8, -0.6],
+      [2.0, -1.0],
+      [-1.3, 0.75],
+      [0.15, 0.85],
+      [1.55, 0.75],
+    ];
+    const pts: number[] = [];
+    P.forEach(([x, z], i) => {
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, i === 2 ? 0.34 : 0.18, 6), i === 2 ? new THREE.MeshBasicMaterial({ color: 0x84e255, toneMapped: false, transparent: true, opacity: 0.9 }) : darkGlass(GLOW.navy, 0.25));
+      m.position.set(x, i === 2 ? 0.17 : 0.09, z);
+      t.add(m);
+      gates.push(m);
+      const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 6 }, (_, j) => new THREE.Vector3(Math.cos((j / 6) * TAU) * 0.3, 0, Math.sin((j / 6) * TAU) * 0.3))), edgeMat(GLOW.sky));
+      ring.position.set(x, i === 2 ? 0.34 : 0.18, z);
+      t.add(ring);
     });
-    for (let r = 0; r < 4; r++) {
-      const y = 440 + r * 52;
-      skel(g, 80, y, 150, 12, r ? C.rule : C.navy);
-      skel(g, 270, y, 220 - r * 20, 12, C.pale);
-      skel(g, 560, y, 160, 12, C.pale);
-      dot(g, 900, y + 6, 8, r % 2 ? C.green : C.sky);
-    }
-  });
-  const cloud = drawn(env, PX, PY, (g, w, h) => {
-    const bg = g.createLinearGradient(0, 0, w, h);
-    bg.addColorStop(0, "#2d557a");
-    bg.addColorStop(1, "#162b40");
-    g.fillStyle = bg;
-    g.fillRect(0, 0, w, h);
-    g.fillStyle = "rgba(255,255,255,0.14)";
-    for (let x = 28; x < w; x += 40) for (let y = 28; y < h; y += 40) g.fillRect(x, y, 3, 3);
-    for (let r = 0; r < 2; r++) {
-      for (let c = 0; c < 3; c++) {
-        const x = 80 + c * 290;
-        const y = 150 + r * 210;
-        fillRR(g, x, y, 250, 150, 22, "rgba(255,255,255,0.1)");
-        dot(g, x + 36, y + 40, 9, C.green);
-        dot(g, x + 66, y + 40, 9, r + c === 2 ? C.amber : C.green);
-        skel(g, x + 28, y + 80, 190, 10, "rgba(255,255,255,0.3)");
-        skel(g, x + 28, y + 104, 120, 10, "rgba(255,255,255,0.2)");
+    [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [0, 4],
+      [4, 5],
+      [5, 6],
+      [1, 5],
+      [2, 6],
+      [2, 5],
+    ].forEach(([i, j]) => pts.push(P[i][0], 0.03, P[i][1], P[j][0], 0.03, P[j][1]));
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+    t.add(new THREE.LineSegments(geo, edgeMat(GLOW.sky, 0.6)));
+  }
+  // data: three databases, stacks of discs with a lit ring between them
+  const rings: THREE.Mesh[] = [];
+  {
+    const t = plates[1].top;
+    [-1.7, 0, 1.7].forEach((x, i) => {
+      for (let d = 0; d < 3; d++) {
+        const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.14, 40), darkGlass(GLOW.navy, 0.22));
+        disc.position.set(x, 0.07 + d * 0.22, 0);
+        t.add(disc);
+        const r = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.012, 6, 60), lit(i === 1 && d === 2 ? GLOW.green : GLOW.sky, 0.9));
+        r.rotation.x = Math.PI / 2;
+        r.position.set(x, 0.145 + d * 0.22, 0);
+        t.add(r);
+        rings.push(r);
       }
-    }
-    g.strokeStyle = C.green;
-    g.lineWidth = 7;
-    g.lineCap = "round";
-    g.beginPath();
-    g.arc(300, 92, 34, Math.PI * 0.55, Math.PI * 1.5);
-    g.arc(352, 66, 40, Math.PI * 1.1, Math.PI * 1.95);
-    g.arc(420, 94, 32, Math.PI * 1.5, Math.PI * 0.45);
-    g.closePath();
-    g.stroke();
-  });
-  const faces = [ui, api, data, cloud];
+    });
+  }
+  // cloud: servers in two rows, each with a strip of lights
+  const leds: THREE.Mesh[] = [];
+  {
+    const t = plates[0].top;
+    for (let r = 0; r < 2; r++)
+      for (let c = 0; c < 4; c++) {
+        const srv = block(1.0, 0.34, 0.62, GLOW.sky);
+        srv.position.set(-1.9 + c * 1.27, 0.17, -0.8 + r * 1.5);
+        t.add(srv);
+        for (let l = 0; l < 3; l++) {
+          const led = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.05, 0.02), new THREE.MeshBasicMaterial({ color: 0x84e255, toneMapped: false }));
+          led.position.set(-1.9 + c * 1.27 - 0.3 + l * 0.12, 0.2, -0.8 + r * 1.5 + 0.32);
+          t.add(led);
+          leds.push(led);
+        }
+      }
+  }
 
-  const rnd = env.rnd;
-  const layers = faces.map((tex) => {
-    const holder = new THREE.Group();
-    const panel = glass(env, tex, W, D, { depth: T, radius: 0.2, shadow: false });
-    panel.group.rotation.x = -Math.PI / 2;
-    holder.add(panel.group);
-    spin.add(holder);
-    return {
-      holder,
-      loose: new THREE.Vector3((rnd() - 0.5) * 7, 0.4 + rnd() * 4.2, (rnd() - 0.5) * 4),
-      yaw: (rnd() - 0.5) * 2.2,
-      tilt: (rnd() - 0.5) * 0.5,
-    };
-  });
-
-  /* ---- the lines between the layers, and the lights that run along them ---- */
-  const lineGeo = new THREE.CylinderGeometry(0.02, 0.02, 1, 8);
-  const corners: [number, number][] = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
-  const lines = corners.map(([sx, sz]) => {
-    const m = new THREE.Mesh(lineGeo, new THREE.MeshBasicMaterial({ color: 0x73c94a, transparent: true, opacity: 0.7, toneMapped: false }));
-    m.position.set(sx * (W / 2 - 0.3), 0, sz * (D / 2 - 0.3));
-    spin.add(m);
+  /* ---- what joins them: four posts, a column of light, packets that run between the layers ---- */
+  const posts = [
+    [-2.6, -1.6],
+    [2.6, -1.6],
+    [-2.6, 1.6],
+    [2.6, 1.6],
+  ].map(([x, z]) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(0.03, 1, 0.03), lit(GLOW.sky, 0.55));
+    m.position.x = x;
+    m.position.z = z;
+    stack.add(m);
     return m;
   });
-  const lightGeo = new THREE.SphereGeometry(0.07, 14, 10);
-  const lights = corners.map(([sx, sz]) => {
-    const m = new THREE.Mesh(lightGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }));
-    m.position.set(sx * (W / 2 - 0.3), 0, sz * (D / 2 - 0.3));
-    spin.add(m);
-    return m;
+  const col = lightColumn(0x7cc4ff, 0.5, 0.5, 1);
+  stack.add(col.mesh);
+  const PK = 12;
+  const packets = Array.from({ length: PK }, (_, i) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: i % 3 === 0 ? 0xb6f59a : 0xdff1ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+    stack.add(m);
+    return { m, x: i % 4 === 3 ? 0 : [-2.6, 2.6, -2.6, 2.6][i % 4], z: i % 4 === 3 ? 0 : [-1.6, -1.6, 1.6, 1.6][i % 4], v: 0.5 + (i % 5) * 0.18, up: i % 2 === 0 };
   });
 
-  const frame: Frame = { cx: 0, cy: 2.1, hw: 3.4, hh: 2.7 };
+  // tags at the front-left corner of each plate
+  const corner = plates.map((p) => {
+    const o = new THREE.Object3D();
+    o.position.set(-PW / 2 + 0.3, 0.2, PD / 2 - 0.2);
+    p.g.add(o);
+    return o;
+  });
+
+  const frame: Frame = { cx: 0, cy: 3.2, hw: 3.9, hh: 3.5 };
   const model: Model = {
     group,
-    tags: layers.map((l) => marker(l.holder, W / 2 - 0.4, 0.14, D / 2 - 0.15)),
-    camera: { az: [-0.2, 0.2], elev: [0.44, 0.36] },
-    ground: true,
+    // the interface, the API, the data, the cloud
+    tags: [corner[3], corner[2], corner[1], corner[0]],
+    camera: { az: [0.5, 0.25], elev: [0.62, 0.52] },
     floorY: 0,
+    fit: false,
     set(a, l, p) {
-      const eA = quint(win(a, 0.05, 0.6)); // loose -> one stack
-      const eE = quint(win(a, 0.5, 1)); // the stack pulls apart
-      const gap = lerp(0.5, GAP, eE);
-      spin.rotation.y = lerp(-0.45, 0.3, p);
-      const top = 2.1 + 1.5 * gap;
-      layers.forEach((ly, k) => {
-        const y = 2.1 + (1.5 - k) * gap + (k === 0 ? 0.22 * l : 0);
-        ly.holder.position.set(lerp(ly.loose.x, 0, eA), lerp(ly.loose.y, y, eA), lerp(ly.loose.z, 0, eA));
-        ly.holder.rotation.set(lerp(ly.tilt, 0, eA), lerp(ly.yaw, 0, eA), 0);
+      const e = quint(a);
+      const gap = lerp(0.3, 1.85, e);
+      const base = 0.85;
+      stack.rotation.y = -0.45 + p * 0.8;
+      plates.forEach((pl, k) => {
+        pl.g.position.y = base + k * gap;
+        const up = quint(clamp01((a * 1.5 - 0.08 * k - 0.1) / 0.6));
+        pl.top.scale.y = Math.max(0.001, up);
+        pl.s.edge.forEach((ln, i) => ((ln.material as THREE.LineBasicMaterial).opacity = (i ? 0.5 : 0.7) + 0.3 * l));
+        (pl.s.light.material as THREE.SpriteMaterial).opacity = 0.12 + 0.14 * l;
       });
-      const bottom = 2.1 - 1.5 * gap;
-      lines.forEach((m) => {
-        m.scale.set(1, Math.max(0.001, (top - bottom) * eE), 1);
-        m.position.y = (top + bottom) / 2;
+      const yB = base;
+      const yT = base + 3 * gap;
+      posts.forEach((m) => {
+        m.scale.y = Math.max(0.01, yT - yB);
+        m.position.y = (yT + yB) / 2;
       });
-      lights.forEach((m, i) => {
-        const t = (((p * 3 + i / 4) % 1) + 1) % 1;
-        m.position.y = lerp(bottom, top, i % 2 ? t : 1 - t);
-        m.scale.setScalar(Math.max(0.001, eE * (0.4 + 0.6 * l)));
+      col.mesh.scale.y = Math.max(0.01, yT - yB);
+      col.mesh.position.y = (yT + yB) / 2;
+      col.mat.uniforms.uOpacity.value = 0.12 + 0.16 * l;
+      packets.forEach((q, i) => {
+        const u = (p * q.v * 2.4 + i / PK) % 1;
+        const t = q.up ? u : 1 - u;
+        q.m.position.set(q.x, lerp(yB, yT, t), q.z);
+        q.m.rotation.set(u * 6, u * 4, 0);
+        q.m.visible = a > 0.4 && l > 0.02;
+        q.m.scale.setScalar(0.7 + 0.5 * Math.sin(u * Math.PI));
       });
-      frame.hh = lerp(2.6, 3.25, eE);
-      frame.hw = lerp(5.4, 3.1, eA);
+      leds.forEach((m, i) => {
+        const on = Math.sin(p * 55 + i * 2.3) > -0.2 + (1 - l) * 0.6;
+        (m.material as THREE.MeshBasicMaterial).color.setHex(on ? (i % 5 === 0 ? 0xffc65a : 0x84e255) : 0x1d3f5c);
+      });
+      gates.forEach((m, i) => {
+        if (i === 2) (m.material as THREE.MeshBasicMaterial).opacity = 0.65 + 0.3 * Math.sin(p * 30);
+      });
+      rings.forEach((r, i) => ((r.material as THREE.MeshBasicMaterial).opacity = 0.5 + 0.4 * (0.5 + 0.5 * Math.sin(p * 22 + i))));
+      // the box round it follows how far it is opened
+      frame.cy = (0.45 + (yT + 0.6)) / 2;
+      frame.hh = (yT + 0.6 - 0.45) / 2 + 0.2;
+      group.updateMatrixWorld(true);
     },
     frame: () => frame,
-    dispose() {
-      lineGeo.dispose();
-      lightGeo.dispose();
-    },
   };
-  model.set(0, 0, 0);
+  model.set(1, 1, 0.5);
   return model;
 };
 

@@ -1,179 +1,285 @@
 import * as THREE from "three";
-import { lerp, quint, win } from "../engine";
-import { C, dot, drawn, fillRR, glass, glossy, marker, plateTexture, plane, skel } from "./parts";
+import { clamp01, lerp, quint, TAU } from "../engine";
+import { circleLine, GLOW, glowTex, lightSprite, lit, makeScreen, stageMetal, type Screen } from "./glow";
+import { drawn, fillRR, rr } from "./parts";
+import { uiTexture } from "./ui";
 import type { Frame, Model, ModelBuilder } from "./types";
 
 /**
- * UI and UX design: a wireframe becomes the product. A grey sketch of a screen is painted into one of our own finished
- * designs by a green line that sweeps across it as the page scrolls, with a cursor riding the line; round it float the
- * parts of a design system: a palette of the brand's colours, a type tile and a pen path.
+ * UI and UX design: a design canvas. An artboard stands in a selection frame with its handles; a line of light sweeps
+ * across it and turns the grey wireframe on one side into the finished screen on the other, while a cursor follows
+ * the line. A palette, a type specimen, a set of component states and a bezier curve with its handles float round it,
+ * and guides run out across the stage. The scroll runs the sweep to and fro.
  */
 
-const PW = 4.5;
-const PH = 2.8;
-const CY = 2.15;
+const AW = 5.0;
+const AH = 3.2;
+const AY = 3.35;
 
-const FRAG = `
-uniform sampler2D uWire;
-uniform sampler2D uUI;
-uniform float uT;
+const PAINT_V = /* glsl */ `
 varying vec2 vUv;
 void main() {
-  vec4 w = texture2D(uWire, vUv);
-  vec4 u = texture2D(uUI, vUv);
-  float s = vUv.x * 0.88 + (1.0 - vUv.y) * 0.12;
-  float m = smoothstep(uT - 0.012, uT + 0.012, s);
-  vec3 col = mix(u.rgb, w.rgb, m);
-  float edge = (1.0 - smoothstep(0.0, 0.026, abs(s - uT))) * step(0.001, uT) * (1.0 - step(0.999, uT));
-  col = mix(col, vec3(0.171, 0.58, 0.07), edge * 0.9);
-  gl_FragColor = vec4(col, 1.0);
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+const PAINT_F = /* glsl */ `
+uniform sampler2D map; uniform float uSweep; varying vec2 vUv;
+void main() {
+  if (vUv.x > uSweep) discard;
+  gl_FragColor = vec4(texture2D(map, vUv).rgb, 1.0);
   #include <colorspace_fragment>
 }`;
 
 const build: ModelBuilder = async (env) => {
   const group = new THREE.Group();
-  const ui = await env.shot("storyia", 1024, 640);
 
-  /* ---- the sketch: grey outlines of a screen ---- */
-  const wire = drawn(env, 1024, 640, (g, w, h) => {
-    g.fillStyle = "#f7f9fb";
-    g.fillRect(0, 0, w, h);
-    g.strokeStyle = "#9aa9b6";
-    g.lineWidth = 4;
-    g.setLineDash([14, 10]);
-    const box = (x: number, y: number, bw: number, bh: number) => {
-      g.beginPath();
-      g.roundRect(x, y, bw, bh, 10);
-      g.stroke();
-    };
-    box(40, 36, 944, 70);
-    box(40, 134, 580, 300);
-    g.beginPath();
-    g.moveTo(40, 134);
-    g.lineTo(620, 434);
-    g.moveTo(620, 134);
-    g.lineTo(40, 434);
-    g.stroke();
-    box(656, 134, 328, 140);
-    box(656, 294, 328, 140);
-    [0, 1, 2].forEach((i) => box(40 + i * 322, 464, 300, 140));
-    g.setLineDash([]);
-    g.strokeStyle = "#b9c5cf";
-    g.lineWidth = 6;
-    g.lineCap = "round";
-    [[70, 70, 220], [700, 168, 220], [700, 196, 150], [700, 330, 240], [700, 358, 160]].forEach(([x, y, l]) => {
-      g.beginPath();
-      g.moveTo(x, y);
-      g.quadraticCurveTo(x + l / 2, y - 7, x + l, y);
-      g.stroke();
-    });
-  });
+  /* ---- the artboard: the wireframe, and the finished screen painted over it as the line passes ---- */
+  const board = new THREE.Group();
+  board.position.set(0, AY, 0);
+  group.add(board);
+  const wire = makeScreen(env, uiTexture(env, "wire", 960, 614, 2, "#84e255"), AW, AH, { accent: GLOW.sky, depth: 0.1, radius: 0.14, glow: 0.2, back: null });
+  board.add(wire.group);
+  const finTex = uiTexture(env, "page", 960, 614, 3, "#84e255");
+  const paintU = { map: { value: finTex }, uSweep: { value: 0.6 } };
+  const paint = new THREE.Mesh(new THREE.PlaneGeometry(AW - 0.07, AH - 0.07), new THREE.ShaderMaterial({ uniforms: paintU, vertexShader: PAINT_V, fragmentShader: PAINT_F }));
+  paint.position.z = 0.058;
+  board.add(paint);
+  const sweepLine = new THREE.Mesh(new THREE.PlaneGeometry(0.05, AH + 0.5), new THREE.MeshBasicMaterial({ color: 0xbfe6ff, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  sweepLine.position.z = 0.075;
+  board.add(sweepLine);
+  const sweepGlow = lightSprite(env, "130,200,255", 1.4, 0.85);
+  sweepGlow.scale.set(1.3, AH + 1.3, 1);
+  sweepGlow.position.z = 0.07;
+  board.add(sweepGlow);
 
-  /* ---- the screen: wireframe -> finished design, by a sweep ---- */
-  const screen = glass(env, ui, PW, PH, { radius: 0.18, depth: 0.08 });
-  const mat = new THREE.ShaderMaterial({ uniforms: { uWire: { value: wire }, uUI: { value: ui }, uT: { value: 0 } }, vertexShader: "varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }", fragmentShader: FRAG });
-  (screen.body.material as THREE.Material[])[0] = mat;
-  group.add(screen.group);
+  // the selection frame and its handles
+  const sel = new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-AW / 2 - 0.16, -AH / 2 - 0.16, 0.08), new THREE.Vector3(AW / 2 + 0.16, -AH / 2 - 0.16, 0.08), new THREE.Vector3(AW / 2 + 0.16, AH / 2 + 0.16, 0.08), new THREE.Vector3(-AW / 2 - 0.16, AH / 2 + 0.16, 0.08)]),
+    new THREE.LineBasicMaterial({ color: 0x4f9bff, toneMapped: false }),
+  );
+  board.add(sel);
+  const handleGeo = new THREE.BoxGeometry(0.15, 0.15, 0.03);
+  const handles: THREE.Mesh[] = [];
+  [-1, 0, 1].forEach((i) =>
+    [-1, 0, 1].forEach((j) => {
+      if (!i && !j) return;
+      const h = new THREE.Mesh(handleGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }));
+      h.position.set(i * (AW / 2 + 0.16), j * (AH / 2 + 0.16), 0.09);
+      const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-0.075, -0.075, 0.016), new THREE.Vector3(0.075, -0.075, 0.016), new THREE.Vector3(0.075, 0.075, 0.016), new THREE.Vector3(-0.075, 0.075, 0.016)]), new THREE.LineBasicMaterial({ color: 0x4f9bff, toneMapped: false }));
+      h.add(ring);
+      board.add(h);
+      handles.push(h);
+    }),
+  );
 
-  /* ---- the cursor that rides the sweep ---- */
+  // the cursor, with a name tag
+  const cur = new THREE.Group();
   const arrow = new THREE.Shape();
-  [[0, 0], [0, -1], [0.26, -0.77], [0.5, -1.18], [0.68, -1.08], [0.44, -0.7], [0.76, -0.7]].forEach(([x, y], i) => (i ? arrow.lineTo(x, y) : arrow.moveTo(x, y)));
+  [
+    [0, 0],
+    [0, -1.0],
+    [0.27, -0.76],
+    [0.48, -1.18],
+    [0.66, -1.08],
+    [0.45, -0.68],
+    [0.8, -0.68],
+  ].forEach(([x, y], i) => (i ? arrow.lineTo(x * 0.5, y * 0.5) : arrow.moveTo(x * 0.5, y * 0.5)));
   arrow.closePath();
-  const cursor = new THREE.Group();
-  const cursorMesh = new THREE.Mesh(new THREE.ExtrudeGeometry(arrow, { depth: 0.03, bevelEnabled: false }), glossy(0x191716, 0.3, 0.6));
-  cursorMesh.scale.setScalar(0.42);
-  cursor.add(cursorMesh);
-  const chipTex = drawn(env, 280, 76, (g, w, h) => {
-    fillRR(g, 0, 0, w, h, 38, C.green);
-    skel(g, 34, 28, 150, 18, "rgba(25,23,22,0.75)");
+  const arrowMesh = new THREE.Mesh(new THREE.ShapeGeometry(arrow), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, toneMapped: false }));
+  const arrowLine = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(arrow.getPoints().map((p) => new THREE.Vector3(p.x, p.y, 0.002))), new THREE.LineBasicMaterial({ color: 0x0a1f35, toneMapped: false }));
+  cur.add(arrowMesh, arrowLine);
+  const tagTex = drawn(env, 256, 80, (g, w, h) => {
+    fillRR(g, 0, 0, w, h, 40, "#4f9bff");
+    fillRR(g, 36, 30, 120, 18, 9, "rgba(255,255,255,0.9)");
   });
-  const chip = plane(chipTex, 0.78, 0.21, 0.1);
-  chip.position.set(0.5, -0.55, 0.02);
-  cursor.add(chip);
-  group.add(cursor);
+  const tag = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.28), new THREE.MeshBasicMaterial({ map: tagTex, transparent: true, toneMapped: false }));
+  tag.position.set(0.62, -0.5, 0);
+  cur.add(tag);
+  cur.position.z = 0.12;
+  board.add(cur);
 
-  /* ---- the palette, the type tile and the pen path ---- */
-  const swatchGeo = new THREE.SphereGeometry(1, 40, 28);
-  const swatches = [
-    { c: 0x73c94a, r: 0.34 },
-    { c: 0x22425f, r: 0.42 },
-    { c: 0x9dbbd3, r: 0.3 },
-    { c: 0x191716, r: 0.26 },
-    { c: 0xdfe7ee, r: 0.36 },
-  ].map((s, i) => {
-    const m = new THREE.Mesh(swatchGeo, new THREE.MeshPhysicalMaterial({ color: s.c, roughness: 0.22, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1 }));
+  /* ---- guides across the stage ---- */
+  const guideMat = (c: number, o: number) => new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: o, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+  const seg = (a: number[], b: number[], c: number, o: number) => {
+    const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]), guideMat(c, o));
+    group.add(l);
+    return l;
+  };
+  const guides = [
+    seg([-6.2, AY + AH / 2 + 0.5, 0.05], [6.2, AY + AH / 2 + 0.5, 0.05], 0xff6bd6, 0.55),
+    seg([-6.2, AY - AH / 2 - 0.5, 0.05], [6.2, AY - AH / 2 - 0.5, 0.05], 0xff6bd6, 0.55),
+    seg([-AW / 2 - 0.5, 0.2, 0.05], [-AW / 2 - 0.5, 7.2, 0.05], GLOW.sky, 0.45),
+    seg([AW / 2 + 0.5, 0.2, 0.05], [AW / 2 + 0.5, 7.2, 0.05], GLOW.sky, 0.45),
+  ];
+  // a measure: an arrow with end ticks, between the artboard and the guide
+  const measure = new THREE.Group();
+  (
+    [
+      [[-AW / 2 - 0.5, AY + AH / 2, 0.06], [-AW / 2 - 0.5, AY + AH / 2 + 0.5, 0.06]],
+      [[-AW / 2 - 0.62, AY + AH / 2, 0.06], [-AW / 2 - 0.38, AY + AH / 2, 0.06]],
+      [[-AW / 2 - 0.62, AY + AH / 2 + 0.5, 0.06], [-AW / 2 - 0.38, AY + AH / 2 + 0.5, 0.06]],
+    ] as number[][][]
+  ).forEach(([a, b]) => measure.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]), guideMat(0xff6bd6, 0.9))));
+  group.add(measure);
+
+  /* ---- what floats round it ---- */
+  // the palette: five glossy spheres of the brand's colours
+  const palette = [0x22425f, 0x73c94a, 0x9dbbd3, 0x3e6d97, 0xf4f6f7].map((c, i) => {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(0.34, 40, 28), new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.22, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.1 }));
+    m.position.set(-3.7 + i * 0.74, 0.7, 1.9 - Math.abs(i - 2) * 0.28);
     group.add(m);
-    return { m, ...s, x: -2.4 + i * 1.2, i };
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.008, 6, 48), lit(GLOW.sky, 0.5));
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(m.position.x, 0.14, m.position.z);
+    group.add(ring);
+    return m;
   });
-  const type = glass(env, plateTexture(env, 360, 360, (g, w, h) => {
-    g.fillStyle = C.navy;
-    g.font = "800 190px Inter, system-ui, sans-serif";
+  // the type specimen and the component states
+  const typeTex = drawn(env, 384, 384, (g, w, h) => {
+    const bg = g.createLinearGradient(0, 0, w, h);
+    bg.addColorStop(0, "#1d466b");
+    bg.addColorStop(1, "#0a2036");
+    g.fillStyle = bg;
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = "#fff";
+    g.font = "700 180px Inter, system-ui, sans-serif";
     g.textAlign = "center";
-    g.fillText("Aa", w / 2, h / 2 + 64);
-    skel(g, 90, 292, 180, 12, C.rule);
-    dot(g, 300, 60, 14, C.green);
-  }), 1.15, 1.15, { radius: 0.16, depth: 0.05 });
-  group.add(type.group);
-  const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(-4.1, 1.2, 0.5), new THREE.Vector3(-3.4, 3.3, 0.7), new THREE.Vector3(-2.7, 1.4, 0.9), new THREE.Vector3(-2.2, 3.0, 0.7)]);
-  const pen = new THREE.Group();
-  const tubeGeo = new THREE.TubeGeometry(curve, 60, 0.026, 8);
-  pen.add(new THREE.Mesh(tubeGeo, glossy(0x22425f, 0.3, 0.8)));
-  const anchorGeo = new THREE.BoxGeometry(0.14, 0.14, 0.14);
-  [curve.getPoint(0), curve.getPoint(1)].forEach((pt) => {
-    const m = new THREE.Mesh(anchorGeo, glossy(0xffffff, 0.3, 0.8));
-    m.position.copy(pt);
-    pen.add(m);
+    g.textBaseline = "middle";
+    g.fillText("Aa", w / 2, h * 0.46);
+    fillRR(g, 60, 288, 150, 14, 7, "rgba(190,224,255,0.5)");
+    fillRR(g, 60, 314, 100, 11, 5.5, "rgba(190,224,255,0.28)");
+    g.beginPath();
+    g.arc(w - 66, 306, 18, 0, TAU);
+    g.fillStyle = "#84e255";
+    g.fill();
+    rr(g, 1.5, 1.5, w - 3, h - 3, 30);
+    g.strokeStyle = "rgba(170,210,255,0.3)";
+    g.lineWidth = 3;
+    g.stroke();
   });
-  const handleGeo = new THREE.SphereGeometry(0.06, 12, 8);
-  [new THREE.Vector3(-3.6, 1.8, 0.8), new THREE.Vector3(-2.5, 2.7, 0.8)].forEach((pt) => {
-    const m = new THREE.Mesh(handleGeo, new THREE.MeshBasicMaterial({ color: 0x73c94a, toneMapped: false }));
-    m.position.copy(pt);
-    pen.add(m);
+  const typeCard = makeScreen(env, typeTex, 1.5, 1.5, { accent: GLOW.sky, depth: 0.08, radius: 0.16, glow: 0.2 });
+  const compTex = drawn(env, 576, 352, (g, w, h) => {
+    const bg = g.createLinearGradient(0, 0, w, h);
+    bg.addColorStop(0, "#143453");
+    bg.addColorStop(1, "#0a1f35");
+    g.fillStyle = bg;
+    g.fillRect(0, 0, w, h);
+    ["#84e255", "rgba(132,226,85,0.55)", "rgba(190,224,255,0.14)"].forEach((c, i) => {
+      fillRR(g, 36 + i * 170, 50, 150, 56, 28, c);
+      fillRR(g, 66 + i * 170, 72, 90, 12, 6, i === 2 ? "rgba(190,224,255,0.6)" : "rgba(8,30,12,0.7)");
+    });
+    fillRR(g, 36, 150, 220, 60, 30, "rgba(190,224,255,0.1)");
+    g.beginPath();
+    g.arc(214, 180, 22, 0, TAU);
+    g.fillStyle = "#84e255";
+    g.fill();
+    fillRR(g, 300, 156, 240, 48, 14, "rgba(190,224,255,0.1)");
+    fillRR(g, 320, 174, 120, 12, 6, "rgba(190,224,255,0.4)");
+    fillRR(g, 36, 250, 504, 46, 14, "rgba(190,224,255,0.08)");
+    fillRR(g, 56, 268, 200, 11, 5.5, "rgba(190,224,255,0.34)");
+    rr(g, 1.5, 1.5, w - 3, h - 3, 32);
+    g.strokeStyle = "rgba(170,210,255,0.3)";
+    g.lineWidth = 3;
+    g.stroke();
   });
-  group.add(pen);
+  const compCard = makeScreen(env, compTex, 2.4, 1.46, { accent: GLOW.green, depth: 0.08, radius: 0.12, glow: 0.2 });
+  const floaters: { s: Screen; home: THREE.Vector3; yaw: number }[] = [
+    { s: typeCard, home: new THREE.Vector3(3.5, 5.5, 0.9), yaw: -0.35 },
+    { s: compCard, home: new THREE.Vector3(3.3, 1.35, 1.2), yaw: -0.3 },
+  ];
+  floaters.forEach((f) => {
+    f.s.group.rotation.order = "YXZ";
+    group.add(f.s.group);
+  });
 
-  const rnd = env.rnd;
-  const loose = swatches.map(() => new THREE.Vector3((rnd() - 0.5) * 9, 0.6 + rnd() * 4, (rnd() - 0.3) * 3));
-  const frame: Frame = { cx: 0, cy: 2.0, hw: 5.2, hh: 2.9 };
+  // a bezier curve with its handles
+  const P0 = new THREE.Vector3(-4.2, 4.7, 0.7);
+  const C1 = new THREE.Vector3(-3.5, 6.1, 0.7);
+  const C2 = new THREE.Vector3(-2.8, 4.1, 0.7);
+  const P1 = new THREE.Vector3(-2.2, 5.5, 0.7);
+  const bez = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CubicBezierCurve3(P0, C1, C2, P1), 60, 0.03, 6, false), lit(GLOW.green, 0.95));
+  group.add(bez);
+  const handlesGroup = new THREE.Group();
+  [
+    [P0, C1],
+    [P1, C2],
+  ].forEach(([a, b]) => handlesGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, b]), guideMat(GLOW.sky, 0.8))));
+  [P0, P1].forEach((p) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 0.14), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }));
+    m.position.copy(p);
+    handlesGroup.add(m);
+  });
+  [C1, C2].forEach((p) => {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(0.08, 14, 10), new THREE.MeshBasicMaterial({ color: 0x84e255, toneMapped: false }));
+    m.position.copy(p);
+    handlesGroup.add(m);
+  });
+  group.add(handlesGroup);
+
+  // the floor
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "110,190,255"), transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  pool.rotation.x = -Math.PI / 2;
+  pool.position.set(0, 0.03, 0.4);
+  pool.scale.set(10, 5, 1);
+  group.add(pool);
+  const floorRing = circleLine(3.6, GLOW.sky, 0.3);
+  floorRing.position.y = 0.04;
+  group.add(floorRing);
+  const standMat = stageMetal();
+  const stand = new THREE.Mesh(new THREE.BoxGeometry(0.2, AY - AH / 2, 0.2), standMat);
+  stand.position.set(0, (AY - AH / 2) / 2, -0.3);
+  const standBase = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.25, 0.14, 48), standMat);
+  standBase.position.y = 0.07;
+  const standRim = new THREE.Mesh(new THREE.TorusGeometry(1.12, 0.014, 8, 80), lit(GLOW.green, 0.9));
+  standRim.rotation.x = Math.PI / 2;
+  standRim.position.y = 0.145;
+  group.add(stand, standBase, standRim);
+
+  const frame: Frame = { cx: 0, cy: 3.3, hw: 4.55, hh: 3.4 };
   const model: Model = {
     group,
-    tags: [marker(screen.group, -PW / 2 + 0.25, PH / 2 - 0.25, 0.1), marker(group, 1.9, 0.9, 1.5), marker(screen.group, PW / 2 - 0.3, -PH / 2 + 0.3, 0.1)],
-    camera: { az: [-0.3, 0.26], elev: [0.16, 0.1] },
-    ground: true,
+    tags: [wire.top, palette[1], typeCard.top],
+    camera: { az: [-0.28, 0.28], elev: [0.15, 0.1] },
     floorY: 0,
     set(a, l, p) {
-      const eS = quint(win(a, 0, 0.6));
-      screen.group.position.set(0.2, lerp(3.2, CY, eS), lerp(-1.5, 0, eS));
-      screen.group.rotation.set(lerp(0.25, 0, eS), lerp(0.7, -0.12, eS), 0);
-      // the sweep from sketch to design
-      const t = quint(win(p, 0.22, 0.82));
-      mat.uniforms.uT.value = lerp(-0.04, 1.04, t);
-      const ex = (mat.uniforms.uT.value - 0.12 * 0.35) / 0.88;
-      cursor.position.set(0.2 + (ex - 0.5) * PW * Math.cos(0.12), CY + (0.5 - 0.62) * PH + Math.sin(p * 18) * 0.04, 0.42);
-      cursor.visible = t > 0.01 && t < 0.99;
-      swatches.forEach((s) => {
-        const e = quint(win(a, 0.1 + s.i * 0.08, 0.7 + s.i * 0.05));
-        s.m.position.set(lerp(loose[s.i].x, s.x, e), lerp(loose[s.i].y, 0.62 + 0.08 * Math.sin(p * 6 + s.i * 1.4), e), lerp(loose[s.i].z, 1.7, e));
-        s.m.scale.setScalar(s.r);
+      const e = quint(a);
+      // the sweep: it paints as the page is scrolled, and goes to and fro while it runs
+      const sweep = e * (0.62 + 0.38 * Math.cos(p * TAU * 1.5 + 0.4)) * (0.55 + 0.45 * l) + e * 0.05;
+      paintU.uSweep.value = Math.min(1, sweep);
+      const sx = (sweep - 0.5) * (AW - 0.07);
+      sweepLine.position.x = sx;
+      sweepGlow.position.x = sx;
+      sweepLine.visible = sweepGlow.visible = a > 0.02 && sweep < 0.995;
+      cur.position.set(sx + 0.05, 0.1 + 0.5 * Math.sin(p * TAU * 2.6), 0.12);
+      board.rotation.y = -0.16 + p * 0.28;
+      handles.forEach((h, i) => h.scale.setScalar(0.6 + 0.4 * e + 0.08 * Math.sin(p * 18 + i)));
+      palette.forEach((m, i) => {
+        const t = quint(clamp01((a * 1.5 - i * 0.07) / 0.6));
+        m.scale.setScalar(Math.max(0.001, t));
+        m.position.y = 0.7 + 0.1 * Math.sin(p * TAU * 2 + i * 1.3) + (1 - t) * 0.6;
       });
-      const eT = quint(win(a, 0.3, 0.9));
-      type.group.position.set(lerp(6, 3.4, eT), lerp(4.5, 1.5, eT), lerp(0, 1.0, eT));
-      type.group.rotation.set(0, lerp(-1, -0.35, eT), lerp(0.4, 0, eT));
-      pen.scale.setScalar(Math.max(0.001, quint(win(a, 0.2, 0.8))));
-      pen.rotation.y = lerp(0.6, 0, eT);
-      void l;
-      frame.hw = lerp(5.8, 4.6, eS);
+      floaters.forEach((f, i) => {
+        const t = quint(clamp01((a * 1.5 - 0.25 - i * 0.1) / 0.6));
+        f.s.group.position.copy(f.home);
+        f.s.group.position.x += (1 - t) * 1.4;
+        f.s.group.position.y += 0.07 * Math.sin(p * TAU * 2 + i * 2);
+        f.s.group.rotation.y = f.yaw;
+        f.s.group.scale.setScalar(Math.max(0.001, lerp(0.6, 1, t)));
+        (f.s.light.material as THREE.SpriteMaterial).opacity = (0.1 + 0.14 * l) * t;
+      });
+      bez.scale.setScalar(Math.max(0.001, e));
+      handlesGroup.scale.setScalar(Math.max(0.001, e));
+      handlesGroup.position.y = 0.06 * Math.sin(p * TAU * 2);
+      bez.position.y = handlesGroup.position.y;
+      guides.forEach((g) => ((g.material as THREE.LineBasicMaterial).opacity = (0.3 + 0.3 * l) * e));
+      measure.visible = a > 0.3;
+      (standRim.material as THREE.MeshBasicMaterial).opacity = 0.5 + 0.5 * l;
+      (pool.material as THREE.MeshBasicMaterial).opacity = 0.18 + 0.16 * l;
+      group.updateMatrixWorld(true);
     },
     frame: () => frame,
-    dispose() {
-      swatchGeo.dispose();
-      tubeGeo.dispose();
-      anchorGeo.dispose();
-      handleGeo.dispose();
-      mat.dispose();
-    },
   };
-  model.set(0, 0, 0);
+  model.set(1, 1, 0.5);
   return model;
 };
 

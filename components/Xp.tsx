@@ -19,6 +19,8 @@ export function Xp({
   data,
   poster,
   tone = "light",
+  railSteps,
+  railIntro = 0,
   className,
   children,
 }: {
@@ -32,9 +34,14 @@ export function Xp({
   poster?: ReactNode;
   /** "dark" for a runway on a navy ground. */
   tone?: "light" | "dark";
+  /** A deck of this many items: the progress rail on the left marks where each starts and counts them. */
+  railSteps?: number;
+  /** How much of the scroll (0..1) the intro takes before the first item (decks). */
+  railIntro?: number;
   className?: string;
   children: ReactNode;
 }) {
+  const ticks = railSteps ? Array.from({ length: railSteps }, (_, k) => railIntro + (k / railSteps) * (1 - railIntro)) : [];
   return (
     <section id={id} className={`xp xp-${tone}${className ? ` ${className}` : ""}`} data-pace style={{ "--xp-vh": vh } as CSSProperties}>
       <div className="xp-stage">
@@ -43,13 +50,27 @@ export function Xp({
             {poster}
           </div>
         ) : null}
-        <Stage3D scene={scene} labels={labels} aria={aria} data={data} />
+        <Stage3D scene={scene} labels={labels} aria={aria} data={data ? { ...data, tone } : undefined} />
         <div className="xp-copy">
           <div className="wrap xp-phases">{children}</div>
         </div>
         <div className="xp-hint" aria-hidden="true">
           <span className="xp-mouse" />
           Scroll to explore
+        </div>
+        <div className="xp-rail" aria-hidden="true" data-xp-rail>
+          {railSteps ? (
+            <span className="xp-rail-num">
+              <b data-rail-cur>01</b> / {String(railSteps).padStart(2, "0")}
+            </span>
+          ) : null}
+          <span className="xp-rail-line">
+            <i data-rail-fill />
+            {ticks.map((at, k) => (
+              <span key={k} className="xp-rail-tick" data-rail-tick data-at={at.toFixed(4)} style={{ top: `${(at * 100).toFixed(2)}%` }} />
+            ))}
+            <span className="xp-rail-dot" data-rail-dot />
+          </span>
         </div>
       </div>
     </section>

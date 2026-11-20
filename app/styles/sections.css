@@ -1,0 +1,655 @@
+/* ============ the sections of the pages: phases, timeline, problems, before and after, results, sectors, the audit hour ============ */
+
+/* ---------- the four phases, in full ---------- */
+.phases-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3rem;
+}
+.phases-aside .section-head {
+  margin-bottom: 1.75rem;
+}
+.phases-index {
+  display: grid;
+  margin: 0 0 2rem;
+  padding: 0;
+  list-style: none;
+}
+.phases-index a {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr;
+  gap: 0 0.9rem;
+  padding: 0.95rem 0;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  transition: padding 0.3s var(--ease-out);
+}
+.phases-index li:last-child a {
+  border-bottom: 1px solid var(--line);
+}
+.phases-index a span {
+  grid-row: span 2;
+  align-self: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--green-ink);
+}
+.phases-index a b {
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.phases-index a em {
+  font-style: normal;
+  font-size: 0.9rem;
+  color: var(--fg-soft);
+}
+.phases-index a:hover,
+.phases-index a:focus-visible {
+  padding-left: 0.6rem;
+}
+.phase-list {
+  position: relative;
+  display: grid;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0 0 0 2.6rem;
+  list-style: none;
+}
+.phase-list::before {
+  content: "";
+  position: absolute;
+  left: 1.05rem;
+  top: 2.2rem;
+  bottom: 2.2rem;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--green) 0%, rgba(115, 201, 74, 0.18) 100%);
+}
+.phase {
+  position: relative;
+  padding: clamp(1.5rem, 3vw, 2.4rem);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: linear-gradient(180deg, #fff 0%, #f8f9fa 100%);
+  box-shadow: var(--shadow-sm);
+  scroll-margin-top: calc(var(--header) + 1.5rem);
+}
+.phase-node {
+  position: absolute;
+  left: -2.6rem;
+  top: 1.7rem;
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 2px solid var(--green);
+  border-radius: 50%;
+  background: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--navy);
+}
+.phase-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+.phase-n {
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--green-ink);
+}
+.phase h3 {
+  margin-top: 0.4rem;
+  font-size: clamp(1.7rem, 2.6vw, 2.3rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+}
+.phase-goal {
+  margin-top: 0.6rem;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--fg-soft);
+}
+.phase-art {
+  flex: none;
+  width: 6.5rem;
+  display: none;
+  height: auto;
+  stroke: var(--navy);
+  stroke-width: 2.4;
+  opacity: 0.9;
+}
+.phase-art .art-acc {
+  stroke: var(--green);
+  stroke-width: 3;
+}
+.phase-cols {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.6rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+.phase-cols h4 {
+  margin-bottom: 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--navy);
+}
+.dots {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dots li {
+  position: relative;
+  padding-left: 1.25rem;
+  font-size: 0.97rem;
+  line-height: 1.5;
+  color: var(--fg-soft);
+}
+.dots li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--navy);
+  opacity: 0.55;
+}
+@media (min-width: 36rem) {
+  .phase-art {
+    display: block;
+  }
+}
+@media (max-width: 39.99rem) {
+  .phase-list {
+    padding-left: 2.1rem;
+  }
+  .phase-list::before {
+    left: 0.7rem;
+  }
+  .phase-node {
+    left: -2.1rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.62rem;
+  }
+}
+@media (min-width: 48rem) {
+  .phase-cols {
+    grid-template-columns: 1.15fr 1fr;
+    gap: 2.25rem;
+  }
+}
+@media (min-width: 64rem) {
+  .phases-grid {
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+    gap: 5rem;
+    align-items: start;
+  }
+  .phases-aside {
+    position: sticky;
+    top: calc(var(--header) + 1.5rem);
+  }
+}
+
+/* ---------- the path of a service: a timeline that zigzags down the page ---------- */
+.tl {
+  position: relative;
+  display: grid;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: tl;
+}
+.tl::before {
+  content: "";
+  position: absolute;
+  left: 1.2rem;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--green) 0%, rgba(115, 201, 74, 0.18) 100%);
+}
+.tl li {
+  position: relative;
+  padding-left: 3.6rem;
+  counter-increment: tl;
+}
+.tl li::before {
+  content: counter(tl);
+  position: absolute;
+  left: 0;
+  top: 0.6rem;
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 2px solid var(--green);
+  border-radius: 50%;
+  background: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--navy);
+  box-shadow: 0 0 0 6px rgba(115, 201, 74, 0.14);
+}
+.tl-card {
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.tl-card h3 {
+  font-size: 1.15rem;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+.tl-card p {
+  margin-top: 0.45rem;
+  font-size: 0.97rem;
+  line-height: 1.6;
+  color: var(--fg-soft);
+}
+@media (min-width: 56rem) {
+  .tl {
+    gap: 1.25rem;
+  }
+  .tl::before {
+    left: 50%;
+    margin-left: -1px;
+  }
+  .tl li {
+    width: 50%;
+    padding: 0 3.4rem 0 0;
+  }
+  .tl li:nth-child(even) {
+    margin-left: 50%;
+    padding: 0 0 0 3.4rem;
+  }
+  .tl li::before {
+    left: auto;
+    right: -1.2rem;
+  }
+  .tl li:nth-child(even)::before {
+    right: auto;
+    left: -1.2rem;
+  }
+  .tl li:nth-child(odd) .tl-card {
+    text-align: right;
+  }
+}
+
+/* ---------- the problem ---------- */
+.problems {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.problems li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.5rem;
+  padding: 1.6rem 0;
+  border-top: 1px solid var(--line-strong, #cdd6dd);
+}
+.problems li:last-child {
+  border-bottom: 1px solid var(--line-strong, #cdd6dd);
+}
+.problem-n {
+  font-size: clamp(2.6rem, 4vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--navy);
+}
+.problems h3 {
+  font-size: 1.3rem;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+.problems p {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--fg-soft);
+}
+
+/* ---------- before and after ---------- */
+.transform {
+  max-width: 62rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.tf-head,
+.transform li {
+  display: grid;
+  grid-template-columns: 1fr 3rem 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.05rem clamp(1.1rem, 3vw, 2rem);
+}
+.tf-head {
+  background: var(--mist);
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--navy);
+}
+.tf-head span:last-child {
+  color: var(--green-ink);
+}
+.transform ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.transform li {
+  border-top: 1px solid var(--line);
+  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+  letter-spacing: -0.02em;
+}
+.tf-before {
+  color: var(--fg-soft);
+  text-decoration: line-through;
+  text-decoration-color: rgba(75, 82, 98, 0.45);
+}
+.tf-arrow {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: var(--green);
+}
+.tf-arrow svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  stroke: var(--ink);
+}
+.tf-after {
+  font-weight: 650;
+  color: var(--ink);
+}
+
+/* ---------- results from our own projects ---------- */
+.results-band {
+  overflow: hidden;
+}
+.results-band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(40% 70% at 12% 100%, rgba(115, 201, 74, 0.16) 0%, rgba(115, 201, 74, 0) 70%), radial-gradient(46% 70% at 92% 0%, rgba(111, 178, 255, 0.2) 0%, rgba(111, 178, 255, 0) 70%);
+}
+.results-band .wrap {
+  position: relative;
+}
+.results {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+.results li {
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+  padding: 1.75rem 0 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+.results b {
+  font-size: clamp(3rem, 6vw, 4.75rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+.results span {
+  max-width: 16rem;
+  font-size: 1.0625rem;
+  line-height: 1.4;
+  color: var(--fg-soft);
+}
+.results a {
+  margin-top: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+.results a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+@media (min-width: 40rem) {
+  .results {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 2.5rem;
+  }
+}
+@media (min-width: 64rem) {
+  .results {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  .results li {
+    padding: 2.25rem 1.5rem 2rem;
+    border-bottom: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  .results li:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+/* ---------- sectors ---------- */
+.sectors {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sectors li {
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+  padding: 1.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 0.4s var(--ease-out),
+    box-shadow 0.4s var(--ease-out);
+}
+.sectors li:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+}
+.sectors h3 {
+  margin-top: 0.4rem;
+  font-size: 1.2rem;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+.sectors p {
+  font-size: 0.97rem;
+  line-height: 1.55;
+  color: var(--fg-soft);
+}
+@media (min-width: 40rem) {
+  .sectors {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 64rem) {
+  .sectors {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---------- the free hour ---------- */
+.audit-steps {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.audit-steps li {
+  position: relative;
+  padding: 1.6rem 0 0;
+  border-top: 2px solid var(--green);
+}
+.audit-n {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+  color: var(--green-ink);
+}
+.audit-steps h3 {
+  margin-top: 0.7rem;
+  font-size: 1.3rem;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+.audit-steps p {
+  margin-top: 0.5rem;
+  font-size: 0.97rem;
+  line-height: 1.6;
+  color: var(--fg-soft);
+}
+.audit-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-top: 2.5rem;
+}
+@media (min-width: 40rem) {
+  .audit-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem;
+  }
+}
+@media (min-width: 64rem) {
+  .audit-steps {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ---------- how we work with you ---------- */
+.rhythm {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rhythm .panel {
+  gap: 1rem;
+}
+@media (min-width: 56rem) {
+  .rhythm {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---------- the tools ---------- */
+.stack-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stack-chips li {
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.9rem;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- a case study that shows a service in practice ---------- */
+.in-practice {
+  display: grid;
+  gap: 1.5rem;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.in-practice-img {
+  display: block;
+  background: var(--mist);
+}
+.in-practice-img img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.in-practice-text {
+  display: grid;
+  gap: 0.9rem;
+  align-content: center;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+}
+@media (min-width: 56rem) {
+  .in-practice {
+    grid-template-columns: 1.05fr 1fr;
+    gap: 0;
+  }
+}

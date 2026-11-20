@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { SystemDashPoster, SystemFirstPoster, SystemPoster } from "@/components/Posters";
+import { SystemDashPoster, SystemPoster } from "@/components/Posters";
 import { CaseReel } from "@/components/CaseReel";
 import { Marquee } from "@/components/Marquee";
 import { d, Faq, Ladder, Quotes, SectionHead, ServiceCards, Tiles } from "@/components/ui";
 import { ServicesDeck } from "@/components/ServicesDeck";
+import { AuditStrip, Industries, Phases, Problems, ResultsBand, Transformation } from "@/components/Sections";
 import { Phase, Xp } from "@/components/Xp";
-import { cases, engagement, voices } from "@/lib/content";
+import { cases, voices } from "@/lib/content";
 import { sceneAria, systemLabelsFor } from "@/lib/scenes";
 import { siteName, siteUrl } from "@/lib/seo";
 
@@ -32,16 +33,12 @@ export default function Home() {
       <Xp
         id="story"
         scene="system"
+        tone="dark"
         vh={500}
         aria={sceneAria("hero")}
         labels={systemLabelsFor("hero")}
         data={{ variant: "hero" }}
-        poster={
-          <>
-            <SystemPoster />
-            <SystemFirstPoster />
-          </>
-        }
+        poster={<SystemPoster />}
       >
         <Phase from={0} to={0.11}>
           <p className="kicker rise" style={d(0)}>
@@ -138,6 +135,8 @@ export default function Home() {
         </div>
       </section>
 
+      <Problems />
+
       <ServicesDeck
         id="services"
         intro={
@@ -169,29 +168,17 @@ export default function Home() {
         }
       />
 
-      <section className="section on-white" id="method">
-        <div className="wrap">
-          <SectionHead
-            kicker="How we build"
-            title={
-              <>
-                Four phases, <em>one team.</em>
-              </>
-            }
-            lead="A structured path built for clarity, speed and a result that lasts."
-          />
-          <ol className="steps" data-stagger>
-            {engagement.map((s) => (
-              <li key={s.title}>
-                <h3>{s.title}</h3>
-                <p>{s.text}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
+      <Phases />
 
-      <section className="section on-mist" id="start">
+      <Transformation tone="mist" />
+
+      <ResultsBand />
+
+      <Industries tone="white" />
+
+      <AuditStrip tone="mist" />
+
+      <section className="section on-white" id="start">
         <div className="wrap">
           <SectionHead
             kicker="Three ways to start"

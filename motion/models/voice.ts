@@ -1,144 +1,194 @@
 import * as THREE from "three";
-import { clamp01, lerp, quint, TAU, win } from "../engine";
-import { C, dot, fillRR, glass, marker, plateTexture, skel, smoothstep, unlit } from "./parts";
+import { clamp01, lerp, quint, TAU } from "../engine";
+import { chrome, stageMetal, circleLine, GLOW, glowTex, lightSprite, lit, makeScreen, plasmaMaterial, type Screen } from "./glow";
+import { drawn } from "./parts";
+import { uiTexture } from "./ui";
 import type { Frame, Model, ModelBuilder } from "./types";
 
 /**
- * AI voice systems: a call being answered. The caller's screen sits inside a ring of sound bars that start as a
- * dotted circle and wake up into a live waveform, ripples spread out from it, and the live transcript and the
- * follow-up come in beside it.
+ * AI voice systems: a call being answered. A ring of ninety-six bars (a spectrum, standing upright) round a living
+ * orb listens and speaks; ripples go out across the stage with the sound; the live call, the transcript and the
+ * follow-up it makes stand beside it. The scroll drives the voice: it goes from a faint murmur to a full signal.
  */
 
-const N = 72;
-const RB = 2.25;
-const CY = 2.15;
+const R0 = 2.0;
+const CY = 3.9;
+const BARS = 96;
 
-const build: ModelBuilder = async (env, mini) => {
+const build: ModelBuilder = async (env) => {
   const group = new THREE.Group();
-  const phoneTex = await env.shot("phone-faith3", 512, 1108);
 
-  /* ---- the caller's screen ---- */
-  const phone = glass(env, phoneTex, 1.3, 2.81, { radius: 0.2, depth: 0.07 });
-  group.add(phone.group);
-
-  /* ---- the ring of sound bars: a thin box for each, its base on the circle, pointing outward ---- */
-  const geo = new THREE.BoxGeometry(0.07, 1, 0.07);
-  geo.translate(0, 0.5, 0);
-  const bars = new THREE.InstancedMesh(geo, new THREE.MeshBasicMaterial({ toneMapped: false }), N);
-  const navy = new THREE.Color(0x22425f);
-  const green = new THREE.Color(0x73c94a);
-  const tmpC = new THREE.Color();
-  for (let k = 0; k < N; k++) {
-    const u = Math.acos(Math.abs(Math.cos((k / N) * TAU)));
-    bars.setColorAt(k, tmpC.copy(navy).lerp(green, 0.25 + 0.75 * Math.sin(u)));
-  }
-  bars.frustumCulled = false;
-  const ringGroup = new THREE.Group();
-  ringGroup.position.set(0, CY, -0.35);
-  ringGroup.add(bars);
-  group.add(ringGroup);
-  const dummy = new THREE.Object3D();
-
-  /* ---- ripples ---- */
-  const rippleGeo = new THREE.TorusGeometry(1, 0.012, 6, 120);
+  /* ---- the stage ---- */
+  const plinthMat = stageMetal();
+  const plinth = new THREE.Mesh(new THREE.CylinderGeometry(2.7, 2.9, 0.22, 96), plinthMat);
+  plinth.position.y = 0.11;
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(2.73, 0.018, 8, 140), lit(GLOW.green, 0.9));
+  rim.rotation.x = Math.PI / 2;
+  rim.position.y = 0.225;
+  group.add(plinth, rim);
   const ripples = [0, 1, 2].map(() => {
-    const m = new THREE.Mesh(rippleGeo, unlit(0x73c94a, 0));
-    m.position.set(0, CY, -0.4);
+    const m = new THREE.Mesh(new THREE.TorusGeometry(1, 0.012, 6, 120), lit(GLOW.sky, 0.6));
+    m.rotation.x = Math.PI / 2;
+    m.position.y = 0.24;
     group.add(m);
     return m;
   });
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "110,190,255"), transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  pool.rotation.x = -Math.PI / 2;
+  pool.position.y = 0.25;
+  pool.scale.set(5.4, 5.4, 1);
+  group.add(pool);
 
-  /* ---- the transcript and the follow-up ---- */
-  const chat = glass(env, plateTexture(env, 640, 400, (g) => {
-    const rows: [boolean, number][] = [[false, 330], [true, 260], [false, 380], [true, 210]];
-    rows.forEach(([mine, w], i) => {
-      const y = 36 + i * 80;
-      if (mine) {
-        fillRR(g, 640 - 46 - w, y, w, 60, 26, C.navy);
-        skel(g, 640 - 46 - w + 24, y + 18, w - 48, 8, "rgba(255,255,255,0.8)");
-        skel(g, 640 - 46 - w + 24, y + 36, (w - 48) * 0.6, 8, "rgba(255,255,255,0.5)");
-      } else {
-        dot(g, 40, y + 30, 18, C.sky);
-        fillRR(g, 72, y, w, 60, 26, C.soft);
-        skel(g, 96, y + 18, w - 48, 8);
-        skel(g, 96, y + 36, (w - 48) * 0.55, 8);
-      }
-    });
-    [0, 1, 2].forEach((i) => dot(g, 94 + i * 24, 372, 6, i === 1 ? C.green : C.sky));
-  }), 2.3, 1.44, { radius: 0.14, depth: 0.05 });
-  const summary = glass(env, plateTexture(env, 560, 460, (g) => {
-    skel(g, 40, 38, 220, 14, C.navy);
-    skel(g, 40, 66, 140, 8);
-    [0, 1, 2, 3].forEach((i) => {
-      const y = 118 + i * 62;
-      dot(g, 62, y + 14, 17, C.green);
-      g.strokeStyle = "#191716";
-      g.lineWidth = 4;
-      g.lineCap = "round";
+  /* ---- the ring of bars round the orb ---- */
+  const ring = new THREE.Group();
+  ring.position.set(0, CY, 0);
+  group.add(ring);
+  const bars = new THREE.InstancedMesh(new THREE.BoxGeometry(0.075, 1, 0.075), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }), BARS);
+  bars.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(BARS * 3), 3);
+  const halos = new THREE.InstancedMesh(new THREE.BoxGeometry(0.26, 1, 0.04), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), BARS);
+  halos.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(BARS * 3), 3);
+  bars.frustumCulled = halos.frustumCulled = false;
+  ring.add(halos, bars);
+  // a hairline inside the bars, and a dial of fine marks outside
+  const inner = circleLine(R0 - 0.12, GLOW.sky, 0.5);
+  inner.rotation.x = Math.PI / 2;
+  ring.add(inner);
+  const dial = drawn(env, 1024, 1024, (g, w) => {
+    const c = w / 2;
+    g.translate(c, c);
+    g.strokeStyle = "rgba(170,215,255,0.55)";
+    g.lineWidth = 2.5;
+    g.beginPath();
+    g.arc(0, 0, c * 0.985, 0, TAU);
+    g.stroke();
+    for (let i = 0; i < 180; i++) {
+      const a = (i / 180) * TAU;
+      const long = i % 10 === 0;
+      g.lineWidth = long ? 2.5 : 1.5;
       g.beginPath();
-      g.moveTo(54, y + 14);
-      g.lineTo(60, y + 20);
-      g.lineTo(71, y + 8);
+      g.moveTo(Math.cos(a) * c * 0.985, Math.sin(a) * c * 0.985);
+      g.lineTo(Math.cos(a) * c * (long ? 0.93 : 0.955), Math.sin(a) * c * (long ? 0.93 : 0.955));
       g.stroke();
-      skel(g, 96, y + 4, 300 - i * 30, 10, C.navy);
-      skel(g, 96, y + 22, 200 - i * 20, 7);
+    }
+    g.lineCap = "round";
+    g.lineWidth = 7;
+    g.strokeStyle = "rgba(132,226,85,0.9)";
+    [
+      [0.3, 0.9],
+      [3.4, 3.9],
+    ].forEach(([a0, a1]) => {
+      g.beginPath();
+      g.arc(0, 0, c * 0.985, a0, a1);
+      g.stroke();
     });
-    fillRR(g, 40, 384, 210, 46, 23, C.green);
-    skel(g, 72, 402, 110, 10, "rgba(25,23,22,0.7)");
-  }), 1.9, 1.56, { radius: 0.14, depth: 0.05 });
-  group.add(chat.group, summary.group);
+  });
+  const dialMesh = new THREE.Mesh(new THREE.CircleGeometry(R0 + 1.75, 128), new THREE.MeshBasicMaterial({ map: dial, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  dialMesh.position.z = -0.15;
+  ring.add(dialMesh);
 
-  const frame: Frame = { cx: 0, cy: CY, hw: 4.8, hh: 3.5 };
+  // the orb
+  const pl = plasmaMaterial();
+  const orb = new THREE.Mesh(new THREE.SphereGeometry(1.05, 64, 48), pl.mat);
+  ring.add(orb);
+  ring.add(lightSprite(env, "90,200,150", 6, 0.5));
+  ring.add(lightSprite(env, "90,160,255", 10, 0.22));
+  const equator = new THREE.Mesh(new THREE.TorusGeometry(1.32, 0.02, 10, 140), chrome(0xe3ecf6, 0.24));
+  equator.rotation.x = 1.25;
+  ring.add(equator);
+
+  // fine lights drifting round the ring
+  const MN = 160;
+  const mPos = new Float32Array(MN * 3);
+  const mp = Array.from({ length: MN }, () => ({ a: env.rnd() * TAU, r: R0 + 0.4 + env.rnd() * 2.2, z: (env.rnd() - 0.5) * 1.6, v: 0.3 + env.rnd() * 0.7 }));
+  const mGeo = new THREE.BufferGeometry();
+  mGeo.setAttribute("position", new THREE.BufferAttribute(mPos, 3));
+  const motes = new THREE.Points(mGeo, new THREE.PointsMaterial({ size: 0.12, map: glowTex(env, "190,225,255"), color: 0xbfe0ff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, opacity: 0.8, toneMapped: false }));
+  motes.frustumCulled = false;
+  ring.add(motes);
+
+  /* ---- the live call, the transcript and the follow-up ---- */
+  const mk = (kind: "voice" | "chat" | "tasks", w: number, h: number, x: number, y: number, z: number, yaw: number, seed: number): Screen => {
+    const s = makeScreen(env, uiTexture(env, kind, 512, Math.round((512 * h) / w), seed, "#84e255"), w, h, { accent: kind === "tasks" ? GLOW.green : GLOW.sky, depth: 0.08, radius: 0.1, glow: 0.2 });
+    s.group.rotation.order = "YXZ";
+    s.group.position.set(x, y, z);
+    s.group.rotation.y = yaw;
+    group.add(s.group);
+    return s;
+  };
+  const call = mk("voice", 2.2, 1.3, -4.1, 2.6, 1.3, 0.4, 5);
+  const chat = mk("chat", 2.3, 1.5, 4.2, 3.0, 1.0, -0.4, 6);
+  const tasks = mk("tasks", 1.9, 1.2, 2.9, 0.95, 2.5, -0.3, 7);
+  const cards = [call, chat, tasks];
+  const homes = cards.map((c) => c.group.position.clone());
+
+  const frame: Frame = { cx: 0, cy: 3.65, hw: 5.4, hh: 3.8 };
+  const blue = new THREE.Color(0x5ea8ff);
+  const green = new THREE.Color(0x9bf070);
+  const d = new THREE.Object3D();
+  const col = new THREE.Color();
   const model: Model = {
     group,
-    tags: [marker(phone.group, -0.55, 1.3, 0.06), marker(ringGroup, RB * 0.72, RB * 0.72, 0), marker(summary.group, -0.85, 0.7, 0.05)],
-    camera: { az: [-0.22, 0.24], elev: [0.08, 0.14] },
-    ground: true,
+    tags: [call.top, ring, tasks.top],
+    camera: { az: [-0.2, 0.2], elev: [0.15, 0.1] },
     floorY: 0,
     set(a, l, p) {
-      const eA = quint(win(a, 0.05, 0.9));
-      phone.group.position.set(lerp(0.5, 0, eA), lerp(3.2, CY, eA), lerp(1.2, 0.3, eA));
-      phone.group.rotation.set(lerp(0.25, 0, eA), lerp(-0.6, -0.12, eA), lerp(-0.2, 0, eA));
-      // the side cards slide in from the sides
-      const eC = quint(win(a, 0.25, 1));
-      chat.group.position.set(lerp(-6.2, -3.55, eC), lerp(4.6, 3.0, eC), lerp(-1.6, 0.2, eC));
-      chat.group.rotation.set(0, lerp(1.1, 0.36, eC), 0);
-      summary.group.position.set(lerp(6.2, 3.5, eC), lerp(0.4, 1.35, eC), lerp(1.2, 0.7, eC));
-      summary.group.rotation.set(0, lerp(-1.1, -0.36, eC), 0);
-
-      // the bars: a dotted ring while it is quiet, a live waveform when it is running
-      for (let k = 0; k < N; k++) {
-        const th = (k / N) * TAU;
-        const u = Math.acos(Math.abs(Math.cos(th)));
-        const w = 0.5 + 0.5 * Math.sin(u * 6 + p * TAU * 7);
-        const v = 0.5 + 0.5 * Math.sin(u * 2.3 - p * TAU * 3.1 + 1.3);
-        const live = (0.22 + 1.15 * w * v) * (0.3 + 0.7 * l) * (Math.sin(th) < 0 ? 0.7 : 1);
-        const f = smoothstep(0, 1, clamp01((a * 1.6 - (k / N) * 0.6) / 0.6));
-        const h = lerp(0.06, 0.1 + live, f);
-        dummy.position.set(Math.cos(th) * RB, Math.sin(th) * RB, 0);
-        dummy.rotation.set(0, 0, th - Math.PI / 2);
-        dummy.scale.set(1, h, 1);
-        dummy.updateMatrix();
-        bars.setMatrixAt(k, dummy.matrix);
+      // the voice: a murmur at first, a full signal while it runs
+      const amp = 0.18 + 1.05 * (0.35 * a + 0.65 * l);
+      for (let i = 0; i < BARS; i++) {
+        const th = (i / BARS) * TAU;
+        const e = Math.abs(Math.sin(th * 5 + p * 19) * Math.cos(th * 2.3 - p * 11)) * 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(th * 11 + p * 31));
+        const h = 0.1 + amp * e;
+        d.position.set(Math.cos(th) * (R0 + h / 2), Math.sin(th) * (R0 + h / 2), 0);
+        d.rotation.set(0, 0, th - Math.PI / 2);
+        d.scale.set(1, h, 1);
+        d.updateMatrix();
+        bars.setMatrixAt(i, d.matrix);
+        d.scale.set(1, h * 1.02, 1);
+        d.updateMatrix();
+        halos.setMatrixAt(i, d.matrix);
+        col.copy(blue).lerp(green, clamp01((h - 0.4) / 1.1)).multiplyScalar(0.7 + 0.5 * clamp01(h / 1.2));
+        bars.setColorAt(i, col);
+        halos.setColorAt(i, col);
       }
-      bars.instanceMatrix.needsUpdate = true;
-      ringGroup.rotation.z = p * 0.35;
-
-      ripples.forEach((m, i) => {
-        const ph = (p * 4 + i / 3) % 1;
-        m.scale.setScalar(RB + 0.9 + ph * 2.2);
-        (m.material as THREE.MeshBasicMaterial).opacity = 0.55 * (1 - ph) ** 1.6 * smoothstep(0.1, 0.5, l);
+      bars.instanceMatrix.needsUpdate = halos.instanceMatrix.needsUpdate = true;
+      if (bars.instanceColor) bars.instanceColor.needsUpdate = true;
+      if (halos.instanceColor) halos.instanceColor.needsUpdate = true;
+      ring.rotation.y = -0.18 + p * 0.3;
+      dialMesh.rotation.z = p * 0.8;
+      pl.u.uT.value = p * 7;
+      pl.u.uGlow.value = 0.35 + 0.65 * (0.3 * a + 0.7 * l);
+      orb.scale.setScalar(1 + 0.03 * Math.sin(p * TAU * 9) * l);
+      equator.rotation.z = p * TAU * 0.8;
+      for (let i = 0; i < MN; i++) {
+        const q = mp[i];
+        const ang = q.a + p * TAU * q.v;
+        mPos[i * 3] = Math.cos(ang) * q.r;
+        mPos[i * 3 + 1] = Math.sin(ang) * q.r;
+        mPos[i * 3 + 2] = q.z;
+      }
+      mGeo.attributes.position.needsUpdate = true;
+      // ripples across the stage, going out with the sound
+      ripples.forEach((m, k) => {
+        const s = (p * 2.2 + k / 3) % 1;
+        m.scale.setScalar(0.4 + 2.5 * s);
+        (m.material as THREE.MeshBasicMaterial).opacity = (1 - s) * 0.7 * (0.3 + 0.7 * l);
       });
-      frame.hw = lerp(7.0, 4.7, eC);
+      (rim.material as THREE.MeshBasicMaterial).opacity = 0.5 + 0.5 * l;
+      (pool.material as THREE.MeshBasicMaterial).opacity = 0.25 + 0.3 * l;
+      // the cards come in from the sides
+      cards.forEach((c, i) => {
+        const e = quint(clamp01((a * 1.5 - i * 0.1) / 0.65));
+        const home = homes[i];
+        c.group.position.set(home.x * lerp(1.12, 1, e), home.y + (1 - e) * 0.5 + 0.06 * Math.sin(p * TAU * 2 + i * 2), home.z + (1 - e) * 1.2);
+        c.group.scale.setScalar(Math.max(0.001, lerp(0.7, 1, e)));
+        (c.front.material as THREE.MeshBasicMaterial).color.setScalar(0.5 + 0.5 * e);
+        (c.light.material as THREE.SpriteMaterial).opacity = (0.1 + 0.16 * l) * e;
+      });
+      group.updateMatrixWorld(true);
     },
     frame: () => frame,
-    dispose() {
-      geo.dispose();
-      rippleGeo.dispose();
-    },
   };
-  model.set(0, 0, 0);
-  void mini;
+  model.set(1, 1, 0.5);
   return model;
 };
 

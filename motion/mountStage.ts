@@ -40,6 +40,12 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
     from: Number(el.dataset.from ?? 0),
     to: Number(el.dataset.to ?? 1),
   }));
+  // the progress rail: a slim green line that fills as the scene plays (and, on a deck, counts the items)
+  const rail = section.querySelector<HTMLElement>("[data-xp-rail]");
+  const railFill = rail?.querySelector<HTMLElement>("[data-rail-fill]");
+  const railDot = rail?.querySelector<HTMLElement>("[data-rail-dot]");
+  const railCur = rail?.querySelector<HTMLElement>("[data-rail-cur]");
+  const railTicks = Array.from(rail?.querySelectorAll<HTMLElement>("[data-rail-tick]") ?? []).map((el) => ({ el, at: Number(el.dataset.at ?? 0) }));
   const stageTop = Number.parseFloat(getComputedStyle(stageEl).top);
   const top = Number.isFinite(stageTop) ? stageTop : 0;
 
@@ -67,6 +73,17 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
       el.style.opacity = String(o);
       el.style.transform = `translate3d(0, ${((1 - a) * 22 - (1 - b) * 22).toFixed(1)}px, 0)`;
       el.style.pointerEvents = o > 0.6 ? "auto" : "none";
+    }
+    if (railFill) railFill.style.transform = `scaleY(${p.toFixed(4)})`;
+    if (railDot) railDot.style.top = `${(p * 100).toFixed(2)}%`;
+    if (railTicks.length) {
+      let k = 0;
+      railTicks.forEach((t, i) => {
+        const on = p >= t.at - 0.002;
+        if (on) k = i + 1;
+        t.el.classList.toggle("is-on", on);
+      });
+      if (railCur) railCur.textContent = String(Math.max(1, k)).padStart(2, "0");
     }
     section.classList.toggle("xp-started", p > 0.012);
   };
