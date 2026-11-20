@@ -39,17 +39,11 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
     el,
     from: Number(el.dataset.from ?? 0),
     to: Number(el.dataset.to ?? 1),
-    ch: Number(el.dataset.ch ?? 0),
   }));
-  // the progress track: a ruler that fills as the scene plays, with the current chapter's number beside it
-  const track = section.querySelector<HTMLElement>("[data-xp-track]");
-  const trackFill = track?.querySelector<HTMLElement>("i");
-  const trackNum = track?.querySelector<HTMLElement>("b");
   const stageTop = Number.parseFloat(getComputedStyle(stageEl).top);
   const top = Number.isFinite(stageTop) ? stageTop : 0;
 
   const state = { p: 0 };
-  let chapter = -1;
   let handle: SceneHandle | null = null;
   let disposed = false;
   let visible = false;
@@ -73,16 +67,6 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
       el.style.opacity = String(o);
       el.style.transform = `translate3d(0, ${((1 - a) * 22 - (1 - b) * 22).toFixed(1)}px, 0)`;
       el.style.pointerEvents = o > 0.6 ? "auto" : "none";
-    }
-    if (trackFill) trackFill.style.transform = `scaleY(${p.toFixed(4)})`;
-    if (track) track.style.setProperty("--p", p.toFixed(4));
-    if (trackNum) {
-      const now = phases.find((ph) => ph.ch > 0 && p >= ph.from && p < ph.to)?.ch ?? 0;
-      if (now !== chapter) {
-        chapter = now;
-        trackNum.textContent = now ? String(now).padStart(2, "0") : "";
-        trackNum.classList.toggle("is-on", now > 0);
-      }
     }
     section.classList.toggle("xp-started", p > 0.012);
   };
@@ -222,8 +206,6 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
       el.style.transform = "";
       el.style.pointerEvents = "";
     }
-    if (trackFill) trackFill.style.transform = "";
-    track?.style.removeProperty("--p");
     pointerOff?.();
     section.classList.remove("xp-live", "xp-started");
     section.classList.add("xp-failed");

@@ -16,7 +16,6 @@ export default function AiAuditPage() {
       <SceneHero
         id="top"
         variant="audit"
-        aria="A 3D picture of an audit: separate reports and tools first, then gathered around an AI core and connected, then closed up into one clear plan."
         kicker="AI audit"
         title={
           <>

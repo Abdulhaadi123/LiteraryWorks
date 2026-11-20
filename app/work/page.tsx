@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { CasesDeck } from "@/components/ServicesDeck";
-import { CaseCards, PageHero, SectionHead } from "@/components/ui";
+import { CaseCards, PageHero, Portfolio, SectionHead } from "@/components/ui";
 import { moreBuilt } from "@/lib/content";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
-  "Work",
+  "Case studies",
   "Case studies in healthcare, logistics, sales and industrial operations: what was broken, what we built and what changed.",
   "/work",
 );
@@ -13,12 +13,12 @@ export const metadata = pageMeta(
 export default function WorkPage() {
   return (
     <>
-      <h1 className="sr-only">Case studies and work</h1>
+      <h1 className="sr-only">Case studies</h1>
       <CasesDeck
         id="cases-deck"
         intro={
           <>
-            <p className="kicker">Work</p>
+            <p className="kicker">Case studies</p>
             <h2 className="h-hero">
               Real systems. <em>Real outcomes.</em>
             </h2>
@@ -36,7 +36,7 @@ export default function WorkPage() {
           <>
             <PageHero
               as="h2"
-              kicker="Work"
+              kicker="Case studies"
               title={
                 <>
                   Real systems. <em>Real outcomes.</em>
@@ -51,7 +51,7 @@ export default function WorkPage() {
             <section className="section on-white">
               <div className="wrap">
                 <h2 className="sr-only">Case studies</h2>
-                <CaseCards />
+                <CaseCards layout="rows" />
               </div>
             </section>
           </>
@@ -69,14 +69,7 @@ export default function WorkPage() {
             }
             lead="Platforms and apps across healthcare, sales, recruiting, legal, finance and travel."
           />
-          <ul className="more-built" data-stagger>
-            {moreBuilt.map((m) => (
-              <li key={m.name}>
-                <h3>{m.name}</h3>
-                <p className="soft">{m.text}</p>
-              </li>
-            ))}
-          </ul>
+          <Portfolio items={moreBuilt} />
         </div>
       </section>
     </>

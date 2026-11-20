@@ -34,7 +34,6 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
       <SceneHero
         id="top"
         variant={slug}
-        aria={`A 3D picture for ${s.name}: separate tools first, then gathered and connected around an AI core, then closed up into one product.`}
         kicker={`${s.group} / Service`}
         title={s.name}
         lead={p.summary}

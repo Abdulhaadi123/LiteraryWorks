@@ -51,19 +51,15 @@ export function Xp({
           <span className="xp-mouse" />
           Scroll to explore
         </div>
-        <div className="xp-track" aria-hidden="true" data-xp-track>
-          <i />
-          <b />
-        </div>
       </div>
     </section>
   );
 }
 
-/** One beat of the story: its copy shows while the scene's progress is between `from` and `to`. `ch` numbers a chapter on the progress track. */
-export function Phase({ from, to, ch, children }: { from: number; to: number; ch?: number; children: ReactNode }) {
+/** One beat of the story: its copy shows while the scene's progress is between `from` and `to`. */
+export function Phase({ from, to, children }: { from: number; to: number; children: ReactNode }) {
   return (
-    <div className="xp-phase" data-phase data-from={from} data-to={to} data-ch={ch}>
+    <div className="xp-phase" data-phase data-from={from} data-to={to}>
       {children}
     </div>
   );

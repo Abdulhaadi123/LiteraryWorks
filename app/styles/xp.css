@@ -47,7 +47,7 @@
 .poster-open {
   margin-top: 1.5rem;
 }
-/* the first frame of the scene belongs to the live layout only, the gathered cards to the static one */
+/* the first frame of the scene (the devices still loose) belongs to the live layout only, the wired-together set to the static one */
 .poster-first {
   display: none;
 }
@@ -62,8 +62,7 @@ html.motion .xp:not(.xp-failed) .poster-open {
   display: none;
 }
 .xp-canvas,
-.xp-hint,
-.xp-track {
+.xp-hint {
   display: none;
 }
 
@@ -109,9 +108,8 @@ html.motion .xp:not(.xp-failed) .xp-stage {
   padding: 0;
   overflow: hidden;
   background:
-    radial-gradient(46% 60% at 73% 48%, rgba(96, 150, 255, 0.2) 0%, rgba(96, 150, 255, 0) 72%),
-    radial-gradient(38% 48% at 8% 6%, rgba(170, 205, 255, 0.34) 0%, rgba(170, 205, 255, 0) 72%),
-    linear-gradient(180deg, #ffffff 0%, #f3f7fd 100%);
+    radial-gradient(46% 60% at 73% 48%, rgba(34, 66, 95, 0.07) 0%, rgba(34, 66, 95, 0) 72%),
+    linear-gradient(180deg, #ffffff 0%, #f4f6f7 100%);
 }
 /* a fine dotted sheet behind the model, fading out toward the edges */
 html.motion .xp:not(.xp-failed) .xp-stage::before {
@@ -126,8 +124,8 @@ html.motion .xp:not(.xp-failed) .xp-stage::before {
 }
 html.motion .xp.xp-dark:not(.xp-failed) .xp-stage {
   background:
-    radial-gradient(46% 60% at 73% 48%, rgba(60, 120, 255, 0.35) 0%, rgba(60, 120, 255, 0) 72%),
-    linear-gradient(180deg, #0b1d3d 0%, #0e2a55 100%);
+    radial-gradient(46% 60% at 73% 48%, rgba(120, 170, 205, 0.3) 0%, rgba(120, 170, 205, 0) 72%),
+    linear-gradient(180deg, #22425f 0%, #162b40 100%);
 }
 html.motion .xp.xp-dark:not(.xp-failed) .xp-stage::before {
   background: radial-gradient(rgba(160, 200, 255, 0.28) 1px, transparent 1.5px) 0 0 / 28px 28px;
@@ -201,57 +199,6 @@ html.motion .xp:not(.xp-failed) .xp-phase:first-child {
   pointer-events: auto;
 }
 
-/* the progress track: a ruler that fills as the scene plays, with the current chapter's number beside it */
-html.motion .xp:not(.xp-failed) .xp-track {
-  position: absolute;
-  z-index: 4;
-  left: max(clamp(0.6rem, 1.5vw, 1.5rem), calc((100% - 78rem) / 2 - 2.6rem));
-  top: 53%;
-  display: block;
-  width: 1rem;
-  height: min(17rem, 36vh);
-  transform: translateY(-50%);
-}
-.xp-track::before,
-.xp-track i {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(to bottom, var(--tick, #aebdd0) 0 1px, transparent 1px 40px) 0 0 / 0.9rem 100% no-repeat,
-    repeating-linear-gradient(to bottom, var(--tick, #aebdd0) 0 1px, transparent 1px 8px) 0 0 / 0.45rem 100% no-repeat;
-}
-.xp-track::before {
-  --tick: #c4d0e0;
-}
-.xp-track i {
-  --tick: var(--blue);
-  transform: scaleY(0);
-  transform-origin: 50% 0;
-}
-.xp-track b {
-  position: absolute;
-  left: 0;
-  top: -1.7rem;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.08em;
-  font-variant-numeric: tabular-nums;
-  color: var(--blue);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.xp-track b.is-on {
-  opacity: 1;
-}
-@media (min-width: 85rem) {
-  .xp-track b {
-    left: 1.35rem;
-    top: calc(var(--p, 0) * 100%);
-    margin-top: -0.5em;
-  }
-}
 html.motion .xp:not(.xp-failed) .xp-hint {
   position: absolute;
   z-index: 4;
@@ -313,14 +260,14 @@ html.motion .xp:not(.xp-failed) .xp-hint {
   pointer-events: none;
 }
 .xp-lines polyline {
-  stroke: var(--blue);
+  stroke: var(--navy);
   stroke-opacity: 0.6;
   stroke-width: 1.2;
   stroke-linejoin: round;
   fill: none;
 }
 .xp-lines circle {
-  fill: var(--blue);
+  fill: var(--green);
   stroke: #fff;
   stroke-width: 1.5;
 }
@@ -339,30 +286,24 @@ html.motion .xp:not(.xp-failed) .xp-hint {
   top: 0;
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.5rem;
   width: max-content;
   height: 30px;
-  padding: 0 0.9rem 0 0.28rem;
-  border: 1px solid #d5e2f5;
+  padding: 0 0.95rem 0 0.8rem;
+  border: 1px solid #dfe5ea;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 10px 24px -10px rgba(21, 56, 110, 0.35);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 24px -10px rgba(25, 23, 22, 0.28);
   white-space: nowrap;
   will-change: transform, opacity;
 }
-.xp-labels .n {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
+.xp-labels li::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: var(--blue);
-  color: #fff;
-  font-size: 0.625rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
+  background: var(--green);
 }
 .xp-labels b {
   font-size: 0.8125rem;
@@ -373,55 +314,45 @@ html.motion .xp:not(.xp-failed) .xp-hint {
 }
 .xp-dark .xp-labels li {
   border-color: rgba(255, 255, 255, 0.22);
-  background: rgba(12, 32, 70, 0.82);
+  background: rgba(24, 47, 70, 0.9);
   box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5);
 }
 .xp-dark .xp-labels b {
   color: #fff;
 }
 
-/* ---- a runway on a deep-blue ground: the copy, tags and track change with it ---- */
+/* ---- a runway on a deep-blue ground: the copy and the tags change with it ---- */
 .xp-dark {
   --fg: #fff;
   --fg-soft: rgba(226, 236, 255, 0.84);
   --fg-faint: rgba(214, 228, 255, 0.78);
   --head: #fff;
-  --accent: var(--sky);
+  --accent: var(--green);
   --line: rgba(255, 255, 255, 0.16);
-  background: linear-gradient(180deg, #0a2250 0%, var(--navy-2) 100%);
+  color: var(--fg);
+  background: linear-gradient(180deg, #22425f 0%, #162b40 100%);
 }
 .xp-dark .kicker {
-  border-color: rgba(147, 197, 253, 0.35);
-  background: rgba(147, 197, 253, 0.12);
-  color: #cfe3ff;
+  border: 0;
+  background: none;
+  color: #dfe9f0;
 }
 .xp-dark .h-lg em,
 .xp-dark .h-hero em {
-  background: linear-gradient(95deg, #8fbcff 0%, #c4dcff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
+  color: #fff;
 }
 .xp-dark .checks li::before {
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%231d4ed8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 10.4l3 3 6-6.6'/%3E%3C/svg%3E") center / 100% no-repeat,
-    #fff;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23191716' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 10.4l3 3 6-6.6'/%3E%3C/svg%3E") center / 100% no-repeat,
+    var(--green);
   box-shadow: none;
-}
-.xp-dark .xp-track::before {
-  --tick: rgba(255, 255, 255, 0.28);
-}
-.xp-dark .xp-track i {
-  --tick: var(--sky);
-}
-.xp-dark .xp-track b {
-  color: var(--sky);
 }
 .xp-dark .xp-lines polyline {
   stroke: var(--sky);
 }
 .xp-dark .xp-lines circle {
   fill: var(--sky);
-  stroke: #0b2150;
+  stroke: #162b40;
 }
 
 /* ---- the services deck: shown only where the scene runs; the plain list takes its place everywhere else ---- */
@@ -454,9 +385,9 @@ html:not(.motion) .xp-compact .xp-phase:not(:first-child),
   border-top-color: rgba(255, 255, 255, 0.2);
 }
 .xp-dark .metrics dt {
-  background: linear-gradient(95deg, #a9cdff 0%, #ffffff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
+  color: var(--green);
+  background: none;
+  -webkit-text-fill-color: currentColor;
 }
 .xp-dark .metrics dd {
   color: rgba(214, 228, 255, 0.82);
@@ -472,5 +403,5 @@ html:not(.motion) .xp-compact,
   background:
     radial-gradient(46% 70% at 88% 18%, rgba(96, 150, 255, 0.24) 0%, rgba(96, 150, 255, 0) 72%),
     radial-gradient(40% 60% at 4% 4%, rgba(170, 205, 255, 0.4) 0%, rgba(170, 205, 255, 0) 70%),
-    linear-gradient(180deg, #ffffff 0%, #f1f6ff 100%);
+    linear-gradient(180deg, #ffffff 0%, #f4f6f7 100%);
 }

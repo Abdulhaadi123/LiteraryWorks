@@ -65,9 +65,8 @@ export function Stage3D({ scene, labels, aria, data }: { scene: SceneName; label
         ))}
       </svg>
       <ul className="xp-labels" aria-hidden="true">
-        {labels.map((l, i) => (
+        {labels.map((l) => (
           <li key={l.key} data-xp-label data-tone={l.tone ?? "blue"} style={{ opacity: 0 }}>
-            <span className="n">{String(i + 1).padStart(2, "0")}</span>
             <b>{l.label}</b>
           </li>
         ))}

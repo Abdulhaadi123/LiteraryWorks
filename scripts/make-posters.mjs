@@ -1,6 +1,7 @@
-// Renders the home story's still pictures from the live 3D scene: the cards gathered around the AI core, and the
-// finished dashboard, as WebP with a transparent background, in public/scene/. Phones, tablets, reduced motion and
-// the moment before WebGL is ready show these, so what they see is the real scene and not a drawing of it.
+// Renders the home story's still pictures from the live 3D scene: the devices loose (system-hero), wired to the AI
+// core (system-ring) and closed up into one set (system-dash), as WebP with a transparent background, in
+// public/scene/. Phones, tablets, reduced motion and the moment before WebGL is ready show these, so what they see
+// is the real scene and not a drawing of it.
 //
 //   npm run build && npm run start -- -p 3000      (in another terminal)
 //   node scripts/make-posters.mjs http://127.0.0.1:3000
@@ -110,7 +111,7 @@ async function openPage(port) {
 
 /** Hides everything except the canvas, so the picture is the scene on a clear ground. */
 const STILL_CSS = `
-  .site-header, .mobile-cta, .xp-copy, .xp-lines, .xp-labels, .xp-hint, .xp-track, .xp-poster { display: none !important; }
+  .site-header, .mobile-cta, .xp-copy, .xp-lines, .xp-labels, .xp-hint, .xp-poster { display: none !important; }
   html, body, .xp, .xp-stage { background: transparent !important; }
   .xp-stage::before { display: none !important; }
 `;

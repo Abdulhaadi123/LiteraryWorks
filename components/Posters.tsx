@@ -4,7 +4,7 @@
  * the real thing and not a drawing of it. Sizes are fixed, so nothing moves while they load.
  */
 
-/** The first frame of the live scene (the cards still loose): shown on wide screens until the scene is ready, so nothing jumps. */
+/** The first frame of the live scene (the devices still loose): shown on wide screens until the scene is ready, so nothing jumps. */
 export function SystemFirstPoster() {
   return (
     // eslint-disable-next-line @next/next/no-img-element
@@ -20,7 +20,7 @@ export function SystemFirstPoster() {
   );
 }
 
-/** The cards gathered around the AI core: the picture phones, tablets and reduced motion show. */
+/** The devices gathered and wired to the AI core: the picture phones, tablets and reduced motion show. */
 export function SystemPoster() {
   return (
     // eslint-disable-next-line @next/next/no-img-element
@@ -48,7 +48,7 @@ export function SystemDashPoster() {
       sizes="(min-width: 64rem) 40vw, 92vw"
       width={1200}
       height={828}
-      alt="The same six systems closed up into one product dashboard: apps, an AI assistant, voice, workflows, data and cloud, with the AI core docked in the corner."
+      alt="The same devices closed up into one set: a laptop, two phones and a tablet with our own projects on their screens, wired to an AI core above them."
       loading="lazy"
       decoding="async"
       fetchPriority="low"

@@ -23,6 +23,9 @@ export function Header() {
     const paint = () => {
       raf = 0;
       el.classList.toggle("is-scrolled", window.scrollY > 24);
+      // how far down the page you are: a thin green line under the bar fills as you scroll
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      el.style.setProperty("--progress", max > 0 ? Math.min(1, window.scrollY / max).toFixed(4) : "0");
     };
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(paint);

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { SystemDashPoster, SystemFirstPoster, SystemPoster } from "@/components/Posters";
-import { CaseCards, d, Faq, Ladder, Quotes, SectionHead, ServiceCards, Strip, Tiles } from "@/components/ui";
+import { CaseReel } from "@/components/CaseReel";
+import { Marquee } from "@/components/Marquee";
+import { d, Faq, Ladder, Quotes, SectionHead, ServiceCards, Tiles } from "@/components/ui";
 import { ServicesDeck } from "@/components/ServicesDeck";
 import { Phase, Xp } from "@/components/Xp";
 import { cases, engagement, voices } from "@/lib/content";
-import { systemLabelsFor } from "@/lib/scenes";
+import { sceneAria, systemLabelsFor } from "@/lib/scenes";
 import { siteName, siteUrl } from "@/lib/seo";
 
 /** What a search engine may know about the business: its name, address and logo. Nothing here that the site does not already say. */
@@ -31,7 +33,7 @@ export default function Home() {
         id="story"
         scene="system"
         vh={500}
-        aria="Six kinds of software, shown first as separate tools, then gathered around one AI core and connected, then closed up into a single product dashboard: web and mobile apps, AI assistants, voice AI, workflow automation, data and integrations, and cloud and security."
+        aria={sceneAria("hero")}
         labels={systemLabelsFor("hero")}
         data={{ variant: "hero" }}
         poster={
@@ -60,21 +62,21 @@ export default function Home() {
             </Link>
           </div>
         </Phase>
-        <Phase from={0.11} to={0.31} ch={1}>
+        <Phase from={0.11} to={0.31}>
           <p className="kicker">01 / Discover</p>
           <h2 className="h-lg">Start with how the work really runs.</h2>
           <p className="lead">
             Most businesses run on a dozen tools that do not talk to each other. A free audit maps them, finds the handoffs that waste time, and shows what is worth automating before anything is built.
           </p>
         </Phase>
-        <Phase from={0.31} to={0.49} ch={2}>
+        <Phase from={0.31} to={0.49}>
           <p className="kicker">02 / Connect</p>
           <h2 className="h-lg">Wire the pieces into one system.</h2>
           <p className="lead">
             AI assistants, voice agents and workflows connected to the apps and data you already use, so work moves between them on its own, with people reviewing the steps that matter.
           </p>
         </Phase>
-        <Phase from={0.49} to={0.69} ch={3}>
+        <Phase from={0.49} to={0.69}>
           <p className="kicker">03 / Build</p>
           <h2 className="h-lg">Build it as one product.</h2>
           <p className="lead">
@@ -82,7 +84,7 @@ export default function Home() {
           </p>
           <SystemDashPoster />
         </Phase>
-        <Phase from={0.69} to={0.88} ch={4}>
+        <Phase from={0.69} to={0.88}>
           <p className="kicker">04 / Run</p>
           <h2 className="h-lg">Then keep it running.</h2>
           <p className="lead">
@@ -106,18 +108,7 @@ export default function Home() {
         </Phase>
       </Xp>
 
-      <Strip
-        title="Built for teams in"
-        items={[
-          { name: "Healthcare", icon: "heart" },
-          { name: "Logistics", icon: "truck" },
-          { name: "Sales", icon: "chart" },
-          { name: "Professional services", icon: "briefcase" },
-          { name: "Real estate", icon: "home" },
-          { name: "E-commerce", icon: "cart" },
-          { name: "Construction", icon: "hardhat" },
-        ]}
-      />
+      <Marquee />
 
       <section className="section on-white statement" id="approach">
         <div className="wrap statement-grid">
@@ -215,25 +206,28 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section on-white" id="work">
-        <div className="wrap">
-          <SectionHead
-            kicker="Work"
-            title={
-              <>
-                Systems that run <em>in production.</em>
-              </>
-            }
-            lead="A few of the things we have built, and what changed once they were running."
-          />
-          <CaseCards items={cases.slice(0, 4)} />
-          <div className="cta-row section-cta">
-            <Link className="btn btn-line" href="/work">
-              All work
-            </Link>
-          </div>
-        </div>
-      </section>
+      <CaseReel
+        id="work"
+        items={cases}
+        head={
+          <>
+            <p className="kicker" data-reveal>
+              Case studies
+            </p>
+            <h2 className="h-lg" data-split="words">
+              Systems that run <em>in production.</em>
+            </h2>
+            <p className="lead" data-reveal>
+              A few of the things we have built, and what changed once they were running.
+            </p>
+            <div className="cta-row">
+              <Link className="btn btn-line" href="/work">
+                All case studies
+              </Link>
+            </div>
+          </>
+        }
+      />
 
       <section className="section on-mist">
         <div className="wrap">

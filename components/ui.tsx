@@ -164,66 +164,69 @@ export function Ladder() {
   );
 }
 
-/** Four outlines for the head of a case card: bars, a conversation, a sound, a network. */
-function CaseGlyph({ i }: { i: number }) {
-  const w = "rgba(255,255,255,";
-  switch (i % 4) {
-    case 0:
-      return (
-        <svg viewBox="0 0 176 120" fill="none" aria-hidden="true">
-          <rect x="14" y="62" width="26" height="58" rx="7" fill={`${w}0.45)`} />
-          <rect x="52" y="38" width="26" height="82" rx="7" fill={`${w}0.65)`} />
-          <rect x="90" y="52" width="26" height="68" rx="7" fill={`${w}0.5)`} />
-          <rect x="128" y="14" width="26" height="106" rx="7" fill={`${w}0.9)`} />
-          <path d="M20 40l38-18 38 12 52-26" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-          <circle cx="148" cy="8" r="6" fill="#fff" />
-        </svg>
-      );
-    case 1:
-      return (
-        <svg viewBox="0 0 176 120" fill="none" aria-hidden="true">
-          <rect x="10" y="22" width="104" height="38" rx="14" fill={`${w}0.9)`} />
-          <rect x="24" y="36" width="64" height="7" rx="3.5" fill="#7dadf6" />
-          <rect x="60" y="70" width="106" height="38" rx="14" fill={`${w}0.5)`} />
-          <rect x="74" y="84" width="70" height="7" rx="3.5" fill="#fff" />
-        </svg>
-      );
-    case 2:
-      return (
-        <svg viewBox="0 0 176 120" fill="none" aria-hidden="true">
-          {Array.from({ length: 18 }, (_, k) => {
-            const h = 16 + 70 * Math.abs(Math.sin(k * 0.62)) * (0.5 + 0.5 * Math.abs(Math.sin(k * 0.23 + 0.7)));
-            return <rect key={k} x={8 + k * 9.4} y={110 - h} width="5.6" height={h} rx="2.8" fill={`${w}${0.4 + (k % 4) * 0.16})`} />;
-          })}
-        </svg>
-      );
-    default:
-      return (
-        <svg viewBox="0 0 176 120" fill="none" aria-hidden="true">
-          <path d="M30 96l40-50 36 28 44-56M70 46l-8-24M106 74l30 24" stroke={`${w}0.7)`} strokeWidth="2.5" strokeLinecap="round" />
-          {[
-            [30, 96],
-            [70, 46],
-            [106, 74],
-            [150, 18],
-            [62, 22],
-            [136, 98],
-          ].map(([x, y], k) => (
-            <circle key={k} cx={x} cy={y} r={k % 2 ? 9 : 12} fill={k % 3 ? `${w}0.9)` : "#fff"} />
-          ))}
-        </svg>
-      );
-  }
+/** The cover picture of a case study: a screenshot of the system itself (public/cases/), in two sizes. */
+export function CaseImage({ slug, sizes, priority }: { slug: string; sizes: string; priority?: boolean }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`/cases/${slug}.webp`}
+      srcSet={`/cases/${slug}-640.webp 640w, /cases/${slug}.webp 1280w`}
+      sizes={sizes}
+      width={1280}
+      height={720}
+      alt=""
+      loading={priority ? undefined : "lazy"}
+      decoding="async"
+      fetchPriority={priority ? "high" : undefined}
+    />
+  );
 }
 
-export function CaseCards({ items = cases }: { items?: CaseStudy[] }) {
+/**
+ * The case studies as cards with a large picture of the system, the tags, the title, the three results and a link
+ * (the way FAYD shows them). "rows" puts the picture and the words side by side, alternating; "grid" stacks them.
+ */
+export function CaseCards({ items = cases, layout = "grid" }: { items?: CaseStudy[]; layout?: "grid" | "rows" }) {
+  if (layout === "rows") {
+    return (
+      <ul className="case-rows" data-stagger>
+        {items.map((c) => (
+          <li key={c.slug} className="case-row">
+            <Link href={`/work/${c.slug}`} className="case-row-img" tabIndex={-1} aria-hidden="true">
+              <CaseImage slug={c.slug} sizes="(min-width: 64rem) 560px, 92vw" />
+            </Link>
+            <div className="case-row-text">
+              <p className="kicker">{c.tags.slice(0, 3).join(" · ")}</p>
+              <h3 className="h-md">
+                <Link href={`/work/${c.slug}`}>{c.title}</Link>
+              </h3>
+              <p className="case-lead">{c.summary}</p>
+              <dl className="metrics">
+                {c.results.slice(0, 3).map((r) => (
+                  <div key={r.label}>
+                    <dt>{r.value}</dt>
+                    <dd>{r.label}</dd>
+                  </div>
+                ))}
+              </dl>
+              <Link href={`/work/${c.slug}`} className="card-link">
+                <span>View case study</span>
+              </Link>
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
+  }
   return (
     <ul className="cards cards-2" data-stagger>
-      {items.map((c, i) => (
+      {items.map((c) => (
         <li key={c.slug}>
           <Link href={`/work/${c.slug}`} className="card case">
-            <span className="case-art" aria-hidden="true">
-              <CaseGlyph i={i} />
+            <span className="case-img">
+              <CaseImage slug={c.slug} sizes="(min-width: 64rem) 560px, 92vw" />
+            </span>
+            <span className="case-body">
               <span className="card-top">
                 {c.tags.slice(0, 2).map((t) => (
                   <span className="pill" key={t}>
@@ -231,8 +234,6 @@ export function CaseCards({ items = cases }: { items?: CaseStudy[] }) {
                   </span>
                 ))}
               </span>
-            </span>
-            <span className="case-body">
               <h3 className="h-md">{c.title}</h3>
               <p>{c.summary}</p>
               <dl className="metrics">
@@ -244,10 +245,48 @@ export function CaseCards({ items = cases }: { items?: CaseStudy[] }) {
                 ))}
               </dl>
               <span className="card-link">
-                <span>Read the case study</span>
+                <span>View case study</span>
               </span>
             </span>
           </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The screenshot (public/shots/) of each project in the wider portfolio. */
+const projectShot: Record<string, string> = {
+  "Grace AI": "grace",
+  SIQETRA: "siqetra",
+  "Vyral AI": "vyarl",
+  "Dr Scribe": "drscribe",
+  "Aztech AI": "aztech",
+  "Alltrials AI": "alltrials",
+  Vendibly: "vendibly",
+  "Card Grading AI": "cardgrading",
+  "Civil Security": "civil",
+  "AI Language Tutor": "tutor",
+  Monetiza: "monetiza",
+  "OTA-GPT": "ota",
+};
+
+/** The wider portfolio: a picture of each project we have built, with its name and one line. */
+export function Portfolio({ items }: { items: { name: string; text: string }[] }) {
+  return (
+    <ul className="portfolio" data-stagger>
+      {items.map((m) => (
+        <li key={m.name}>
+          <figure>
+            {projectShot[m.name] ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={`/shots/${projectShot[m.name]}.webp`} width={1024} height={576} alt="" loading="lazy" decoding="async" />
+            ) : null}
+            <figcaption>
+              <h3>{m.name}</h3>
+              <p>{m.text}</p>
+            </figcaption>
+          </figure>
         </li>
       ))}
     </ul>

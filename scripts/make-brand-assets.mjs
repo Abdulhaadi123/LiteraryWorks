@@ -31,14 +31,14 @@ const pages = {
   "/og.html": `<!doctype html><meta charset="utf-8"><style>
     @font-face { font-family: Inter; font-weight: 100 900; src: url(/inter.woff2) format("woff2"); }
     * { box-sizing: border-box; margin: 0; }
-    body { width: 1200px; height: 630px; overflow: hidden; font-family: Inter, Arial, sans-serif; background: radial-gradient(46% 70% at 76% 50%, rgba(96,150,255,.26) 0%, rgba(96,150,255,0) 72%), radial-gradient(40% 60% at 6% 4%, rgba(170,205,255,.4) 0%, rgba(170,205,255,0) 70%), linear-gradient(180deg, #ffffff 0%, #f1f6ff 100%); position: relative; }
-    .grid { position: absolute; inset: 0; background: radial-gradient(rgba(37,99,235,.22) 1px, transparent 1.5px) 0 0/28px 28px; -webkit-mask-image: radial-gradient(60% 90% at 76% 50%, #000, transparent); }
-    .logo { position: absolute; left: 76px; top: 64px; display: flex; align-items: center; gap: 14px; color: #071a3d; }
+    body { width: 1200px; height: 630px; overflow: hidden; font-family: Inter, Arial, sans-serif; background: radial-gradient(46% 70% at 76% 50%, rgba(34,66,95,.10) 0%, rgba(34,66,95,0) 72%), linear-gradient(180deg, #ffffff 0%, #f4f6f7 100%); position: relative; }
+    .grid { position: absolute; inset: 0; background: radial-gradient(rgba(34,66,95,.2) 1px, transparent 1.5px) 0 0/28px 28px; -webkit-mask-image: radial-gradient(60% 90% at 76% 50%, #000, transparent); }
+    .logo { position: absolute; left: 76px; top: 64px; display: flex; align-items: center; gap: 14px; color: #182f46; }
     .logo i { display: block; width: 58px; height: 58px; }
     .logo b { display: block; font-size: 30px; font-weight: 800; line-height: .9; letter-spacing: -.05em; }
-    h1 { position: absolute; left: 76px; top: 190px; width: 520px; font-size: 62px; font-weight: 700; line-height: 1.03; letter-spacing: -.04em; color: #0b1b33; }
-    h1 em { font-style: normal; background: linear-gradient(95deg, #1d4ed8 0%, #2f6bf3 45%, #4f9bff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    p { position: absolute; left: 76px; bottom: 72px; width: 520px; font-size: 25px; font-weight: 500; line-height: 1.35; color: #42526b; }
+    h1 { position: absolute; left: 76px; top: 190px; width: 520px; font-size: 62px; font-weight: 700; line-height: 1.03; letter-spacing: -.04em; color: #191716; }
+    h1 em { font-style: normal; color: #22425f; text-decoration: underline; text-decoration-color: #73c94a; text-decoration-thickness: .085em; text-underline-offset: .14em; text-decoration-skip-ink: none; }
+    p { position: absolute; left: 76px; bottom: 72px; width: 520px; font-size: 25px; font-weight: 500; line-height: 1.35; color: #4b5262; }
     img { position: absolute; right: -30px; top: 53%; width: 640px; transform: translateY(-50%); }
   </style><div class="grid"></div>
   <div class="logo"><i>${mark("#22425f", "#73c94a")}</i><span><b>Literary</b><b>Works</b></span></div>

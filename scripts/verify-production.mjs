@@ -224,8 +224,8 @@ const canvasHome = (page) => page.ev("(() => { const c = document.querySelectorA
 
 const shootUrl = async (page) => "data:image/png;base64," + (await page.send("Page.captureScreenshot", { format: "png" })).data;
 
-/** How different two pictures are: the mean difference of the three colours (0 to 255), and the share of pixels that differ by a lot. */
-const compare = (page, a, b) =>
+/** How different two pictures are: the mean difference of the three colours (0 to 255), and the share of pixels whose three colours differ by more than `min` in all (150 by default: "by a lot"). */
+const compare = (page, a, b, min = 150) =>
   page.ev(`(async () => {
     const load = (u) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = u; });
     const [x, y] = await Promise.all([load(${JSON.stringify(a)}), load(${JSON.stringify(b)})]);
@@ -234,18 +234,22 @@ const compare = (page, a, b) =>
     g.drawImage(x, 0, 0); const d1 = g.getImageData(0, 0, c.width, c.height).data;
     g.clearRect(0, 0, c.width, c.height); g.drawImage(y, 0, 0); const d2 = g.getImageData(0, 0, c.width, c.height).data;
     let s = 0, n = 0;
-    for (let i = 0; i < d1.length; i += 4) { const d = Math.abs(d1[i] - d2[i]) + Math.abs(d1[i + 1] - d2[i + 1]) + Math.abs(d1[i + 2] - d2[i + 2]); s += d; if (d > 150) n++; }
+    for (let i = 0; i < d1.length; i += 4) { const d = Math.abs(d1[i] - d2[i]) + Math.abs(d1[i + 1] - d2[i + 1]) + Math.abs(d1[i + 2] - d2[i + 2]); s += d; if (d > ${min}) n++; }
     return { mean: s / (d1.length / 4) / 3, strong: n / (d1.length / 4) };
   })()`);
 
-/** The share of the window the 3D picture covers: the window with and without its canvas. */
+/**
+ * The share of the window the 3D picture covers: the window with and without its canvas. A pixel counts when the
+ * picture changes it visibly (the three colours differ by more than 45 in all): the scenes are mostly white and
+ * pale objects on a pale page, so only counting strong contrast would call a light picture empty.
+ */
 async function coverage(page) {
   const withIt = await shootUrl(page);
   await page.ev("document.querySelector('canvas.xp-gl').style.visibility = 'hidden'");
   await sleep(250);
   const without = await shootUrl(page);
   await page.ev("document.querySelector('canvas.xp-gl').style.visibility = ''");
-  return (await compare(page, withIt, without)).strong;
+  return (await compare(page, withIt, without, 45)).strong;
 }
 
 async function main() {
@@ -272,12 +276,12 @@ async function main() {
     // 2. desktop with motion: every pinned 3D scene on the site
     console.log("\nDesktop, motion on (1440x900)");
     const runways = [
-      { path: "/", id: "#story", name: "home story", tags: 6, at: [0.05, 0.4, 0.8] },
+      { path: "/", id: "#story", name: "home story", tags: 5, at: [0.05, 0.4, 0.8] },
       { path: "/", id: "#services", name: "home services deck", at: [0.03, 0.3, 0.64] },
       { path: "/services", id: "#services-deck", name: "services deck", at: [0.03, 0.3, 0.64] },
       { path: "/work", id: "#cases-deck", name: "work deck", at: [0.03, 0.3, 0.64] },
       { path: "/services/ai-voice-systems", id: "#top", name: "service page", tags: 3, at: [0.05, 0.3, 0.65] },
-      { path: "/ai-audit", id: "#top", name: "audit page", tags: 4, at: [0.05, 0.3, 0.65] },
+      { path: "/ai-audit", id: "#top", name: "audit page", tags: 3, at: [0.05, 0.3, 0.65] },
       { path: "/about", id: "#top", name: "about page", tags: 4, at: [0.05, 0.3, 0.65] },
     ];
     for (const r of runways) {
@@ -292,9 +296,9 @@ async function main() {
       const home = await canvasHome(page);
       check(home.n === 1 && `#${home.id}` === r.id, `${r.name}: one 3D canvas, in this scene`, JSON.stringify(home));
       if (r.tags) {
-        await copyAt(page, r.id, 0.4);
+        await copyAt(page, r.id, 0.55);
         const shown = await page.ev("[...document.querySelectorAll('.xp-labels li')].filter(e => Number(getComputedStyle(e).opacity) > 0.9).length");
-        check(shown === r.tags, `${r.name}: all ${r.tags} tags show once the cards are gathered`, `${shown} shown`);
+        check(shown === r.tags, `${r.name}: all ${r.tags} tags show once the devices are connected`, `${shown} shown`);
       }
       // the picture is there and it moves with the scroll
       await copyAt(page, r.id, r.at[1]);
@@ -322,6 +326,31 @@ async function main() {
       await sleep(1800);
       const stuck = await page.ev("[...document.querySelectorAll('[data-reveal], [data-stagger] > *, [data-wipe], .split-part')].filter((e) => !e.closest('.xp') && (Number(getComputedStyle(e).opacity) < 0.99 || (e.classList.contains('split-part') && !/matrix\\(1, 0, 0, 1, 0, 0\\)|none/.test(getComputedStyle(e).transform)))).length");
       check(stuck === 0, "home: every scroll reveal completes", `${stuck} still hidden`);
+      page.close();
+    }
+
+    // 2a2. the case studies reel on the home page: pinned, and the cards slide sideways while you scroll through it
+    {
+      const page = await visit(chrome, "/", { width: 1440, height: 900 });
+      await waitForScene(page, "#story");
+      let live = false;
+      for (let i = 0; i < 40 && !live; i++) {
+        live = await page.ev("!!document.querySelector('#work.reel.is-live')");
+        if (!live) await sleep(250);
+      }
+      check(live, "home: the case studies reel is pinned (motion on)");
+      const at = async (p) => {
+        const y = await page.ev(`(() => { const s = document.querySelector('#work'); const top = s.getBoundingClientRect().top + scrollY; return top + ${p} * (s.offsetHeight - innerHeight); })()`);
+        await page.ev(`window.scrollTo(0, ${y})`);
+        await sleep(3200);
+        return page.ev("(() => { const t = document.querySelector('[data-reel-track]'); const m = new DOMMatrix(getComputedStyle(t).transform); const b = document.querySelector('[data-reel-bar]'); return { x: m.m41, bar: new DOMMatrix(getComputedStyle(b).transform).a }; })()");
+      };
+      const start = await at(0.02);
+      const end = await at(0.98);
+      check(end.x < start.x - 500, "home: the reel's cards slide sideways as you scroll", `from ${Math.round(start.x)} to ${Math.round(end.x)} px`);
+      check(end.bar > start.bar + 0.5, "home: the reel's green line fills as you scroll", `from ${start.bar.toFixed(2)} to ${end.bar.toFixed(2)}`);
+      const pics = await page.ev("[...document.querySelectorAll('#work .reel-img img')].filter((i) => i.complete && i.naturalWidth > 0).length");
+      check(pics === 6, "home: all six case study pictures load", `${pics} loaded`);
       page.close();
     }
 

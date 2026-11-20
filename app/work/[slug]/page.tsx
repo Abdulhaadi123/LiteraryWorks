@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CaseCards, Checks, PageHero, SectionHead } from "@/components/ui";
+import { CaseCards, CaseImage, Checks, PageHero, SectionHead } from "@/components/ui";
 import { caseBySlug, cases } from "@/lib/content";
 import { pageMeta } from "@/lib/seo";
 
@@ -31,9 +31,15 @@ export default async function CasePage({ params }: { params: Promise<{ slug: str
           Book a free audit
         </Link>
         <Link className="btn btn-line" href="/work">
-          All work
+          All case studies
         </Link>
       </PageHero>
+
+      <div className="case-cover">
+        <div className="wrap">
+          <CaseImage slug={c.slug} sizes="(min-width: 80rem) 1200px, 92vw" priority />
+        </div>
+      </div>
 
       <section className="section on-white">
         <div className="wrap">

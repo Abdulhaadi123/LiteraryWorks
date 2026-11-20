@@ -16,7 +16,6 @@ export default function AboutPage() {
       <SceneHero
         id="top"
         variant="about"
-        aria="A 3D picture of how we work: separate pieces first, then gathered around an AI core and connected, then closed up into one product."
         kicker="About"
         title={
           <>

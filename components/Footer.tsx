@@ -45,7 +45,7 @@ export function Footer() {
               <Link href="/ai-audit">AI audit</Link>
             </li>
             <li>
-              <Link href="/work">Work</Link>
+              <Link href="/work">Case studies</Link>
             </li>
             <li>
               <Link href="/about">About</Link>

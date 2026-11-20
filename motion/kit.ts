@@ -6,15 +6,15 @@ import * as THREE from "three";
  */
 
 export const COLOR = {
-  ink: 0x0e1b2d,
+  ink: 0x191716,
   navy: 0x22425f,
-  deep: 0x0b2a6f,
-  blue: 0x2563c4,
-  bright: 0x3b82f6,
-  sky: 0x7dc0ff,
-  pale: 0xdbe8ff,
+  deep: 0x182f46,
+  blue: 0x22425f,
+  bright: 0x3e6d97,
+  sky: 0x9dbbd3,
+  pale: 0xd9e5ef,
   white: 0xffffff,
-  green: 0x22c55e,
+  green: 0x73c94a,
 } as const;
 
 /** A rounded rectangle centred on the origin. */
@@ -36,7 +36,7 @@ export function roundedShape(w: number, h: number, r: number): THREE.Shape {
 }
 
 /** Texture coordinates that run 0..1 over the face of a shape that is `w` by `h` and centred on the origin. */
-function fitUV(geo: THREE.BufferGeometry, w: number, h: number) {
+export function fitUV(geo: THREE.BufferGeometry, w: number, h: number) {
   const pos = geo.attributes.position;
   const uv = geo.attributes.uv as THREE.BufferAttribute;
   for (let i = 0; i < pos.count; i++) uv.setXY(i, pos.getX(i) / w + 0.5, pos.getY(i) / h + 0.5);
@@ -71,17 +71,27 @@ export function makePanel(w: number, h: number, tex: THREE.Texture, shadow: THRE
   });
   geo.translate(0, 0, -depth / 2);
   fitUV(geo, w - bevel * 2, h - bevel * 2);
-  // group 0 = the two faces, group 1 = the edge
+  // group 0 = the two faces, group 1 = the edge: the back face gets its own plain material (index 2), so a picture is never seen mirrored
+  const caps = geo.groups.find((g) => g.materialIndex === 0);
+  const sides = geo.groups.find((g) => g.materialIndex === 1);
+  if (caps && sides) {
+    const half = caps.count / 2;
+    geo.clearGroups();
+    geo.addGroup(caps.start, half, 2);
+    geo.addGroup(caps.start + half, half, 0);
+    geo.addGroup(sides.start, sides.count, 1);
+  }
+  const back = new THREE.MeshBasicMaterial({ color: 0xe6ecf1, toneMapped: false });
   const face = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
   const edge = new THREE.MeshPhysicalMaterial({
-    color: 0xcfddf2,
+    color: 0xd5dee6,
     roughness: 0.28,
     metalness: 0.25,
     clearcoat: 1,
     clearcoatRoughness: 0.1,
     envMapIntensity: 0.9,
   });
-  const body = new THREE.Mesh(geo, [face, edge]);
+  const body = new THREE.Mesh(geo, [face, edge, back]);
   const group = new THREE.Group();
   group.add(body);
   if (shadow) {
@@ -104,7 +114,7 @@ export function rectShadowTexture(): THREE.CanvasTexture {
     (g, w, h) => {
       // the shape is drawn off to the side; only its blurred shadow lands on the canvas
       g.translate(-w, 0);
-      g.shadowColor = "rgba(16,44,104,0.95)";
+      g.shadowColor = "rgba(18,36,54,0.95)";
       g.shadowBlur = 30;
       g.shadowOffsetX = w;
       g.fillStyle = "#000";
@@ -114,6 +124,26 @@ export function rectShadowTexture(): THREE.CanvasTexture {
     },
     1,
   );
+}
+
+/* ---- pictures ---- */
+
+/** Loads a picture of ours (a screenshot in public/) and resolves when it can be drawn; rejects after `ms` so a slow network never holds a scene back. */
+export function loadImage(url: string, ms = 10000): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.decoding = "async";
+    const timer = window.setTimeout(() => reject(new Error("timeout " + url)), ms);
+    img.onload = () => {
+      window.clearTimeout(timer);
+      resolve(img);
+    };
+    img.onerror = () => {
+      window.clearTimeout(timer);
+      reject(new Error("failed " + url));
+    };
+    img.src = url;
+  });
 }
 
 /* ---- textures ---- */
@@ -174,9 +204,9 @@ export function makeCore(): Core {
     envMapIntensity: 0.8,
   });
   mat.onBeforeCompile = (shader) => {
-    shader.uniforms.uRim = { value: new THREE.Color(0x58b8ff) };
-    shader.uniforms.uLow = { value: new THREE.Color(0x061a66) };
-    shader.uniforms.uHigh = { value: new THREE.Color(0x2f72f4) };
+    shader.uniforms.uRim = { value: new THREE.Color(0x8fdc6a) };
+    shader.uniforms.uLow = { value: new THREE.Color(0x0b1c2c) };
+    shader.uniforms.uHigh = { value: new THREE.Color(0x3a6c99) };
     shader.uniforms.uGlow = glow;
     shader.fragmentShader = shader.fragmentShader
       .replace("void main() {", "uniform vec3 uRim;\nuniform vec3 uLow;\nuniform vec3 uHigh;\nuniform float uGlow;\nvoid main() {")
@@ -190,7 +220,7 @@ export function makeCore(): Core {
         "#include <emissivemap_fragment>",
         `#include <emissivemap_fragment>
         float rimF = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), 2.6);
-        totalEmissiveRadiance += uRim * rimF * (0.45 + 0.9 * uGlow);`,
+        totalEmissiveRadiance += uRim * rimF * (0.3 + 0.8 * uGlow);`,
       );
   };
   const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64), mat);
@@ -199,12 +229,12 @@ export function makeCore(): Core {
   // a fine mesh over the surface: the "network" the core is made of
   const mesh = new THREE.Mesh(
     new THREE.IcosahedronGeometry(1.012, 3),
-    new THREE.MeshBasicMaterial({ color: 0x9fd0ff, wireframe: true, transparent: true, opacity: 0.1, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ color: 0xbcd0e0, wireframe: true, transparent: true, opacity: 0.13, depthWrite: false }),
   );
   group.add(mesh);
 
   // two thin orbits with a bright bead on each
-  const ringMat = new THREE.MeshBasicMaterial({ color: 0x5b9bf5, transparent: true, opacity: 0.7 });
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0x73c94a, transparent: true, opacity: 0.75 });
   const rings: THREE.Mesh[] = [];
   const sats: THREE.Mesh[] = [];
   [
