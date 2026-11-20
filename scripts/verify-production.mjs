@@ -9,12 +9,15 @@
 //
 // What it checks, following the scroll-driven 3D storytelling skill's "fallbacks and checks":
 //   1. every page in the sitemap answers 200 with a title and exactly one <h1>
-//   2. desktop: motion starts, the 3D scene builds (no error), the copy changes as the page scrolls, all seven
-//      labels show when the model is open, and the last frame matches the first (the scene closes exactly)
-//   3. phone: no motion, no three.js, GSAP or Lenis code is downloaded, the hero picture loads, no sideways
-//      scrolling, a small script budget
+//   2. desktop: motion starts and every pinned 3D scene on the site (the home story and services deck, the services
+//      and work decks, a service page, the audit and about pages) builds without an error, changes the copy as the
+//      page scrolls, draws a picture that moves with the scroll, shows its tags, and keeps ONE shared canvas that
+//      moves from scene to scene; the model stays clear of the copy and of the header on small and wide windows
+//   3. phone: no motion, no three.js, GSAP or Lenis code is downloaded, the hero picture loads, the plain list takes
+//      the deck's place, no sideways scrolling, a small script budget
 //   4. reduced motion: the static layout, again without those libraries
 //   5. JavaScript off: everything is visible
+//   5b. a browser without WebGL: the scenes step aside at once and the static page takes over
 //   6. the inquiry API validates its input
 // Screenshots are written to the previews folder.
 
@@ -190,16 +193,16 @@ const libraries = (page) =>
     return [...found];
   })()`);
 
-const sceneState = (page) =>
-  page.ev(`(() => { const h = document.documentElement.classList; const x = document.querySelector('.xp'); return { motion: h.contains('motion'), ready: h.contains('motion-ready'), live: !!x && x.classList.contains('xp-live'), failed: !!x && x.classList.contains('xp-failed') }; })()`);
+const sceneState = (page, id = ".xp") =>
+  page.ev(`(() => { const h = document.documentElement.classList; const x = document.querySelector(${JSON.stringify(id)}); return { motion: h.contains('motion'), ready: h.contains('motion-ready'), live: !!x && x.classList.contains('xp-live'), failed: !!x && x.classList.contains('xp-failed') }; })()`);
 
-async function waitForScene(page) {
+async function waitForScene(page, id = ".xp") {
   for (let i = 0; i < 100; i++) {
-    const s = await sceneState(page);
+    const s = await sceneState(page, id);
     if (s.failed || (s.ready && s.live)) return s;
     await sleep(250);
   }
-  return sceneState(page);
+  return sceneState(page, id);
 }
 
 /** Scrolls to a fraction of a pinned scene and reports which copy is showing. */
@@ -208,6 +211,41 @@ async function copyAt(page, selector, p) {
   await page.ev(`window.scrollTo(0, ${y})`);
   await sleep(2800);
   return page.ev(`[...document.querySelectorAll('${selector} [data-phase]')].map(e => ({ t: (e.querySelector('h1,h2')?.textContent || '').trim(), o: Number(getComputedStyle(e).opacity) })).filter(x => x.o > 0.6).map(x => x.t)`);
+}
+
+/** Scrolls a scene that starts further down the page into reach (they only start when near) and waits until it is live. */
+async function reach(page, id) {
+  await copyAt(page, id, 0.02);
+  return waitForScene(page, id);
+}
+
+/** Where the one shared 3D canvas is: how many there are, and which scene it is in. */
+const canvasHome = (page) => page.ev("(() => { const c = document.querySelectorAll('canvas'); return { n: c.length, id: c[0] ? (c[0].closest('.xp')?.id ?? null) : null }; })()");
+
+const shootUrl = async (page) => "data:image/png;base64," + (await page.send("Page.captureScreenshot", { format: "png" })).data;
+
+/** How different two pictures are: the mean difference of the three colours (0 to 255), and the share of pixels that differ by a lot. */
+const compare = (page, a, b) =>
+  page.ev(`(async () => {
+    const load = (u) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = u; });
+    const [x, y] = await Promise.all([load(${JSON.stringify(a)}), load(${JSON.stringify(b)})]);
+    const c = document.createElement('canvas'); c.width = x.width; c.height = x.height;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    g.drawImage(x, 0, 0); const d1 = g.getImageData(0, 0, c.width, c.height).data;
+    g.clearRect(0, 0, c.width, c.height); g.drawImage(y, 0, 0); const d2 = g.getImageData(0, 0, c.width, c.height).data;
+    let s = 0, n = 0;
+    for (let i = 0; i < d1.length; i += 4) { const d = Math.abs(d1[i] - d2[i]) + Math.abs(d1[i + 1] - d2[i + 1]) + Math.abs(d1[i + 2] - d2[i + 2]); s += d; if (d > 150) n++; }
+    return { mean: s / (d1.length / 4) / 3, strong: n / (d1.length / 4) };
+  })()`);
+
+/** The share of the window the 3D picture covers: the window with and without its canvas. */
+async function coverage(page) {
+  const withIt = await shootUrl(page);
+  await page.ev("document.querySelector('canvas.xp-gl').style.visibility = 'hidden'");
+  await sleep(250);
+  const without = await shootUrl(page);
+  await page.ev("document.querySelector('canvas.xp-gl').style.visibility = ''");
+  return (await compare(page, withIt, without)).strong;
 }
 
 async function main() {
@@ -231,65 +269,68 @@ async function main() {
 
   const chrome = await launch();
   try {
-    // 2. desktop with motion
+    // 2. desktop with motion: every pinned 3D scene on the site
     console.log("\nDesktop, motion on (1440x900)");
-    for (const [path, id, name] of [["/", "#story", "home"]]) {
-      const page = await visit(chrome, path, { width: 1440, height: 900 });
-      const s = await waitForScene(page);
-      check(s.motion && s.ready, `${name}: motion starts`);
-      check(s.live && !s.failed, `${name}: the 3D scene is live`, s.failed ? "it fell back to the static section" : "");
-      const first = await copyAt(page, id, 0.05);
-      const later = await copyAt(page, id, 0.55);
-      check(first.length === 1 && later.length === 1 && first[0] !== later[0], `${name}: the copy changes as you scroll`, `${first} -> ${later}`);
-      // the opened model names all seven of its layers
-      await copyAt(page, id, 0.5);
-      const shown = await page.ev("[...document.querySelectorAll('.xp-labels li')].filter(e => Number(getComputedStyle(e).opacity) > 0.9).length");
-      check(shown === 7, `${name}: the opened model shows all seven labels`, `${shown} shown`);
-      // the story is a loop: the last frame is the first frame (compared on the model's area, no copy in it)
-      const frameAt = async (p) => {
-        await copyAt(page, id, p);
-        // a clip is in page coordinates, so add how far the page has scrolled
-        const sy = await page.ev("scrollY");
-        const r = await page.send("Page.captureScreenshot", { format: "png", clip: { x: 620, y: 200 + sy, width: 620, height: 560, scale: 1 } });
-        return "data:image/png;base64," + r.data;
-      };
-      const a = await frameAt(0);
-      const b = await frameAt(1);
-      const diff = await page.ev(`(async () => {
-        const load = (u) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = u; });
-        const [x, y] = await Promise.all([load(${JSON.stringify(a)}), load(${JSON.stringify(b)})]);
-        const c = document.createElement('canvas'); c.width = x.width; c.height = x.height;
-        const g = c.getContext('2d', { willReadFrequently: true });
-        g.drawImage(x, 0, 0); const d1 = g.getImageData(0, 0, c.width, c.height).data;
-        g.clearRect(0, 0, c.width, c.height); g.drawImage(y, 0, 0); const d2 = g.getImageData(0, 0, c.width, c.height).data;
-        let s = 0; for (let i = 0; i < d1.length; i += 4) s += Math.abs(d1[i] - d2[i]) + Math.abs(d1[i + 1] - d2[i + 1]) + Math.abs(d1[i + 2] - d2[i + 2]);
-        return s / (d1.length / 4) / 3;
-      })()`);
-      check(diff < 0.3, `${name}: the last frame matches the first (the scene closes exactly)`, `mean difference ${diff.toFixed(2)} of 255`);
-      // scroll down the whole page, then nothing that should have revealed itself may still be hidden
+    const runways = [
+      { path: "/", id: "#story", name: "home story", tags: 6, at: [0.05, 0.4, 0.8] },
+      { path: "/", id: "#services", name: "home services deck", at: [0.03, 0.3, 0.64] },
+      { path: "/services", id: "#services-deck", name: "services deck", at: [0.03, 0.3, 0.64] },
+      { path: "/work", id: "#cases-deck", name: "work deck", at: [0.03, 0.3, 0.64] },
+      { path: "/services/ai-voice-systems", id: "#top", name: "service page", tags: 3, at: [0.05, 0.3, 0.65] },
+      { path: "/ai-audit", id: "#top", name: "audit page", tags: 4, at: [0.05, 0.3, 0.65] },
+      { path: "/about", id: "#top", name: "about page", tags: 4, at: [0.05, 0.3, 0.65] },
+    ];
+    for (const r of runways) {
+      const page = await visit(chrome, r.path, { width: 1440, height: 900 });
+      const s = r.id === "#story" || r.id === "#top" ? await waitForScene(page, r.id) : await reach(page, r.id);
+      check(s.motion && s.ready, `${r.name}: motion starts`);
+      check(s.live && !s.failed, `${r.name}: the 3D scene is live`, s.failed ? "it fell back to the static section" : "");
+      const first = await copyAt(page, r.id, r.at[0]);
+      const frameA = await shootUrl(page);
+      const later = await copyAt(page, r.id, r.at[2]);
+      check(first.length === 1 && later.length === 1 && first[0] !== later[0], `${r.name}: the copy changes as you scroll`, `${first} -> ${later}`);
+      const home = await canvasHome(page);
+      check(home.n === 1 && `#${home.id}` === r.id, `${r.name}: one 3D canvas, in this scene`, JSON.stringify(home));
+      if (r.tags) {
+        await copyAt(page, r.id, 0.4);
+        const shown = await page.ev("[...document.querySelectorAll('.xp-labels li')].filter(e => Number(getComputedStyle(e).opacity) > 0.9).length");
+        check(shown === r.tags, `${r.name}: all ${r.tags} tags show once the cards are gathered`, `${shown} shown`);
+      }
+      // the picture is there and it moves with the scroll
+      await copyAt(page, r.id, r.at[1]);
+      const share = await coverage(page);
+      check(share > 0.02, `${r.name}: the 3D picture is drawn`, `${(share * 100).toFixed(1)}% of the window`);
+      const frameB = await shootUrl(page);
+      const moved = await compare(page, frameA, frameB);
+      check(moved.mean > 1.5, `${r.name}: the picture changes as you scroll`, `mean difference ${moved.mean.toFixed(2)} of 255`);
+      await shot(page, `${r.name.replace(/\W+/g, "-")}-desktop.png`);
+      check(page.errors.length === 0, `${r.name}: no console errors`, page.errors[0]?.slice(0, 120));
+      check(page.failed.length === 0, `${r.name}: no request fails`, page.failed[0]);
+      check(page.foreign.length === 0, `${r.name}: nothing is requested from another site`, page.foreign[0]);
+      page.close();
+    }
+
+    // 2a. scroll down the whole home page: nothing that should have revealed itself may still be hidden
+    {
+      const page = await visit(chrome, "/", { width: 1440, height: 900 });
+      await waitForScene(page, "#story");
       const total = await page.ev("document.documentElement.scrollHeight");
       for (let y = 0; y < total; y += 500) {
         await page.ev(`window.scrollTo(0, ${y})`);
         await sleep(250);
       }
       await sleep(1800);
-      const stuck = await page.ev("[...document.querySelectorAll('[data-reveal], [data-stagger] > *, [data-wipe], .split-part')].filter((e) => Number(getComputedStyle(e).opacity) < 0.99 || (e.classList.contains('split-part') && !/matrix\\(1, 0, 0, 1, 0, 0\\)|none/.test(getComputedStyle(e).transform))).length");
-      check(stuck === 0, `${name}: every scroll reveal completes`, `${stuck} still hidden`);
-      await page.ev("window.scrollTo(0, 0)");
-      await sleep(1500);
-      await shot(page, `${name}-desktop.png`);
-      check(page.errors.length === 0, `${name}: no console errors`, page.errors[0]?.slice(0, 120));
-      check(page.failed.length === 0, `${name}: no request fails`, page.failed[0]);
-      check(page.foreign.length === 0, `${name}: nothing is requested from another site`, page.foreign[0]);
+      const stuck = await page.ev("[...document.querySelectorAll('[data-reveal], [data-stagger] > *, [data-wipe], .split-part')].filter((e) => !e.closest('.xp') && (Number(getComputedStyle(e).opacity) < 0.99 || (e.classList.contains('split-part') && !/matrix\\(1, 0, 0, 1, 0, 0\\)|none/.test(getComputedStyle(e).transform)))).length");
+      check(stuck === 0, "home: every scroll reveal completes", `${stuck} still hidden`);
       page.close();
     }
 
     // 2b. the model never runs over the copy, on a small laptop or an ultra-wide screen (the canvas is drawn with and without; only the copy's area is compared)
     console.log("\nLayout (the 3D model and the copy)");
-    for (const [w, h] of [[1024, 768], [1440, 900], [2560, 1080]]) {
-      for (const p of [0, 0.5]) {
+    for (const [w, h] of [[1024, 768], [1280, 640], [1440, 900], [2560, 1080]]) {
+      for (const p of [0, 0.4, 0.8]) {
         const page = await visit(chrome, "/", { width: w, height: h });
-        await waitForScene(page);
+        await waitForScene(page, "#story");
         await copyAt(page, "#story", p);
         const box = await page.ev(`(() => {
           const phase = [...document.querySelectorAll('.xp-phase')].sort((a, b) => Number(getComputedStyle(b).opacity) - Number(getComputedStyle(a).opacity))[0];
@@ -303,17 +344,12 @@ async function main() {
         await page.ev("document.querySelector('.xp-canvas').style.visibility = 'hidden'");
         await sleep(300);
         const without = await shoot();
-        const strong = await page.ev(`(async () => {
-          const load = (u) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = u; });
-          const [x, y] = await Promise.all([load(${JSON.stringify(withModel)}), load(${JSON.stringify(without)})]);
-          const c = document.createElement('canvas'); c.width = x.width; c.height = x.height;
-          const g = c.getContext('2d', { willReadFrequently: true });
-          g.drawImage(x, 0, 0); const d1 = g.getImageData(0, 0, c.width, c.height).data;
-          g.clearRect(0, 0, c.width, c.height); g.drawImage(y, 0, 0); const d2 = g.getImageData(0, 0, c.width, c.height).data;
-          let n = 0; for (let i = 0; i < d1.length; i += 4) if (Math.abs(d1[i] - d2[i]) + Math.abs(d1[i + 1] - d2[i + 1]) + Math.abs(d1[i + 2] - d2[i + 2]) > 150) n++;
-          return n / (d1.length / 4);
-        })()`);
-        check(strong < 0.002, `${w}x${h}, ${p === 0 ? "closed" : "open"}: the model stays clear of the copy`, `${(strong * 100).toFixed(2)}% of the copy's area is covered`);
+        const { strong } = await compare(page, withModel, without);
+        check(strong < 0.002, `${w}x${h}, p=${p}: the model stays clear of the copy`, `${(strong * 100).toFixed(2)}% of the copy's area is covered`);
+        // and clear of the floating header
+        await page.ev("document.querySelector('.xp-canvas').style.visibility = ''");
+        const headerShare = await page.ev("(() => { const b = document.querySelector('.site-header-bar').getBoundingClientRect(); return b.bottom; })()");
+        check(headerShare < 100, `${w}x${h}, p=${p}: the header leaves room (its bottom edge is at ${Math.round(headerShare)} px)`);
         page.close();
       }
     }
@@ -322,7 +358,7 @@ async function main() {
     console.log("\nNavigation and resizing");
     {
       const page = await visit(chrome, "/", { width: 1440, height: 900 });
-      await waitForScene(page);
+      await waitForScene(page, "#story");
       const waitFor = async (expr, tries = 100) => {
         for (let i = 0; i < tries; i++) {
           try {
@@ -333,16 +369,26 @@ async function main() {
         return false;
       };
       let ok = true;
+      let moved = true;
       for (let round = 0; round < 2; round++) {
         await page.ev("document.querySelector('.site-nav a[href=\"/services\"]').click()");
-        ok = ok && (await waitFor("location.pathname === '/services' && !!document.querySelector('h1')"));
-        await sleep(800);
-        ok = ok && (await page.ev("document.querySelectorAll('canvas').length === 0"));
+        ok = ok && (await waitFor("location.pathname === '/services' && !!document.querySelector('.xp-deck.xp-live')"));
+        await sleep(600);
+        const onServices = await canvasHome(page);
+        moved = moved && onServices.n === 1 && onServices.id === "services-deck";
         await page.ev("document.querySelector('.brand').click()");
-        ok = ok && (await waitFor("location.pathname === '/' && !!document.querySelector('.xp.xp-live')", 150));
+        ok = ok && (await waitFor("location.pathname === '/' && !!document.querySelector('#story.xp-live')", 150));
+        const onHome = await canvasHome(page);
+        moved = moved && onHome.n === 1 && onHome.id === "story";
       }
-      check(ok, "client-side navigation: away from the home page and back (twice) rebuilds the 3D scene");
-      check(await page.ev("document.querySelectorAll('canvas').length === 1"), "no stray 3D canvases are left behind");
+      check(ok, "client-side navigation: the home page and the services page (twice) each rebuild their 3D scene");
+      check(moved, "the one shared canvas moves with the page: never zero, never two");
+      await page.ev("document.querySelector('.site-nav a[href=\"/contact\"], .site-cta a').click()");
+      await waitFor("location.pathname === '/contact'");
+      await sleep(800);
+      check(await page.ev("document.querySelectorAll('canvas').length === 0"), "a page without a scene leaves no canvas behind");
+      await page.ev("history.back()");
+      await waitFor("location.pathname === '/' && !!document.querySelector('#story.xp-live')", 150);
       const contexts = page.warnings.filter((t) => /WebGL/i.test(t) && /context|too many/i.test(t));
       check(contexts.length === 0, "no WebGL context warnings after repeated visits", contexts[0]?.slice(0, 100));
       let sized = true;
@@ -358,53 +404,59 @@ async function main() {
 
     // 3. phone
     console.log("\nPhone (390x844)");
-    {
-      const page = await visit(chrome, "/", { width: 390, height: 844, mobile: true });
+    for (const path of ["/", "/services", "/services/ai-automation", "/work"]) {
+      const page = await visit(chrome, path, { width: 390, height: 844, mobile: true });
       await sleep(1200);
       const s = await sceneState(page);
-      check(!s.motion, "no motion class on a phone");
+      check(!s.motion, `${path}: no motion class on a phone`);
       const libs = await libraries(page);
-      check(libs.length === 0, "no three.js, GSAP or Lenis is downloaded", libs.join(", "));
+      check(libs.length === 0, `${path}: no three.js, GSAP or Lenis is downloaded`, libs.join(", "));
       const wide = await page.ev("document.documentElement.scrollWidth - innerWidth");
-      check(wide <= 1, "no sideways scrolling", `${wide}px too wide`);
-      const picture = await page.ev("(() => { const i = document.querySelector('.xp-poster img'); return !!i && i.complete && i.naturalWidth > 0; })()");
-      check(picture, "the hero picture (a render of the real 3D model) loads");
-      // (the page's own fetches of the same files, made by the library check above, are not downloads)
-      const kb = await page.ev("Math.round(performance.getEntriesByType('resource').filter((r) => /\\.js(\\?|$)/.test(r.name) && r.initiatorType !== 'fetch').reduce((n, r) => n + r.encodedBodySize, 0) / 1024)");
-      console.log(`        (script on a phone: ${kb} kB)`);
-      check(kb <= SCRIPT_BUDGET_KB, `the phone downloads at most ${SCRIPT_BUDGET_KB} kB of script`, `${kb} kB`);
-      check(page.failed.length === 0, "phone: no request fails", page.failed[0]);
-      await shot(page, "home-phone.png");
+      check(wide <= 1, `${path}: no sideways scrolling`, `${wide}px too wide`);
+      if (path === "/") {
+        const picture = await page.ev("(() => { const i = document.querySelector('.xp-poster img'); return !!i && i.complete && i.naturalWidth > 0; })()");
+        check(picture, "the hero picture (a render of the real 3D scene) loads");
+        // (the page's own fetches of the same files, made by the library check above, are not downloads)
+        const kb = await page.ev("Math.round(performance.getEntriesByType('resource').filter((r) => /\\.js(\\?|$)/.test(r.name) && r.initiatorType !== 'fetch').reduce((n, r) => n + r.encodedBodySize, 0) / 1024)");
+        console.log(`        (script on a phone: ${kb} kB)`);
+        check(kb <= SCRIPT_BUDGET_KB, `the phone downloads at most ${SCRIPT_BUDGET_KB} kB of script`, `${kb} kB`);
+        await shot(page, "home-phone.png");
+      }
+      if (path === "/services" || path === "/work") {
+        const list = await page.ev("(() => { const f = document.querySelector('.deck-fallback'); const d = document.querySelector('.xp-deck'); return { list: !!f && f.offsetHeight > 200, deck: !!d && getComputedStyle(d).display !== 'none' }; })()");
+        check(list.list && !list.deck, `${path}: the plain list is shown and the 3D deck is not`, JSON.stringify(list));
+      }
+      check(page.failed.length === 0, `${path}: no request fails`, page.failed[0]);
       page.close();
     }
 
     // 4. reduced motion
     console.log("\nReduced motion (1366x768)");
-    {
-      const page = await visit(chrome, "/", { width: 1366, height: 768, reduced: true });
+    for (const path of ["/", "/services"]) {
+      const page = await visit(chrome, path, { width: 1366, height: 768, reduced: true });
       await sleep(1200);
       const s = await sceneState(page);
-      check(!s.motion, "no motion class");
+      check(!s.motion, `${path}: no motion class`);
       const libs = await libraries(page);
-      check(libs.length === 0, "no three.js, GSAP or Lenis is downloaded", libs.join(", "));
-      await shot(page, "home-reduced-motion.png");
+      check(libs.length === 0, `${path}: no three.js, GSAP or Lenis is downloaded`, libs.join(", "));
+      await shot(page, `${path === "/" ? "home" : "services"}-reduced-motion.png`);
       page.close();
     }
 
     // 5. JavaScript off
     console.log("\nJavaScript off");
-    {
-      const page = await visit(chrome, "/", { width: 1366, height: 768, noScript: true });
+    for (const path of ["/", "/services"]) {
+      const page = await visit(chrome, path, { width: 1366, height: 768, noScript: true });
       await sleep(2500); // the hero's short CSS fade-in has finished by then
-      const hidden = await page.ev("[...document.querySelectorAll('h1, h2, p.lead, .xp-phase')].filter(e => Number(getComputedStyle(e).opacity) < 0.99 || getComputedStyle(e).visibility === 'hidden').length");
-      check(hidden === 0, "all headings and copy are visible", `${hidden} hidden`);
+      const hidden = await page.ev("[...document.querySelectorAll('h1, h2, p.lead, .xp-phase')].filter(e => !e.closest('.xp-deck') && (Number(getComputedStyle(e).opacity) < 0.99 || getComputedStyle(e).visibility === 'hidden')).length");
+      check(hidden === 0, `${path}: all headings and copy are visible`, `${hidden} hidden`);
       page.close();
     }
   } finally {
     chrome.close();
   }
 
-  // 5b. a browser without WebGL: the 3D section steps aside and the static page takes over
+  // 5b. a browser without WebGL: the 3D sections step aside and the static page takes over
   console.log("\nNo WebGL");
   {
     const bare = await launch(9445, { webgl: false });
@@ -420,16 +472,21 @@ async function main() {
         const img = document.querySelector('.xp-poster img');
         const stage = document.querySelector('.xp-stage');
         const xp = document.querySelector('.xp');
+        const deck = document.querySelector('.xp-deck');
+        const list = document.querySelector('.deck-fallback');
         return {
           picture: !!img && img.complete && img.naturalWidth > 0 && img.getBoundingClientRect().width > 100,
-          copy: [...document.querySelectorAll('.xp-phase')].every((e) => Number(getComputedStyle(e).opacity) === 1),
+          copy: [...document.querySelectorAll('#story .xp-phase')].every((e) => Number(getComputedStyle(e).opacity) === 1),
           sticky: getComputedStyle(stage).position === 'sticky',
           tall: xp.offsetHeight > 6 * innerHeight,
           sideways: document.documentElement.scrollWidth - innerWidth,
+          deckHidden: !!deck && getComputedStyle(deck).display === 'none',
+          listShown: !!list && list.offsetHeight > 200,
         };
       })()`);
       check(view.picture && view.copy, "the still picture and all the copy are visible", JSON.stringify(view));
       check(!view.sticky && !view.tall && view.sideways <= 1, "no pinned runway is left over (normal height, no sideways scroll)", JSON.stringify(view));
+      check(view.deckHidden && view.listShown, "the services deck gives way to the plain list", JSON.stringify(view));
       page.close();
     } finally {
       bare.close();

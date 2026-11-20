@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Checks, PageHero, SectionHead } from "@/components/ui";
+import { SceneHero } from "@/components/SceneHero";
+import { Checks, SectionHead } from "@/components/ui";
 import { engagement, principles } from "@/lib/content";
 import { pageMeta } from "@/lib/seo";
 
@@ -12,7 +13,10 @@ export const metadata = pageMeta(
 export default function AboutPage() {
   return (
     <>
-      <PageHero
+      <SceneHero
+        id="top"
+        variant="about"
+        aria="A 3D picture of how we work: separate pieces first, then gathered around an AI core and connected, then closed up into one product."
         kicker="About"
         title={
           <>
@@ -20,14 +24,55 @@ export default function AboutPage() {
           </>
         }
         lead="LiteraryWorks designs and builds AI automation, software and cloud systems for U.S. businesses. We start with how your work actually runs, and we write everything down so you can keep going without us."
-      >
-        <Link className="btn btn-navy" href="/contact?topic=audit">
-          Book a free audit
-        </Link>
-        <Link className="btn btn-line" href="/services">
-          Our services
-        </Link>
-      </PageHero>
+        actions={
+          <>
+            <Link className="btn btn-navy" href="/contact?topic=audit">
+              Book a free audit
+            </Link>
+            <Link className="btn btn-line" href="/services">
+              Our services
+            </Link>
+          </>
+        }
+        chapters={[
+          {
+            kicker: "How we start",
+            title: (
+              <>
+                Clarity <em>before code.</em>
+              </>
+            ),
+            items: ["A written plan before any build", "Plain language in proposals and invoices", "Honest scope: if it is not worth building yet, we say so"],
+          },
+          {
+            kicker: "How we build",
+            title: (
+              <>
+                Small releases, <em>documented handover.</em>
+              </>
+            ),
+            items: ["Small releases you can see and judge", "Systems your team can own", "Documentation any team can pick up"],
+          },
+        ]}
+        closing={{
+          title: (
+            <>
+              Tell us about <em>the work.</em>
+            </>
+          ),
+          lead: "A free one-hour session is a good way to find out whether we are the right team.",
+          actions: (
+            <>
+              <Link className="btn btn-navy" href="/contact?topic=audit">
+                Book a free audit
+              </Link>
+              <Link className="btn btn-line" href="/work">
+                See our work
+              </Link>
+            </>
+          ),
+        }}
+      />
 
       <section className="section on-white">
         <div className="wrap split">

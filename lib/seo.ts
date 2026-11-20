@@ -10,7 +10,7 @@ export const ogImage = {
   url: "/og/literaryworks.jpg",
   width: 1200,
   height: 630,
-  alt: "LiteraryWorks: AI, software and cloud engineering, built with precision",
+  alt: "LiteraryWorks: AI and software, working as one system",
 };
 
 export function pageMeta(title: string, description: string, path = ""): Metadata {

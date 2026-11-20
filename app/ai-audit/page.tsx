@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Checks, Faq, Ladder, PageHero, SectionHead } from "@/components/ui";
+import { SceneHero } from "@/components/SceneHero";
+import { Checks, Faq, Ladder, SectionHead } from "@/components/ui";
 import { plan, problems } from "@/lib/content";
 import { pageMeta } from "@/lib/seo";
 
@@ -12,7 +13,10 @@ export const metadata = pageMeta(
 export default function AiAuditPage() {
   return (
     <>
-      <PageHero
+      <SceneHero
+        id="top"
+        variant="audit"
+        aria="A 3D picture of an audit: separate reports and tools first, then gathered around an AI core and connected, then closed up into one clear plan."
         kicker="AI audit"
         title={
           <>
@@ -20,14 +24,55 @@ export default function AiAuditPage() {
           </>
         }
         lead="Most businesses do not have an AI problem. They have a workflow problem. We look at how your business really runs, find where time and money are being lost, and design the systems that fix it, in plain language, with a clear price."
-      >
-        <Link className="btn btn-navy" href="/contact?topic=audit">
-          Book a free 1-hour audit
-        </Link>
-        <Link className="btn btn-line" href="#start">
-          See the pricing
-        </Link>
-      </PageHero>
+        actions={
+          <>
+            <Link className="btn btn-navy" href="/contact?topic=audit">
+              Book a free 1-hour audit
+            </Link>
+            <Link className="btn btn-line" href="#start">
+              See the pricing
+            </Link>
+          </>
+        }
+        chapters={[
+          {
+            kicker: "The free audit",
+            title: (
+              <>
+                One hour. <em>Useful even if you do not go further.</em>
+              </>
+            ),
+            items: ["A review of your current workflows", "The bottlenecks, named", "Two or three high-impact AI opportunities", "A clear direction on what to automate first"],
+          },
+          {
+            kicker: "The 14-day audit",
+            title: (
+              <>
+                Clarity in 14 days. <em>Not another slide deck.</em>
+              </>
+            ),
+            items: ["A full workflow breakdown", "An AI system architecture", "A ranked list of opportunities", "A roadmap you can execute"],
+          },
+        ]}
+        closing={{
+          title: (
+            <>
+              Start free. <em>Go deeper when it makes sense.</em>
+            </>
+          ),
+          lead: "If the audit does not give you clarity on what to automate next, you do not pay.",
+          actions: (
+            <>
+              <Link className="btn btn-navy" href="/contact?topic=audit">
+                Book the free audit
+              </Link>
+              <Link className="btn btn-line" href="#start">
+                See the pricing
+              </Link>
+            </>
+          ),
+        }}
+      />
 
       <section className="section on-white">
         <div className="wrap">

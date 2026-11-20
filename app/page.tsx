@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { AssemblyOpenPoster, AssemblyPoster } from "@/components/Posters";
-import { CaseCards, d, Faq, Ladder, Quotes, SectionHead, ServiceIndex } from "@/components/ui";
+import { SystemDashPoster, SystemFirstPoster, SystemPoster } from "@/components/Posters";
+import { CaseCards, d, Faq, Ladder, Quotes, SectionHead, ServiceCards, Strip, Tiles } from "@/components/ui";
+import { ServicesDeck } from "@/components/ServicesDeck";
 import { Phase, Xp } from "@/components/Xp";
 import { cases, engagement, voices } from "@/lib/content";
-import { assemblyLabels } from "@/lib/scenes";
+import { systemLabelsFor } from "@/lib/scenes";
 import { siteName, siteUrl } from "@/lib/seo";
 
 /** What a search engine may know about the business: its name, address and logo. Nothing here that the site does not already say. */
@@ -28,18 +29,24 @@ export default function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
       <Xp
         id="story"
-        scene="assembly"
-        vh={460}
-        aria="One precision-built system, shown assembled and then opened layer by layer: web and mobile apps, UI and UX design, AI and voice, workflow automation, data, integrations, and cloud and security. Every layer sits on the same axis, and the system closes again exactly as it was."
-        labels={assemblyLabels}
-        poster={<AssemblyPoster />}
+        scene="system"
+        vh={500}
+        aria="Six kinds of software, shown first as separate tools, then gathered around one AI core and connected, then closed up into a single product dashboard: web and mobile apps, AI assistants, voice AI, workflow automation, data and integrations, and cloud and security."
+        labels={systemLabelsFor("hero")}
+        data={{ variant: "hero" }}
+        poster={
+          <>
+            <SystemPoster />
+            <SystemFirstPoster />
+          </>
+        }
       >
-        <Phase from={0} to={0.1}>
+        <Phase from={0} to={0.11}>
           <p className="kicker rise" style={d(0)}>
             AI, software and cloud engineering
           </p>
           <h1 className="h-hero rise" style={d(1)}>
-            AI and software, <em>built with precision.</em>
+            AI and software, <em>working as one system.</em>
           </h1>
           <p className="lead rise" style={d(2)}>
             LiteraryWorks designs and builds AI systems, web and mobile apps and cloud platforms for U.S. businesses. We start with a free audit of where your time and money are going.
@@ -53,36 +60,36 @@ export default function Home() {
             </Link>
           </div>
         </Phase>
-        <Phase from={0.1} to={0.3} ch={1}>
-          <p className="kicker">01 / Interface and design</p>
-          <h2 className="h-lg">The part people actually touch.</h2>
+        <Phase from={0.11} to={0.31} ch={1}>
+          <p className="kicker">01 / Discover</p>
+          <h2 className="h-lg">Start with how the work really runs.</h2>
           <p className="lead">
-            Web and mobile apps designed around the person using them. Clear the first time, fast every time, and built to be changed.
+            Most businesses run on a dozen tools that do not talk to each other. A free audit maps them, finds the handoffs that waste time, and shows what is worth automating before anything is built.
           </p>
         </Phase>
-        <Phase from={0.3} to={0.46} ch={2}>
-          <p className="kicker">02 / Intelligence</p>
-          <h2 className="h-lg">Models and automation, wired into real work.</h2>
+        <Phase from={0.31} to={0.49} ch={2}>
+          <p className="kicker">02 / Connect</p>
+          <h2 className="h-lg">Wire the pieces into one system.</h2>
           <p className="lead">
-            AI agents, voice systems and workflows that read, route, answer and act, with people reviewing the steps that matter.
+            AI assistants, voice agents and workflows connected to the apps and data you already use, so work moves between them on its own, with people reviewing the steps that matter.
           </p>
         </Phase>
-        <Phase from={0.46} to={0.62} ch={3}>
-          <p className="kicker">03 / Foundation</p>
-          <h2 className="h-lg">Data, integrations and cloud that keep it running.</h2>
+        <Phase from={0.49} to={0.69} ch={3}>
+          <p className="kicker">03 / Build</p>
+          <h2 className="h-lg">Build it as one product.</h2>
           <p className="lead">
-            Your records connected, your tools integrated, everything hosted, secured and monitored on AWS, Azure or Google Cloud.
+            Web and mobile apps designed around the people who use them, on cloud infrastructure that is secure, monitored and ready to grow. One team, one plan, one system.
           </p>
-          <AssemblyOpenPoster />
+          <SystemDashPoster />
         </Phase>
-        <Phase from={0.62} to={0.86} ch={4}>
-          <p className="kicker">04 / Alignment</p>
-          <h2 className="h-lg">Hundreds of decisions, in perfect alignment.</h2>
+        <Phase from={0.69} to={0.88} ch={4}>
+          <p className="kicker">04 / Run</p>
+          <h2 className="h-lg">Then keep it running.</h2>
           <p className="lead">
-            That is what a system you can trust is made of. We make the decisions, write them down, and hand it over documented.
+            We launch it, monitor it and keep improving it. Every decision is written down, and you get the whole system handed over, documented, whether or not we stay on.
           </p>
         </Phase>
-        <Phase from={0.86} to={1}>
+        <Phase from={0.88} to={1}>
           <p className="kicker">Start here</p>
           <h2 className="h-lg">See how yours would come together.</h2>
           <p className="lead">
@@ -99,39 +106,77 @@ export default function Home() {
         </Phase>
       </Xp>
 
+      <Strip
+        title="Built for teams in"
+        items={[
+          { name: "Healthcare", icon: "heart" },
+          { name: "Logistics", icon: "truck" },
+          { name: "Sales", icon: "chart" },
+          { name: "Professional services", icon: "briefcase" },
+          { name: "Real estate", icon: "home" },
+          { name: "E-commerce", icon: "cart" },
+          { name: "Construction", icon: "hardhat" },
+        ]}
+      />
+
       <section className="section on-white statement" id="approach">
-        <div className="wrap">
-          <p className="kicker" data-reveal>
-            Our approach
-          </p>
-          <h2 className="big" data-split="words" style={{ marginTop: "1.25rem" }}>
-            Great software is not one feature. It is hundreds of decisions, <em>brought into perfect alignment.</em>
-          </h2>
-          <div className="statement-foot">
-            <p data-reveal>
-              We audit how your business really runs, then design and build the AI systems and software that take the busywork off your team.
+        <div className="wrap statement-grid">
+          <div>
+            <p className="kicker" data-reveal>
+              Our approach
             </p>
-            <p data-reveal>
-              Every engagement starts with understanding the work. You get the plan in writing either way, and you keep it whether or not we build it.
-            </p>
+            <h2 className="big" data-split="words">
+              Great software is not one feature. It is hundreds of decisions, <em>brought into perfect alignment.</em>
+            </h2>
+            <div className="statement-foot">
+              <p data-reveal>
+                We audit how your business really runs, then design and build the AI systems and software that take the busywork off your team.
+              </p>
+              <p data-reveal>
+                Every engagement starts with understanding the work. You get the plan in writing either way, and you keep it whether or not we build it.
+              </p>
+            </div>
           </div>
+          <Tiles
+            items={[
+              { icon: "clipboard", title: "A written plan first", text: "What we will build, why it matters, what it costs and how we will measure it." },
+              { icon: "package", title: "Small releases you can judge", text: "Working software in stages, so you see progress and steer it as you go." },
+              { icon: "book", title: "Handed over documented", text: "Everything written down, so your team can run it with us or without us." },
+            ]}
+          />
         </div>
       </section>
 
-      <section className="section on-mist" id="services">
-        <div className="wrap">
-          <SectionHead
-            kicker="What we build"
-            title={
-              <>
-                AI, software and cloud, <em>built as one system.</em>
-              </>
-            }
-            lead="Whatever we are building, the method is the same: map the work, design the system, build it into the tools you already use, then measure it."
-          />
-          <ServiceIndex />
-        </div>
-      </section>
+      <ServicesDeck
+        id="services"
+        intro={
+          <>
+            <p className="kicker">What we build</p>
+            <h2 className="h-lg">
+              AI, software and cloud, <em>built as one system.</em>
+            </h2>
+            <p className="lead">
+              Nine services, one method: map the work, design the system, build it into the tools you already use, then measure it. Keep scrolling to turn through them.
+            </p>
+          </>
+        }
+        fallback={
+          <section className="section on-mist" id="services-list">
+            <div className="wrap">
+              <SectionHead
+                kicker="What we build"
+                title={
+                  <>
+                    AI, software and cloud, <em>built as one system.</em>
+                  </>
+                }
+                lead="Whatever we are building, the method is the same: map the work, design the system, build it into the tools you already use, then measure it."
+              />
+              <ServiceCards />
+            </div>
+          </section>
+        }
+      />
 
       <section className="section on-white" id="method">
         <div className="wrap">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CasesDeck } from "@/components/ServicesDeck";
 import { CaseCards, PageHero, SectionHead } from "@/components/ui";
 import { moreBuilt } from "@/lib/content";
 import { pageMeta } from "@/lib/seo";
@@ -12,26 +13,50 @@ export const metadata = pageMeta(
 export default function WorkPage() {
   return (
     <>
-      <PageHero
-        kicker="Work"
-        title={
+      <h1 className="sr-only">Case studies and work</h1>
+      <CasesDeck
+        id="cases-deck"
+        intro={
           <>
-            Real systems. <em>Real outcomes.</em>
+            <p className="kicker">Work</p>
+            <h2 className="h-hero">
+              Real systems. <em>Real outcomes.</em>
+            </h2>
+            <p className="lead">
+              How we have taken organizations from manual, fragmented operations to AI systems that run reliably every day, and the numbers that followed. Keep scrolling to turn through them.
+            </p>
+            <div className="cta-row">
+              <Link className="btn btn-navy" href="/contact?topic=audit">
+                Book a free audit
+              </Link>
+            </div>
           </>
         }
-        lead="How we have taken organizations from manual, fragmented operations to AI systems that run reliably every day, and the numbers that followed."
-      >
-        <Link className="btn btn-navy" href="/contact?topic=audit">
-          Book a free audit
-        </Link>
-      </PageHero>
-
-      <section className="section on-white">
-        <div className="wrap">
-          <h2 className="sr-only">Case studies</h2>
-          <CaseCards />
-        </div>
-      </section>
+        fallback={
+          <>
+            <PageHero
+              as="h2"
+              kicker="Work"
+              title={
+                <>
+                  Real systems. <em>Real outcomes.</em>
+                </>
+              }
+              lead="How we have taken organizations from manual, fragmented operations to AI systems that run reliably every day, and the numbers that followed."
+            >
+              <Link className="btn btn-navy" href="/contact?topic=audit">
+                Book a free audit
+              </Link>
+            </PageHero>
+            <section className="section on-white">
+              <div className="wrap">
+                <h2 className="sr-only">Case studies</h2>
+                <CaseCards />
+              </div>
+            </section>
+          </>
+        }
+      />
 
       <section className="section on-mist">
         <div className="wrap">

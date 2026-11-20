@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Stage3D } from "@/motion/Stage3D";
-import type { LabelSpec, SceneName } from "@/motion/types";
+import type { LabelSpec, SceneData, SceneName } from "@/motion/types";
 
 /**
  * A pinned, scroll-driven 3D scene (the skill's "runway"). It is a plain static block by default: the first beat,
@@ -16,7 +16,10 @@ export function Xp({
   vh = 360,
   aria,
   labels,
+  data,
   poster,
+  tone = "light",
+  className,
   children,
 }: {
   id: string;
@@ -24,28 +27,33 @@ export function Xp({
   vh?: number;
   aria: string;
   labels: LabelSpec[];
-  poster: ReactNode;
+  data?: SceneData;
+  /** The still picture for phones and for the moment before the scene starts; omit it where the section needs none. */
+  poster?: ReactNode;
+  /** "dark" for a runway on a navy ground. */
+  tone?: "light" | "dark";
+  className?: string;
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="xp" data-pace style={{ "--xp-vh": vh } as CSSProperties}>
+    <section id={id} className={`xp xp-${tone}${className ? ` ${className}` : ""}`} data-pace style={{ "--xp-vh": vh } as CSSProperties}>
       <div className="xp-stage">
-        <div className="xp-poster" aria-hidden="true">
-          {poster}
-        </div>
-        <Stage3D scene={scene} labels={labels} aria={aria} />
+        {poster ? (
+          <div className="xp-poster" aria-hidden="true">
+            {poster}
+          </div>
+        ) : null}
+        <Stage3D scene={scene} labels={labels} aria={aria} data={data} />
         <div className="xp-copy">
           <div className="wrap xp-phases">{children}</div>
         </div>
         <div className="xp-hint" aria-hidden="true">
+          <span className="xp-mouse" />
           Scroll to explore
         </div>
         <div className="xp-track" aria-hidden="true" data-xp-track>
           <i />
           <b />
-        </div>
-        <div className="xp-cursor" aria-hidden="true" data-xp-cursor>
-          <span>Scroll</span>
         </div>
       </div>
     </section>

@@ -5,7 +5,7 @@
 //
 //   node scripts/make-brand-assets.mjs
 //
-// It needs public/scene/assembly-closed.webp (scripts/make-posters.mjs), app/fonts/inter-latin-400-800.woff2 and
+// It needs public/scene/system-ring.webp (scripts/make-posters.mjs), app/fonts/inter-latin-400-800.woff2 and
 // app/icon.svg, and Chrome (CHROME_PATH). No dependencies. Re-run it when the look of the home page changes.
 
 import { spawn } from "node:child_process";
@@ -18,7 +18,7 @@ const root = process.cwd();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const files = {
   "/inter.woff2": [join(root, "app", "fonts", "inter-latin-400-800.woff2"), "font/woff2"],
-  "/poster.webp": [join(root, "public", "scene", "assembly-closed.webp"), "image/webp"],
+  "/poster.webp": [join(root, "public", "scene", "system-ring.webp"), "image/webp"],
   "/icon.svg": [join(root, "app", "icon.svg"), "image/svg+xml"],
 };
 for (const [, [p]] of Object.entries(files)) if (!existsSync(p)) throw new Error(`Missing ${p}`);
@@ -31,18 +31,18 @@ const pages = {
   "/og.html": `<!doctype html><meta charset="utf-8"><style>
     @font-face { font-family: Inter; font-weight: 100 900; src: url(/inter.woff2) format("woff2"); }
     * { box-sizing: border-box; margin: 0; }
-    body { width: 1200px; height: 630px; overflow: hidden; font-family: Inter, Arial, sans-serif; background: radial-gradient(60% 90% at 78% 52%, #ffffff 0%, #f1f6fc 55%, #e5edf7 100%); position: relative; }
-    .grid { position: absolute; inset: 0; background: linear-gradient(to right, rgba(34,66,95,.05) 1px, transparent 1px) 0 0/60px 60px, linear-gradient(to bottom, rgba(34,66,95,.05) 1px, transparent 1px) 0 0/60px 60px; -webkit-mask-image: radial-gradient(70% 90% at 75% 50%, #000, transparent); }
-    .logo { position: absolute; left: 76px; top: 64px; display: flex; align-items: center; gap: 14px; color: #182f46; }
+    body { width: 1200px; height: 630px; overflow: hidden; font-family: Inter, Arial, sans-serif; background: radial-gradient(46% 70% at 76% 50%, rgba(96,150,255,.26) 0%, rgba(96,150,255,0) 72%), radial-gradient(40% 60% at 6% 4%, rgba(170,205,255,.4) 0%, rgba(170,205,255,0) 70%), linear-gradient(180deg, #ffffff 0%, #f1f6ff 100%); position: relative; }
+    .grid { position: absolute; inset: 0; background: radial-gradient(rgba(37,99,235,.22) 1px, transparent 1.5px) 0 0/28px 28px; -webkit-mask-image: radial-gradient(60% 90% at 76% 50%, #000, transparent); }
+    .logo { position: absolute; left: 76px; top: 64px; display: flex; align-items: center; gap: 14px; color: #071a3d; }
     .logo i { display: block; width: 58px; height: 58px; }
     .logo b { display: block; font-size: 30px; font-weight: 800; line-height: .9; letter-spacing: -.05em; }
-    h1 { position: absolute; left: 76px; top: 196px; width: 540px; font-size: 64px; font-weight: 700; line-height: 1.03; letter-spacing: -.04em; color: #0e1b2d; }
-    h1 em { font-style: normal; color: #2563c4; }
-    p { position: absolute; left: 76px; bottom: 72px; width: 520px; font-size: 25px; font-weight: 500; line-height: 1.35; color: #46566d; }
-    img { position: absolute; right: -56px; top: 52%; width: 610px; transform: translateY(-50%); }
+    h1 { position: absolute; left: 76px; top: 190px; width: 520px; font-size: 62px; font-weight: 700; line-height: 1.03; letter-spacing: -.04em; color: #0b1b33; }
+    h1 em { font-style: normal; background: linear-gradient(95deg, #1d4ed8 0%, #2f6bf3 45%, #4f9bff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    p { position: absolute; left: 76px; bottom: 72px; width: 520px; font-size: 25px; font-weight: 500; line-height: 1.35; color: #42526b; }
+    img { position: absolute; right: -30px; top: 53%; width: 640px; transform: translateY(-50%); }
   </style><div class="grid"></div>
   <div class="logo"><i>${mark("#22425f", "#73c94a")}</i><span><b>Literary</b><b>Works</b></span></div>
-  <h1>AI and software, <em>built with precision.</em></h1>
+  <h1>AI and software, <em>working as one system.</em></h1>
   <p>AI, software and cloud engineering for U.S. businesses.</p>
   <img src="/poster.webp" alt="">`,
   "/tile.html": (size, rounded) => `<!doctype html><meta charset="utf-8"><style>html,body{margin:0;background:transparent}img{display:block;width:${size}px;height:${size}px}</style><img src="/icon.svg" alt="">`,

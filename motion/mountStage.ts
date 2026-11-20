@@ -1,14 +1,17 @@
+import { getGL, type GL } from "./gl";
 import { gsap, runwayStart, SCRUB } from "./gsap";
-import type { LabelSpec, SceneFactory, SceneHandle, SceneName } from "./types";
+import type { LabelSpec, SceneData, SceneFactory, SceneHandle, SceneLayout, SceneName } from "./types";
 
 /**
- * The runtime of a pinned 3D scene (the scroll, the labels, the progress track, the reticle, the drawing quality).
- * It is its own chunk, fetched by Stage3D.tsx only where motion is on, so phones and tablets never download it.
+ * The runtime of a pinned 3D scene (the scroll, the labels, the progress track, the drawing quality). It is its own
+ * chunk, fetched by Stage3D.tsx only where motion is on, so phones and tablets never download it. All scenes draw
+ * with one shared renderer: its canvas moves into whichever scene's stage is on screen.
  */
 
 /** Each scene is its own chunk, fetched when its section is about to be reached (and never on phones). */
 const loaders: Record<SceneName, () => Promise<{ default: SceneFactory }>> = {
-  assembly: () => import("./scenes/assembly"),
+  system: () => import("./scenes/system"),
+  deck: () => import("./scenes/deck"),
 };
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
@@ -17,17 +20,16 @@ const ric = (fn: () => void): number =>
   typeof window.requestIdleCallback === "function" ? window.requestIdleCallback(fn, { timeout: 1500 }) : window.setTimeout(fn, 250);
 const cic = (id: number) => (typeof window.cancelIdleCallback === "function" ? window.cancelIdleCallback(id) : window.clearTimeout(id));
 
-/** Width of the label column: 200 px, a little narrower on a narrow window (the CSS reads it from --xp-col). */
-const colWidth = (w: number) => Math.max(160, Math.min(200, Math.round(w * 0.15)));
-/** The labels keep this far from the window's edge... */
+/** The picture keeps this far from the window's edge... */
 const EDGE = 32;
-/** ... and on a very wide screen the picture stays within this width, centred, so the labels do not drift away from the model. */
+/** ... and on a very wide screen it stays within this width, centred, so it does not drift away from the copy. */
 const MAX_CONTENT = 1680;
+/** The floating header takes the top of the stage (5.5rem); the picture starts below it. */
+const HEADER_CLEAR = 92;
 
-export function mountStage(section: HTMLElement, host: HTMLElement, scene: SceneName, labels: LabelSpec[]): () => void {
-  const canvas = host.querySelector<HTMLCanvasElement>("canvas.xp-gl");
+export function mountStage(section: HTMLElement, host: HTMLElement, scene: SceneName, labels: LabelSpec[], data?: SceneData): () => void {
   const stageEl = section.querySelector<HTMLElement>(".xp-stage");
-  if (!canvas || !stageEl) return () => {};
+  if (!stageEl) return () => {};
 
   const query = new URLSearchParams(window.location.search);
   const items = Array.from(host.querySelectorAll<HTMLElement>("[data-xp-label]"));
@@ -48,20 +50,25 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
 
   const state = { p: 0 };
   let chapter = -1;
-  let cursorOff: (() => void) | undefined;
   let handle: SceneHandle | null = null;
   let disposed = false;
   let visible = false;
   let idleId = 0;
   let resizer: ResizeObserver | null = null;
+  let pointerOff: (() => void) | undefined;
 
   const FADE = 0.04;
 
-  /** The copy beside the picture follows the same progress: each phase fades in at `from` and out at `to`. */
+  /**
+   * The copy beside the picture follows the same progress: each phase fades in just after `from` and out just
+   * before `to`, one after the other, so two blocks of words are never on the screen at once. A short phase
+   * (the items of a deck) fades faster, so most of it is spent fully visible.
+   */
   const paintCopy = (p: number) => {
     for (const { el, from, to } of phases) {
-      const a = from <= 0 ? 1 : clamp01((p - from) / FADE);
-      const b = to >= 1 ? 1 : clamp01((to - p) / FADE);
+      const h = Math.min(FADE, (to - from) * 0.24);
+      const a = from <= 0 ? 1 : clamp01((p - from) / h);
+      const b = to >= 1 ? 1 : clamp01((to - p) / h);
       const o = smooth(Math.min(a, b));
       el.style.opacity = String(o);
       el.style.transform = `translate3d(0, ${((1 - a) * 22 - (1 - b) * 22).toFixed(1)}px, 0)`;
@@ -81,58 +88,71 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
   };
 
   /**
-   * Where things stand on this screen: the copy is on the left, the labels in a column on the right, and the model
-   * between them. On a very wide window the column stays within MAX_CONTENT so it does not drift away from the model.
+   * Where the picture may stand: to the right of the copy, inside the window. On a very wide window it stays
+   * within MAX_CONTENT so it does not drift away from the copy.
    */
-  let lay = { colX: 0, left: 0, right: 0, rightOpen: 0 };
+  let lay: SceneLayout = { left: 0, right: 0, top: 0, bottom: 0 };
+  let tagW: number[] = [];
   const measure = () => {
     const w = host.clientWidth;
-    const col = colWidth(w);
-    host.style.setProperty("--xp-col", `${col}px`);
     const right = Math.min(w - EDGE, (w + MAX_CONTENT) / 2);
-    const colX = right - col;
     const copy = phases[0]?.el.getBoundingClientRect();
     const copyRight = copy && copy.width ? copy.right - host.getBoundingClientRect().left : w * 0.4;
-    lay = { colX, left: copyRight + 36, right: right - 28, rightOpen: colX - 32 };
+    // below the floating header, above the bottom edge
+    lay = { left: copyRight + 24, right, top: HEADER_CLEAR, bottom: host.clientHeight - 20 };
+    tagW = items.map((li) => li.offsetWidth || 160);
   };
 
-  /** Labels sit in one column on the right, in the order of their anchors, spaced so they never overlap. */
+  /**
+   * A tag for each part of the picture: a small pill with a leader line to its anchor, up and to the right of it
+   * (to the left where there is no room), nudged apart where two would collide.
+   */
+  const TAG_H = 30;
   const placeLabels = () => {
-    if (!handle) return;
+    if (!handle || !items.length) return;
     const A = handle.anchors();
     const w = host.clientWidth;
     const h = host.clientHeight;
     const p = state.p;
-    const colX = lay.colX;
-    const gap = 58;
-    const ly: number[] = [];
-    const order = A.map((_, i) => i).sort((a, b) => A[a].y - A[b].y);
-    let prev = 30 - gap;
-    order.forEach((i) => {
-      prev = Math.max(A[i].y, prev + gap);
-      ly[i] = prev;
-    });
-    let next = h - 30 + gap;
-    [...order].reverse().forEach((i) => {
-      next = Math.min(ly[i], next - gap);
-      ly[i] = next;
-    });
-    items.forEach((li, i) => {
+    const px: number[] = [];
+    const py: number[] = [];
+    const side: number[] = [];
+    const shown: number[] = [];
+    items.forEach((_, i) => {
       const l = labels[i];
       const a = A[i];
       if (!l || !a) return;
       const on = smooth(clamp01((p - l.from) / FADE)) * (l.to ? smooth(clamp01((l.to - p) / FADE)) : 1);
-      // a label fades out while the thing it points at nears the edge of the picture
       const edge = Math.min(a.x, w - a.x, a.y, h - a.y);
-      const show = a.behind ? 0 : on * clamp01((edge - 4) / 56);
-      const y = ly[i];
+      shown[i] = a.behind ? 0 : on * clamp01((edge - 4) / 48);
+      const tw = tagW[i] ?? 160;
+      side[i] = a.x + 30 + tw > w - 16 ? -1 : 1;
+      px[i] = side[i] > 0 ? a.x + 28 : a.x - 28 - tw;
+      py[i] = Math.min(h - TAG_H - 12, Math.max(12, a.y - 34));
+    });
+    // nudge apart: a later tag moves down when it would sit on an earlier one
+    const order = items.map((_, i) => i).filter((i) => shown[i] > 0.02).sort((a, b) => py[a] - py[b]);
+    for (let pass = 0; pass < 3; pass++) {
+      for (let i = 0; i < order.length; i++) {
+        for (let j = i + 1; j < order.length; j++) {
+          const a = order[i];
+          const b = order[j];
+          const overlapX = px[a] < px[b] + (tagW[b] ?? 160) + 8 && px[b] < px[a] + (tagW[a] ?? 160) + 8;
+          if (overlapX && Math.abs(py[b] - py[a]) < TAG_H + 6) py[b] = py[a] + TAG_H + 6;
+        }
+      }
+    }
+    items.forEach((li, i) => {
+      const a = A[i];
+      if (!a || shown[i] === undefined) return;
+      const show = shown[i];
       li.style.opacity = show.toFixed(3);
-      li.style.transform = `translate3d(${colX}px, ${(y - 14 + (1 - show) * 6).toFixed(1)}px, 0)`;
-      const endX = colX - 12;
-      const bendX = endX - 34;
+      li.style.transform = `translate3d(${px[i].toFixed(1)}px, ${(py[i] + (1 - show) * 6).toFixed(1)}px, 0)`;
+      const ay = py[i] + TAG_H / 2;
+      const ex = side[i] > 0 ? px[i] : px[i] + (tagW[i] ?? 160);
       const ln = lines[i];
       if (ln) {
-        ln.setAttribute("points", `${a.x.toFixed(1)},${a.y.toFixed(1)} ${bendX.toFixed(1)},${y.toFixed(1)} ${endX.toFixed(1)},${y.toFixed(1)}`);
+        ln.setAttribute("points", `${a.x.toFixed(1)},${a.y.toFixed(1)} ${(a.x + side[i] * 12).toFixed(1)},${ay.toFixed(1)} ${ex.toFixed(1)},${ay.toFixed(1)}`);
         ln.style.strokeDashoffset = String(1 - show);
         ln.style.opacity = show > 0.02 ? "1" : "0";
       }
@@ -140,7 +160,7 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
       if (dt) {
         dt.setAttribute("cx", a.x.toFixed(1));
         dt.setAttribute("cy", a.y.toFixed(1));
-        dt.setAttribute("r", (3.6 * show).toFixed(2));
+        dt.setAttribute("r", (3.4 * show).toFixed(2));
       }
     });
   };
@@ -204,45 +224,68 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
     }
     if (trackFill) trackFill.style.transform = "";
     track?.style.removeProperty("--p");
-    cursorOff?.();
+    pointerOff?.();
     section.classList.remove("xp-live", "xp-started");
     section.classList.add("xp-failed");
   };
 
-  /** A fine reticle that follows the pointer over the model; it steps aside over the copy and the buttons. */
-  const cursor = section.querySelector<HTMLElement>("[data-xp-cursor]");
-  if (cursor && window.matchMedia("(pointer: fine)").matches) {
+  /** The pointer over the picture tilts the camera a few degrees: the picture follows the hand, gently. */
+  if (window.matchMedia("(pointer: fine)").matches && !query.has("still")) {
+    let tx = 0;
+    let ty = 0;
     let cx = 0;
     let cy = 0;
     let raf = 0;
-    const paint = () => {
+    const step = () => {
       raf = 0;
-      cursor.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;
+      cx += (tx - cx) * 0.14;
+      cy += (ty - cy) * 0.14;
+      if (handle && visible) {
+        handle.setPointer(cx, cy);
+        draw();
+      }
+      if (Math.abs(tx - cx) + Math.abs(ty - cy) > 0.003) raf = requestAnimationFrame(step);
     };
     const move = (e: PointerEvent) => {
       const r = stageEl.getBoundingClientRect();
-      cx = e.clientX - r.left;
-      cy = e.clientY - r.top;
-      cursor.classList.toggle("is-on", !(e.target as Element | null)?.closest("a, button, .xp-phase"));
-      if (!raf) raf = requestAnimationFrame(paint);
+      tx = ((e.clientX - r.left) / r.width) * 2 - 1;
+      ty = ((e.clientY - r.top) / r.height) * 2 - 1;
+      if (!raf) raf = requestAnimationFrame(step);
     };
-    const leave = () => cursor.classList.remove("is-on");
+    const leave = () => {
+      tx = 0;
+      ty = 0;
+      if (!raf) raf = requestAnimationFrame(step);
+    };
     stageEl.addEventListener("pointermove", move, { passive: true });
     stageEl.addEventListener("pointerleave", leave);
-    cursorOff = () => {
+    pointerOff = () => {
       stageEl.removeEventListener("pointermove", move);
       stageEl.removeEventListener("pointerleave", leave);
       if (raf) cancelAnimationFrame(raf);
-      cursor.classList.remove("is-on");
     };
   }
+
+  /** The shared canvas moves into this stage while it is on screen (and out when it is not). The renderer is made when the scene starts, not before. */
+  let gl: GL | null = null;
+  const attach = (on: boolean) => {
+    if (!handle || !gl) return;
+    if (on) {
+      gl.attach(host);
+      handle.resize(host.clientWidth, host.clientHeight);
+      measure();
+      handle.layout(lay);
+      draw();
+    } else gl.detach(host);
+  };
 
   const start = async () => {
     try {
       const mod = await loaders[scene]();
       if (disposed) return;
       const t0 = performance.now();
-      const built = await mod.default({ canvas, keys: labels.map((l) => l.key) });
+      gl = getGL();
+      const built = await mod.default({ gl, keys: labels.map((l) => l.key), data });
       // the page may have moved on while the model was being built: give the graphics memory back at once
       if (disposed) {
         built.dispose();
@@ -252,12 +295,10 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
       const t1 = performance.now();
       // shaders compile in parallel, off the main thread, before the first frame is drawn
       await built.warm();
-      if (query.has("stats")) console.info("[lw3d] model built in", Math.round(t1 - t0), "ms; shaders ready after", Math.round(performance.now() - t1), "ms");
+      if (query.has("stats")) console.info("[lw3d]", scene, "built in", Math.round(t1 - t0), "ms; shaders ready after", Math.round(performance.now() - t1), "ms");
       if (disposed) return;
-      built.resize(host.clientWidth, host.clientHeight);
-      measure();
-      built.layout(lay);
       resizer = new ResizeObserver(() => {
+        if (!visible) return;
         built.resize(host.clientWidth, host.clientHeight);
         measure();
         built.layout(lay);
@@ -266,7 +307,7 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
       resizer.observe(host);
       // `?stats` (a check for developers): what a frame costs, read with window.__lw3d() after scrolling
       if (query.has("stats")) (window as unknown as { __lw3d?: () => Record<string, number> | undefined }).__lw3d = () => handle?.stats();
-      draw();
+      if (visible) attach(true);
       section.classList.add("xp-live");
     } catch {
       if (!disposed) fail();
@@ -290,7 +331,7 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
   const seen = new IntersectionObserver(
     (entries) => {
       visible = entries.some((e) => e.isIntersecting);
-      if (visible) draw();
+      attach(visible);
     },
     { rootMargin: "8% 0px" },
   );
@@ -304,7 +345,8 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
     resizer?.disconnect();
     tween.scrollTrigger?.kill();
     tween.kill();
-    cursorOff?.();
+    pointerOff?.();
+    gl?.detach(host);
     handle?.dispose();
     handle = null;
     section.classList.remove("xp-live", "xp-started");

@@ -1,27 +1,39 @@
 /**
- * The contract between `Stage3D` (the pinned section, the labels, the scroll) and a scene module
- * (`scenes/*.ts`, each loaded on demand so that three.js never reaches phones or the first paint).
+ * The contract between the pinned section (`mountStage`: the scroll, the labels, the progress track) and a scene
+ * module (`scenes/*.ts`, each loaded on demand so that three.js never reaches phones or the first paint).
  * `setProgress(p)` is a pure function of p: no accumulated state, so scrubbing forwards and backwards is exact.
  */
 
-export type SceneName = "assembly";
+import type { GL } from "./gl";
 
-/** A label that follows a point on the model. Plain data, so a server component can pass it down. */
+export type SceneName = "system" | "deck";
+
+/** What a page tells its scene: which variant to draw and the words to put on it. Plain data, so a server component can pass it. */
+export interface SceneData {
+  /** Which picture the scene draws: "hero", "audit" or a service slug ("system"); "services" or "cases" ("deck"). */
+  variant: string;
+  title?: string;
+  items?: { id: string; title: string; note?: string; tags?: string[]; stats?: { value: string; label: string }[] }[];
+}
+
+/** A tag that follows a panel of the model. */
 export interface LabelSpec {
   /** Matches the scene's own anchor key. */
   key: string;
   label: string;
+  /** A second, smaller line under the label. */
   note?: string;
+  tone?: "blue" | "navy";
   /** The label shows from this scroll progress on (0..1) and, when `to` is set, fades out again at `to`. */
   from: number;
   to?: number;
-  tone?: "blue" | "green" | "navy";
 }
 
 export interface SceneCtx {
-  canvas: HTMLCanvasElement;
+  gl: GL;
   /** The label keys, in the order the page lists them. */
   keys: string[];
+  data?: SceneData;
 }
 
 export interface SceneAnchor {
@@ -31,14 +43,16 @@ export interface SceneAnchor {
   behind: boolean;
 }
 
-/** Where the model may stand, in CSS pixels from the canvas' left edge: the copy is on the left, the labels on the right. */
+/** Where the model may stand, in CSS pixels from the canvas' left edge: the copy is on the left. */
 export interface SceneLayout {
   /** The model starts to the right of this (the edge of the copy, plus a gap). */
   left: number;
-  /** ... and, while it is closed, ends before this. */
+  /** ... and ends before this. */
   right: number;
-  /** ... and, while it is open and the labels are showing, ends before this (the labels' column). */
-  rightOpen: number;
+  /** The model stays below this (the floating header) ... */
+  top: number;
+  /** ... and above this. */
+  bottom: number;
 }
 
 export interface SceneHandle {
@@ -46,6 +60,8 @@ export interface SceneHandle {
   layout(layout: SceneLayout): void;
   /** Scroll progress through the scene, 0..1 (already smoothed). */
   setProgress(p: number): void;
+  /** The pointer over the stage, -1..1 each way (a very small tilt of the camera). */
+  setPointer(x: number, y: number): void;
   /** Compiles the shaders before the first frame, without blocking the page. */
   warm(): Promise<void>;
   render(): void;

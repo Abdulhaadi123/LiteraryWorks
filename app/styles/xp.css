@@ -33,8 +33,6 @@
 }
 .xp-phase:not(:first-child) {
   order: 3;
-}
-.xp-phase:not(:first-child) {
   padding-top: 2rem;
   border-top: 1px solid var(--line);
 }
@@ -49,14 +47,23 @@
 .poster-open {
   margin-top: 1.5rem;
 }
-/* the opened picture belongs to the static layout only; the live scene shows the opened model itself */
+/* the first frame of the scene belongs to the live layout only, the gathered cards to the static one */
+.poster-first {
+  display: none;
+}
+html.motion .xp:not(.xp-failed) .poster-first {
+  display: block;
+}
+html.motion .xp:not(.xp-failed) .poster-ring {
+  display: none;
+}
+/* the finished picture belongs to the static layout only; the live scene shows the product itself */
 html.motion .xp:not(.xp-failed) .poster-open {
   display: none;
 }
 .xp-canvas,
 .xp-hint,
-.xp-track,
-.xp-cursor {
+.xp-track {
   display: none;
 }
 
@@ -101,20 +108,29 @@ html.motion .xp:not(.xp-failed) .xp-stage {
   height: 100svh;
   padding: 0;
   overflow: hidden;
-  background: radial-gradient(62% 82% at 66% 54%, #ffffff 0%, #f3f7fc 56%, #e9f0f8 100%);
+  background:
+    radial-gradient(46% 60% at 73% 48%, rgba(96, 150, 255, 0.2) 0%, rgba(96, 150, 255, 0) 72%),
+    radial-gradient(38% 48% at 8% 6%, rgba(170, 205, 255, 0.34) 0%, rgba(170, 205, 255, 0) 72%),
+    linear-gradient(180deg, #ffffff 0%, #f3f7fd 100%);
 }
-/* a drafting sheet behind the model, fading out toward the edges */
+/* a fine dotted sheet behind the model, fading out toward the edges */
 html.motion .xp:not(.xp-failed) .xp-stage::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  background: radial-gradient(rgba(37, 99, 196, 0.2) 1px, transparent 1.5px) 0 0 / 28px 28px;
+  -webkit-mask-image: radial-gradient(58% 78% at 70% 50%, #000 0%, transparent 100%);
+  mask-image: radial-gradient(58% 78% at 70% 50%, #000 0%, transparent 100%);
+}
+html.motion .xp.xp-dark:not(.xp-failed) .xp-stage {
   background:
-    linear-gradient(to right, rgba(34, 66, 95, 0.05) 1px, transparent 1px) 0 0 / 72px 72px,
-    linear-gradient(to bottom, rgba(34, 66, 95, 0.05) 1px, transparent 1px) 0 0 / 72px 72px;
-  -webkit-mask-image: radial-gradient(60% 80% at 66% 54%, #000 0%, transparent 100%);
-  mask-image: radial-gradient(60% 80% at 66% 54%, #000 0%, transparent 100%);
+    radial-gradient(46% 60% at 73% 48%, rgba(60, 120, 255, 0.35) 0%, rgba(60, 120, 255, 0) 72%),
+    linear-gradient(180deg, #0b1d3d 0%, #0e2a55 100%);
+}
+html.motion .xp.xp-dark:not(.xp-failed) .xp-stage::before {
+  background: radial-gradient(rgba(160, 200, 255, 0.28) 1px, transparent 1.5px) 0 0 / 28px 28px;
 }
 html.motion .xp:not(.xp-failed) .xp-poster {
   position: absolute;
@@ -170,6 +186,7 @@ html.motion .xp:not(.xp-failed) .xp-phase {
   inset: 0 auto 0 0;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
   width: min(30rem, 34vw);
   margin: 0;
@@ -184,11 +201,11 @@ html.motion .xp:not(.xp-failed) .xp-phase:first-child {
   pointer-events: auto;
 }
 
-/* the progress track, after a watch's minute track: a ruler with the current chapter beside the fill */
+/* the progress track: a ruler that fills as the scene plays, with the current chapter's number beside it */
 html.motion .xp:not(.xp-failed) .xp-track {
   position: absolute;
   z-index: 4;
-  left: clamp(0.6rem, 1.5vw, 1.5rem);
+  left: max(clamp(0.6rem, 1.5vw, 1.5rem), calc((100% - 78rem) / 2 - 2.6rem));
   top: 53%;
   display: block;
   width: 1rem;
@@ -212,7 +229,6 @@ html.motion .xp:not(.xp-failed) .xp-track {
   transform: scaleY(0);
   transform-origin: 50% 0;
 }
-/* the chapter number sits above the ruler on narrower windows (it would run into the copy) and beside the fill where there is room */
 .xp-track b {
   position: absolute;
   left: 0;
@@ -241,7 +257,9 @@ html.motion .xp:not(.xp-failed) .xp-hint {
   z-index: 4;
   left: max(var(--gutter), calc((100% - 78rem) / 2));
   bottom: 1.6rem;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
   font-size: 0.6875rem;
   font-weight: 600;
   line-height: 1;
@@ -253,53 +271,38 @@ html.motion .xp:not(.xp-failed) .xp-hint {
 .xp-started .xp-hint {
   opacity: 0;
 }
-
-/* a fine reticle that follows the pointer over the model (not on touch screens) */
-html.motion .xp:not(.xp-failed) .xp-cursor {
-  position: absolute;
-  z-index: 5;
-  left: 0;
-  top: 0;
-  display: block;
-  width: 2.6rem;
-  height: 2.6rem;
-  margin: -1.3rem 0 0 -1.3rem;
-  border: 1px solid rgba(34, 66, 95, 0.5);
-  border-radius: 50%;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s;
-  will-change: transform;
+.xp-mouse {
+  position: relative;
+  width: 0.95rem;
+  height: 1.5rem;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
 }
-.xp-cursor.is-on {
-  opacity: 1;
-}
-.xp-cursor::after {
+.xp-mouse::after {
   content: "";
   position: absolute;
-  inset: calc(50% - 2px);
-  border-radius: 50%;
-  background: var(--navy);
+  left: 50%;
+  top: 0.28rem;
+  width: 2px;
+  height: 0.28rem;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: currentColor;
+  animation: xp-wheel 1.8s var(--ease) infinite;
 }
-.xp-cursor span {
-  position: absolute;
-  left: calc(100% + 0.55rem);
-  top: 50%;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--navy);
-  transform: translateY(-50%);
-}
-@media (pointer: coarse) {
-  html.motion .xp:not(.xp-failed) .xp-cursor {
-    display: none;
+@keyframes xp-wheel {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  70%,
+  100% {
+    transform: translateY(0.55rem);
+    opacity: 0;
   }
 }
 
-/* ---- labels that follow points on the model, joined to it by leader lines ---- */
+/* ---- tags that follow parts of the model, joined to it by leader lines ---- */
 .xp-lines {
   position: absolute;
   inset: 0;
@@ -309,18 +312,17 @@ html.motion .xp:not(.xp-failed) .xp-cursor {
   overflow: visible;
   pointer-events: none;
 }
-.xp-lines g {
-  color: var(--navy);
-}
 .xp-lines polyline {
-  stroke: currentColor;
-  stroke-opacity: 0.55;
-  stroke-width: 1;
+  stroke: var(--blue);
+  stroke-opacity: 0.6;
+  stroke-width: 1.2;
   stroke-linejoin: round;
   fill: none;
 }
 .xp-lines circle {
   fill: var(--blue);
+  stroke: #fff;
+  stroke-width: 1.5;
 }
 .xp-labels {
   position: absolute;
@@ -336,33 +338,139 @@ html.motion .xp:not(.xp-failed) .xp-cursor {
   left: 0;
   top: 0;
   display: flex;
-  gap: 0.7rem;
-  width: var(--xp-col, 12.5rem);
+  align-items: center;
+  gap: 0.55rem;
+  width: max-content;
+  height: 30px;
+  padding: 0 0.9rem 0 0.28rem;
+  border: 1px solid #d5e2f5;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 10px 24px -10px rgba(21, 56, 110, 0.35);
+  white-space: nowrap;
   will-change: transform, opacity;
 }
 .xp-labels .n {
-  flex: none;
-  padding-top: 0.2rem;
-  font-size: 0.6875rem;
-  font-weight: 600;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
-  color: var(--blue);
 }
 .xp-labels b {
-  display: block;
-  font-size: 0.9375rem;
-  font-weight: 650;
-  line-height: 1.15;
-  letter-spacing: -0.015em;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.012em;
   color: var(--ink);
 }
-.xp-labels i {
+.xp-dark .xp-labels li {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(12, 32, 70, 0.82);
+  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5);
+}
+.xp-dark .xp-labels b {
+  color: #fff;
+}
+
+/* ---- a runway on a deep-blue ground: the copy, tags and track change with it ---- */
+.xp-dark {
+  --fg: #fff;
+  --fg-soft: rgba(226, 236, 255, 0.84);
+  --fg-faint: rgba(214, 228, 255, 0.78);
+  --head: #fff;
+  --accent: var(--sky);
+  --line: rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, #0a2250 0%, var(--navy-2) 100%);
+}
+.xp-dark .kicker {
+  border-color: rgba(147, 197, 253, 0.35);
+  background: rgba(147, 197, 253, 0.12);
+  color: #cfe3ff;
+}
+.xp-dark .h-lg em,
+.xp-dark .h-hero em {
+  background: linear-gradient(95deg, #8fbcff 0%, #c4dcff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.xp-dark .checks li::before {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%231d4ed8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 10.4l3 3 6-6.6'/%3E%3C/svg%3E") center / 100% no-repeat,
+    #fff;
+  box-shadow: none;
+}
+.xp-dark .xp-track::before {
+  --tick: rgba(255, 255, 255, 0.28);
+}
+.xp-dark .xp-track i {
+  --tick: var(--sky);
+}
+.xp-dark .xp-track b {
+  color: var(--sky);
+}
+.xp-dark .xp-lines polyline {
+  stroke: var(--sky);
+}
+.xp-dark .xp-lines circle {
+  fill: var(--sky);
+  stroke: #0b2150;
+}
+
+/* ---- the services deck: shown only where the scene runs; the plain list takes its place everywhere else ---- */
+.xp-deck {
+  display: none;
+}
+html.motion .xp-deck:not(.xp-failed) {
   display: block;
-  margin-top: 0.2rem;
-  font-size: 0.78rem;
-  font-style: normal;
-  line-height: 1.32;
-  color: var(--body);
+}
+html.motion .xp-deck:not(.xp-failed) + .deck-fallback {
+  display: none;
+}
+
+/* ---- an inner page's scene: where it does not run, only its headline block shows (the page says the rest in full) ---- */
+html:not(.motion) .xp-compact .xp-phase:not(:first-child),
+.xp-compact.xp-failed .xp-phase:not(:first-child) {
+  display: none;
+}
+.xp-compact:not(.xp-live) .xp-stage {
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+@media (min-width: 64rem) {
+  html:not(.motion) .xp-compact .xp-stage,
+  .xp-compact.xp-failed .xp-stage {
+    grid-template-columns: minmax(0, 40rem);
+    padding-top: calc(var(--header) + 2.5rem);
+  }
+}
+.xp-dark .metrics {
+  border-top-color: rgba(255, 255, 255, 0.2);
+}
+.xp-dark .metrics dt {
+  background: linear-gradient(95deg, #a9cdff 0%, #ffffff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.xp-dark .metrics dd {
+  color: rgba(214, 228, 255, 0.82);
+}
+
+html.motion .xp:not(.xp-failed) .xp-phase .checks {
+  margin-top: 1.5rem;
+}
+
+/* an inner page whose scene does not run looks like the other inner pages */
+html:not(.motion) .xp-compact,
+.xp-compact.xp-failed {
+  background:
+    radial-gradient(46% 70% at 88% 18%, rgba(96, 150, 255, 0.24) 0%, rgba(96, 150, 255, 0) 72%),
+    radial-gradient(40% 60% at 4% 4%, rgba(170, 205, 255, 0.4) 0%, rgba(170, 205, 255, 0) 70%),
+    linear-gradient(180deg, #ffffff 0%, #f1f6ff 100%);
 }

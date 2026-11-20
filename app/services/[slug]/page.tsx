@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Checks, PageHero, SectionHead, ServiceCards } from "@/components/ui";
+import { SceneHero } from "@/components/SceneHero";
+import { Checks, SectionHead, ServiceCards } from "@/components/ui";
 import { servicePages } from "@/lib/service-pages";
 import { serviceBySlug, services } from "@/lib/services";
 import { pageMeta } from "@/lib/seo";
@@ -30,14 +31,42 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <PageHero kicker={`${s.group} / Service`} title={s.name} lead={p.summary}>
-        <Link className="btn btn-navy" href={`/contact?topic=${s.slug}`}>
-          Talk to us about this
-        </Link>
-        <Link className="btn btn-line" href="/services">
-          All services
-        </Link>
-      </PageHero>
+      <SceneHero
+        id="top"
+        variant={slug}
+        aria={`A 3D picture for ${s.name}: separate tools first, then gathered and connected around an AI core, then closed up into one product.`}
+        kicker={`${s.group} / Service`}
+        title={s.name}
+        lead={p.summary}
+        actions={
+          <>
+            <Link className="btn btn-navy" href={`/contact?topic=${s.slug}`}>
+              Talk to us about this
+            </Link>
+            <Link className="btn btn-line" href="/services">
+              All services
+            </Link>
+          </>
+        }
+        chapters={[
+          { kicker: "What we build", title: <>The work, <em>in detail.</em></>, items: p.features.slice(0, 4) },
+          { kicker: "What changes", title: <>The result, <em>in practice.</em></>, items: p.outcomes.slice(0, 4) },
+        ]}
+        closing={{
+          title: <>Let us look at <em>your version.</em></>,
+          lead: "A free one-hour working session is enough to see where this fits in your business.",
+          actions: (
+            <>
+              <Link className="btn btn-navy" href={`/contact?topic=${s.slug}`}>
+                Talk to us about this
+              </Link>
+              <Link className="btn btn-line" href="/ai-audit">
+                How an audit works
+              </Link>
+            </>
+          ),
+        }}
+      />
 
       <section className="section on-white">
         <div className="wrap split">
