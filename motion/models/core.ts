@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { clamp01, lerp, quint, smooth, TAU, win } from "../engine";
 import { makeBeam, type Beam } from "../kit";
-import { bandGeometry, chrome, stageMetal, circleLine, COLUMN_F, COLUMN_V, GLOW, glowTex, lightSprite, lit, makeTile, NUCLEUS_F, NUCLEUS_V, tickMarks, type Tile } from "./glow";
+import { crispDot, floorShadow, bandGeometry, chrome, stageMetal, circleLine, COLUMN_F, COLUMN_V, GLOW, glowTex, lightSprite, lit, makeTile, NUCLEUS_F, NUCLEUS_V, tickMarks, type Tile } from "./glow";
 import { drawn } from "./parts";
 import type { Frame, Model, ModelBuilder } from "./types";
 
@@ -38,14 +38,15 @@ uniform float uPower; varying vec3 vView; varying float vFace;
 void main() {
   vec3 n = normalize(cross(dFdx(vView), dFdy(vView)));
   float f = pow(1.0 - abs(dot(n, normalize(-vView))), 1.5);
-  vec3 col = mix(vec3(0.20, 0.46, 0.90), vec3(0.78, 0.94, 1.0), f);
-  float a = (0.045 + 0.46 * f + 0.08 * vFace) * (0.65 + 0.6 * uPower);
+  vec3 col = mix(vec3(0.40, 0.68, 1.0), vec3(0.14, 0.36, 0.78), f);
+  float a = (0.03 + 0.3 * f + 0.05 * vFace) * (0.65 + 0.6 * uPower);
   gl_FragColor = vec4(col, a);
 }`;
 
 const build: ModelBuilder = async (env) => {
   const group = new THREE.Group();
   const rnd = env.rnd;
+  group.add(floorShadow(env, 10.5, 7.5, 0.2));
 
   /* ---- the stage: two discs of polished dark metal with lit rims, and a ring inlaid in the top ---- */
   const plinthMat = stageMetal();
@@ -62,7 +63,7 @@ const build: ModelBuilder = async (env) => {
   const inlayTex = drawn(env, 1024, 1024, (g, w) => {
     const c = w / 2;
     g.translate(c, c);
-    g.strokeStyle = "rgba(170,215,255,0.7)";
+    g.strokeStyle = "rgba(34,66,95,0.55)";
     g.lineWidth = 3;
     [0.96, 0.62].forEach((k) => {
       g.beginPath();
@@ -80,7 +81,7 @@ const build: ModelBuilder = async (env) => {
     }
     g.lineCap = "round";
     g.lineWidth = 8;
-    g.strokeStyle = "rgba(132,226,85,0.95)";
+    g.strokeStyle = "rgba(93,181,54,0.95)";
     [
       [0.2, 0.7],
       [3.3, 3.9],
@@ -90,14 +91,14 @@ const build: ModelBuilder = async (env) => {
       g.stroke();
     });
   });
-  const inlay = new THREE.Mesh(new THREE.CircleGeometry(2.9, 112), new THREE.MeshBasicMaterial({ map: inlayTex, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const inlay = new THREE.Mesh(new THREE.CircleGeometry(2.9, 112), new THREE.MeshBasicMaterial({ map: inlayTex, transparent: true, opacity: 0.8, depthWrite: false, toneMapped: false }));
   inlay.rotation.x = -Math.PI / 2;
   inlay.position.y = 0.365;
   group.add(base1, base2, rim1, rim2, inlay);
 
   // a pool of light on the stage, under the column
-  const pool = lightSprite(env, "110,190,255", 5.5, 0.5);
-  const poolPlane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "110,190,255"), transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const pool = lightSprite(env, "34,66,95", 5.5, 0.2);
+  const poolPlane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "34,66,95"), transparent: true, opacity: 0.12, depthWrite: false, toneMapped: false }));
   poolPlane.rotation.x = -Math.PI / 2;
   poolPlane.position.y = 0.375;
   poolPlane.scale.set(5.8, 5.8, 1);
@@ -107,12 +108,11 @@ const build: ModelBuilder = async (env) => {
   // the column of light from the stage up to the core
   const colH = CORE.y - 0.4 - 0.85;
   const colMat = new THREE.ShaderMaterial({
-    uniforms: { uOpacity: { value: 0.3 }, uColor: { value: new THREE.Color(0x7cc4ff) } },
+    uniforms: { uOpacity: { value: 0.3 }, uColor: { value: new THREE.Color(0x7cb4f0) } },
     vertexShader: COLUMN_V,
     fragmentShader: COLUMN_F,
     transparent: true,
     depthWrite: false,
-    blending: THREE.AdditiveBlending,
     side: THREE.DoubleSide,
   });
   const column = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.95, colH, 48, 1, true), colMat);
@@ -127,9 +127,9 @@ const build: ModelBuilder = async (env) => {
   const nucU = { uT: { value: 0 }, uGlow: { value: 0.3 } };
   const nucleus = new THREE.Mesh(new THREE.SphereGeometry(0.85, 64, 48), new THREE.ShaderMaterial({ uniforms: nucU, vertexShader: NUCLEUS_V, fragmentShader: NUCLEUS_F }));
   coreG.add(nucleus);
-  const nucGlow = lightSprite(env, "90,200,150", 6.2, 0.5);
+  const nucGlow = lightSprite(env, "90,200,150", 5.2, 0.2);
   coreG.add(nucGlow);
-  const nucGlow2 = lightSprite(env, "90,160,255", 10, 0.3);
+  const nucGlow2 = lightSprite(env, "90,160,255", 8, 0.1);
   coreG.add(nucGlow2);
   const coreLight = new THREE.PointLight(0x86d6ff, 36, 14, 2);
   coreG.add(coreLight);
@@ -145,7 +145,7 @@ const build: ModelBuilder = async (env) => {
   const shellU = { uPower: { value: 0.3 } };
   const shell = new THREE.Group();
   const shellMesh = new THREE.Mesh(shellGeo, new THREE.ShaderMaterial({ uniforms: shellU, vertexShader: SHELL_V, fragmentShader: SHELL_F, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
-  const shellEdges = new THREE.LineSegments(new THREE.EdgesGeometry(shellGeo), new THREE.LineBasicMaterial({ color: 0xa6d6ff, transparent: true, opacity: 0.5, toneMapped: false, depthWrite: false }));
+  const shellEdges = new THREE.LineSegments(new THREE.EdgesGeometry(shellGeo), new THREE.LineBasicMaterial({ color: 0x2f6fb5, transparent: true, opacity: 0.5, toneMapped: false, depthWrite: false }));
   shell.add(shellMesh, shellEdges);
   coreG.add(shell);
 
@@ -172,8 +172,8 @@ const build: ModelBuilder = async (env) => {
     });
     arcs.push(mine);
     const bead = new THREE.Group();
-    bead.add(new THREE.Mesh(new THREE.SphereGeometry(0.07, 20, 14), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false })));
-    const bl = lightSprite(env, "150,235,120", 0.7, 0.8);
+    bead.add(new THREE.Mesh(new THREE.SphereGeometry(0.07, 20, 14), new THREE.MeshBasicMaterial({ color: 0x22425f, toneMapped: false })));
+    const bl = lightSprite(env, "115,201,74", 0.7, 0.45);
     bead.add(bl);
     bead.userData.r = r.R;
     pivot.add(bead);
@@ -200,22 +200,22 @@ const build: ModelBuilder = async (env) => {
     const c = w / 2;
     g.translate(c, c);
     const gr = g.createRadialGradient(0, 0, c * 0.5, 0, 0, c * 0.985);
-    gr.addColorStop(0, "rgba(90,160,255,0)");
-    gr.addColorStop(1, "rgba(90,160,255,0.12)");
+    gr.addColorStop(0, "rgba(47,111,181,0)");
+    gr.addColorStop(1, "rgba(47,111,181,0.1)");
     g.fillStyle = gr;
     g.beginPath();
     g.arc(0, 0, c * 0.985, 0, TAU);
     g.fill();
-    g.strokeStyle = "rgba(170,215,255,0.55)";
+    g.strokeStyle = "rgba(34,66,95,0.55)";
     g.lineWidth = 2.5;
     g.beginPath();
     g.arc(0, 0, c * 0.985, 0, TAU);
     g.stroke();
-    g.strokeStyle = "rgba(170,215,255,0.22)";
+    g.strokeStyle = "rgba(34,66,95,0.22)";
     g.beginPath();
     g.arc(0, 0, c * 0.8, 0, TAU);
     g.stroke();
-    g.strokeStyle = "rgba(170,215,255,0.5)";
+    g.strokeStyle = "rgba(34,66,95,0.5)";
     for (let i = 0; i < 180; i++) {
       const a = (i / 180) * TAU;
       const long = i % 10 === 0;
@@ -227,7 +227,7 @@ const build: ModelBuilder = async (env) => {
     }
     g.lineCap = "round";
     g.lineWidth = 7;
-    g.strokeStyle = "rgba(132,226,85,0.9)";
+    g.strokeStyle = "rgba(93,181,54,0.95)";
     [
       [0.5, 1.0],
       [2.4, 2.9],
@@ -238,14 +238,14 @@ const build: ModelBuilder = async (env) => {
       g.stroke();
     });
   });
-  const dial = new THREE.Mesh(new THREE.CircleGeometry(RT + 0.85, 128), new THREE.MeshBasicMaterial({ map: dialTex, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const dial = new THREE.Mesh(new THREE.CircleGeometry(RT + 0.85, 128), new THREE.MeshBasicMaterial({ map: dialTex, transparent: true, opacity: 0.6, depthWrite: false, toneMapped: false }));
   dial.rotation.x = -Math.PI / 2;
   dial.position.y = -0.12;
   haloPivot.add(dial);
   const runners = [0, 1, 2].map((k) => {
     const b = new THREE.Group();
-    b.add(new THREE.Mesh(new THREE.SphereGeometry(0.075, 20, 14), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false })));
-    b.add(lightSprite(env, k ? "130,200,255" : "150,235,120", 0.9, 0.85));
+    b.add(new THREE.Mesh(new THREE.SphereGeometry(0.075, 20, 14), new THREE.MeshBasicMaterial({ color: 0x22425f, toneMapped: false })));
+    b.add(lightSprite(env, k ? "47,111,181" : "115,201,74", 0.9, 0.4));
     haloPivot.add(b);
     return b;
   });
@@ -264,12 +264,12 @@ const build: ModelBuilder = async (env) => {
   });
 
   // a thread of light from the core to every tile, and a pulse along it
-  const accents = tiles.map((_, i) => (i % 3 === 0 ? 0x84e255 : 0x8fd2ff));
+  const accents = tiles.map((_, i) => (i % 3 === 0 ? 0x73c94a : 0x4f8fd9));
   const threads: Beam[] = tiles.map((_, i) => makeBeam(accents[i], 0.012));
   threads.forEach((b) => group.add(b.mesh));
   const pulseGeo = new THREE.SphereGeometry(0.07, 16, 12);
   const pulses = tiles.map((_, i) => {
-    const m = new THREE.Mesh(pulseGeo, new THREE.MeshBasicMaterial({ color: i % 3 === 0 ? 0xcaf5b4 : 0xdff1ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+    const m = new THREE.Mesh(pulseGeo, new THREE.MeshBasicMaterial({ color: i % 3 === 0 ? 0x73c94a : 0x2f6fb5, transparent: true, depthWrite: false, toneMapped: false }));
     group.add(m);
     return m;
   });
@@ -277,7 +277,7 @@ const build: ModelBuilder = async (env) => {
   // the scan: a ring of light and a veil that sweep up through the swarm
   const scanRing = new THREE.Mesh(new THREE.TorusGeometry(4.3, 0.022, 8, 180), lit(GLOW.sky, 0.9));
   scanRing.rotation.x = Math.PI / 2;
-  const scanVeil = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "120,200,255"), transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const scanVeil = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "47,111,181"), transparent: true, opacity: 0.1, depthWrite: false, toneMapped: false }));
   scanVeil.rotation.x = -Math.PI / 2;
   scanVeil.scale.set(10, 10, 1);
   group.add(scanRing, scanVeil);
@@ -290,7 +290,7 @@ const build: ModelBuilder = async (env) => {
   const pGeo = new THREE.BufferGeometry();
   pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
   pGeo.setAttribute("color", new THREE.BufferAttribute(pCol, 3));
-  const motes = new THREE.Points(pGeo, new THREE.PointsMaterial({ size: 0.075, map: glowTex(env, "200,230,255"), vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, toneMapped: false }));
+  const motes = new THREE.Points(pGeo, new THREE.PointsMaterial({ size: 0.075, map: crispDot(env), vertexColors: true, transparent: true, depthWrite: false, sizeAttenuation: true, toneMapped: false }));
   motes.frustumCulled = false;
   group.add(motes);
 
@@ -308,8 +308,8 @@ const build: ModelBuilder = async (env) => {
   const aa = new THREE.Vector3();
   const bb = new THREE.Vector3();
   const qq = new THREE.Quaternion();
-  const green = new THREE.Color(0x84e255);
-  const blue = new THREE.Color(0x9fd0ff);
+  const green = new THREE.Color(0x73c94a);
+  const blue = new THREE.Color(0x2f6fb5);
   const c = new THREE.Color();
 
   const model: Model = {
@@ -330,12 +330,12 @@ const build: ModelBuilder = async (env) => {
       nucleus.rotation.y = p * 2.2;
       shellU.uPower.value = power;
       shell.rotation.set(0.25 + p * 0.5, p * 1.3, 0);
-      (shellEdges.material as THREE.LineBasicMaterial).opacity = 0.32 + 0.4 * power;
+      (shellEdges.material as THREE.LineBasicMaterial).opacity = 0.28 + 0.34 * power;
       const breathe = 1 + 0.025 * Math.sin(p * TAU * 6) * run;
       nucleus.scale.setScalar(breathe);
-      (nucGlow.material as THREE.SpriteMaterial).opacity = 0.28 + 0.4 * power;
-      (nucGlow2.material as THREE.SpriteMaterial).opacity = 0.12 + 0.16 * power;
-      coreLight.intensity = 22 + 40 * power;
+      (nucGlow.material as THREE.SpriteMaterial).opacity = 0.1 + 0.16 * power;
+      (nucGlow2.material as THREE.SpriteMaterial).opacity = 0.05 + 0.07 * power;
+      coreLight.intensity = 14 + 26 * power;
       RINGS.forEach((r, i) => {
         spinners[i].rotation.y = p * TAU * 0.42 * r.speed + i * 1.7;
         arcs[i].forEach((a, k) => {
@@ -351,15 +351,15 @@ const build: ModelBuilder = async (env) => {
       (rim2.material as THREE.MeshBasicMaterial).opacity = 0.45 + 0.45 * power;
       (inlay.material as THREE.MeshBasicMaterial).opacity = 0.45 + 0.4 * power;
       inlay.rotation.z = p * 0.9;
-      (poolPlane.material as THREE.MeshBasicMaterial).opacity = 0.2 + 0.2 * power;
-      colMat.uniforms.uOpacity.value = 0.2 + 0.18 * power + 0.06 * run;
+      (poolPlane.material as THREE.MeshBasicMaterial).opacity = 0.1 + 0.08 * power;
+      colMat.uniforms.uOpacity.value = 0.1 + 0.1 * power + 0.04 * run;
 
       /* the scan */
       scanRing.position.set(0, scanY, 0);
       scanVeil.position.set(0, scanY, 0);
       scanRing.visible = scanVeil.visible = scanA > 0.01;
       (scanRing.material as THREE.MeshBasicMaterial).opacity = 0.85 * scanA;
-      (scanVeil.material as THREE.MeshBasicMaterial).opacity = 0.2 * scanA;
+      (scanVeil.material as THREE.MeshBasicMaterial).opacity = 0.1 * scanA;
 
       /* the tiles: from the swarm into the halo, one after the other, the halo turning slowly */
       const spin = p * 0.75;
@@ -381,8 +381,8 @@ const build: ModelBuilder = async (env) => {
         // the edge flares as the scan passes through the tile
         const near = Math.exp(-Math.pow((t.group.position.y - scanY) / 0.65, 2)) * scanA;
         t.edge.forEach((l, k) => ((l.material as THREE.LineBasicMaterial).opacity = (k ? 0.65 : 0.9) + 0.1 * near));
-        (t.light.material as THREE.SpriteMaterial).opacity = 0.22 + 0.2 * e + 0.5 * near + 0.18 * run;
-        t.light.scale.setScalar(TILE * (2.3 + 0.8 * near));
+        (t.light.material as THREE.SpriteMaterial).opacity = 0.1 + 0.08 * e + 0.14 * near;
+        t.light.scale.setScalar(TILE * (2 + 0.3 * near));
       });
       haloPivot.rotation.x = TILT;
       (haloLine.material as THREE.LineBasicMaterial).opacity = 0.34 * quint(win(p, 0.3, 0.6));

@@ -4,9 +4,9 @@ import { blobTexture, canvasTexture } from "./kit";
 import type { GL } from "./gl";
 
 /**
- * What makes a scene on the deep-blue ground feel like a place and not a diagram: a glossy floor that mirrors what
- * stands on it (and fades with distance), a faint perspective grid, a pool of light, two coloured rim lights that
- * catch the edges of the metal and glass, and soft out-of-focus lights drifting at different depths. Everything here
+ * What makes a scene in the light studio feel like a place and not a diagram: a glossy floor that mirrors what stands
+ * on it (and fades with distance), a faint perspective grid, a soft shadow pool, two coloured rim lights that catch
+ * the edges of the chrome and glass, and soft out-of-focus colour drifting at different depths. Everything here
  * lives on layer 1 except the floor and the lights, so the mirror shows the model and not the dust.
  */
 
@@ -24,7 +24,7 @@ const FLOOR_SHADER = {
     color: { value: null },
     tDiffuse: { value: null },
     textureMatrix: { value: null },
-    uStrength: { value: 0.4 },
+    uStrength: { value: 0.32 },
     uCenter: { value: new THREE.Vector2() },
     uRadius: { value: 12 },
     uContactY: { value: 0 },
@@ -102,7 +102,7 @@ export function dressStage(gl: GL, scene: THREE.Scene, camera: THREE.Perspective
     64,
     64,
     (g, w, h) => {
-      g.fillStyle = "rgba(160,205,255,0.95)";
+      g.fillStyle = "rgba(34,66,95,0.9)";
       g.fillRect(0, 0, w, 2);
       g.fillRect(0, 0, 2, h);
     },
@@ -125,7 +125,7 @@ export function dressStage(gl: GL, scene: THREE.Scene, camera: THREE.Perspective
     1,
   );
   textures.push(cell, fadeTex);
-  const grid = new THREE.Mesh(new THREE.PlaneGeometry(44, 44), new THREE.MeshBasicMaterial({ map: cell, alphaMap: fadeTex, transparent: true, opacity: 0.13, depthWrite: false, toneMapped: false }));
+  const grid = new THREE.Mesh(new THREE.PlaneGeometry(44, 44), new THREE.MeshBasicMaterial({ map: cell, alphaMap: fadeTex, transparent: true, opacity: 0.1, depthWrite: false, toneMapped: false }));
   grid.rotation.x = -Math.PI / 2;
   grid.layers.set(1);
   keep(grid);
@@ -145,12 +145,12 @@ export function dressStage(gl: GL, scene: THREE.Scene, camera: THREE.Perspective
         g.arc(0, 0, r, 0, Math.PI * 2);
         g.stroke();
       };
-      circle(c * 0.97, 3, "rgba(150,205,255,0.55)");
-      circle(c * 0.8, 2, "rgba(150,205,255,0.32)", [2, 14]);
-      circle(c * 0.66, 2, "rgba(150,205,255,0.4)");
+      circle(c * 0.97, 3, "rgba(34,66,95,0.5)");
+      circle(c * 0.8, 2, "rgba(34,66,95,0.3)", [2, 14]);
+      circle(c * 0.66, 2, "rgba(34,66,95,0.38)");
       // ticks between the two outer circles
       g.setLineDash([]);
-      g.strokeStyle = "rgba(170,215,255,0.55)";
+      g.strokeStyle = "rgba(34,66,95,0.5)";
       g.lineWidth = 2;
       for (let i = 0; i < 120; i++) {
         const a = (i / 120) * Math.PI * 2;
@@ -163,7 +163,7 @@ export function dressStage(gl: GL, scene: THREE.Scene, camera: THREE.Perspective
       }
       // a few lit arcs, in the brand's green
       g.lineCap = "round";
-      g.strokeStyle = "rgba(125,220,85,0.95)";
+      g.strokeStyle = "rgba(93,181,54,0.95)";
       g.lineWidth = 7;
       [
         [0.15, 0.42],
@@ -174,7 +174,7 @@ export function dressStage(gl: GL, scene: THREE.Scene, camera: THREE.Perspective
         g.arc(0, 0, c * 0.97, a0, a1);
         g.stroke();
       });
-      g.strokeStyle = "rgba(160,215,255,0.9)";
+      g.strokeStyle = "rgba(47,111,181,0.9)";
       g.lineWidth = 5;
       [
         [1.3, 1.6],
@@ -188,23 +188,23 @@ export function dressStage(gl: GL, scene: THREE.Scene, camera: THREE.Perspective
     8,
   );
   textures.push(ringTex);
-  const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: ringTex, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+  const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: ringTex, transparent: true, opacity: 0.5, depthWrite: false, toneMapped: false }));
   ring.rotation.x = -Math.PI / 2;
   ring.layers.set(1);
   keep(ring);
 
   /* ---- a pool of light under the model ---- */
-  const poolTex = blobTexture("120,175,235", 0.55);
+  const poolTex = blobTexture("34,66,95", 0.5);
   textures.push(poolTex);
-  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, depthWrite: false, opacity: 0.5, blending: THREE.AdditiveBlending, toneMapped: false }));
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, depthWrite: false, opacity: 0.14, toneMapped: false }));
   pool.rotation.x = -Math.PI / 2;
   pool.layers.set(1);
   keep(pool);
 
   /* ---- the rim lights: green from behind on the left, blue from behind on the right, and a soft fill from above ---- */
-  const rimG = new THREE.PointLight(0x84e255, 220, 70, 2);
-  const rimB = new THREE.PointLight(0x4f9bff, 300, 70, 2);
-  const fill = new THREE.PointLight(0xdbe9ff, 140, 70, 2);
+  const rimG = new THREE.PointLight(0x84e255, 110, 70, 2);
+  const rimB = new THREE.PointLight(0x4f9bff, 150, 70, 2);
+  const fill = new THREE.PointLight(0xdbe9ff, 90, 70, 2);
   keep(rimG);
   keep(rimB);
   keep(fill);
@@ -214,7 +214,7 @@ export function dressStage(gl: GL, scene: THREE.Scene, camera: THREE.Perspective
   textures.push(bokehTex);
   const tints = [0x6fb0ff, 0x73c94a, 0x8fd2ff, 0x4f8fe0, 0xa5e48a];
   const bokeh = Array.from({ length: 18 }, (_, i) => {
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: bokehTex, color: tints[i % tints.length], transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.06 + frac(i * 0.37) * 0.14, toneMapped: false }));
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: bokehTex, color: tints[i % tints.length], transparent: true, depthWrite: false, opacity: 0.015 + frac(i * 0.37) * 0.035, toneMapped: false }));
     const size = 0.8 + frac(i * 0.41) * 2.8;
     s.scale.set(size, size, 1);
     s.layers.set(1);
@@ -236,9 +236,9 @@ export function dressStage(gl: GL, scene: THREE.Scene, camera: THREE.Perspective
       ring.scale.set(rs, rs, 1);
       ring.rotation.z = p * 1.4;
       (ring.material as THREE.MeshBasicMaterial).opacity = (0.34 + 0.24 * l) * k;
-      (grid.material as THREE.MeshBasicMaterial).opacity = 0.13 * k;
-      u.uStrength.value = 0.4 * k;
-      (pool.material as THREE.MeshBasicMaterial).opacity = (0.32 + 0.2 * l) * k;
+      (grid.material as THREE.MeshBasicMaterial).opacity = 0.1 * k;
+      u.uStrength.value = 0.32 * k;
+      (pool.material as THREE.MeshBasicMaterial).opacity = (0.12 + 0.08 * l) * k;
       rimG.position.set(cx - 9, floorY + 4.5, -5);
       rimB.position.set(cx + 9.5, floorY + 5.5, -4);
       fill.position.set(cx, floorY + 11, 9);

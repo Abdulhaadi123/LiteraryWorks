@@ -1,20 +1,20 @@
 import * as THREE from "three";
-import { blobTexture, roundedShape } from "../kit";
+import { blobTexture, canvasTexture, roundedShape } from "../kit";
 import { drawn, fillRR, plane, rr, slab } from "./parts";
 import type { ModelEnv } from "./types";
 
 /**
- * The parts of the scenes that stand on the deep-blue ground ("dark glass and light"): dark glass tiles with a lit
- * edge and a line icon, soft additive lights, thin lit outlines, and the nine service icons. Everything is drawn or
- * modelled in code.
+ * The parts of the scenes ("a light studio"): pale glass tiles with a thin coloured edge and a line icon, soft
+ * coloured halos and shadows, chrome, thin outlines, and the service icons. Everything is drawn or modelled in code.
  */
 
+/** The brand's colours for lines and accents on the light ground (sky is the mid blue the thin lines are drawn in). */
 export const GLOW = {
-  sky: 0xbfe0ff,
-  blue: 0x6fb2ff,
-  deep: 0x0c2339,
-  navy: 0x13304d,
-  green: 0x84e255,
+  sky: 0x3e6d97,
+  blue: 0x2f6fb5,
+  deep: 0x162b40,
+  navy: 0x22425f,
+  green: 0x73c94a,
   white: 0xffffff,
 } as const;
 
@@ -35,9 +35,9 @@ export function glowTex(env: ModelEnv, rgb: string): THREE.Texture {
   return t;
 }
 
-/** A soft additive light, `size` wide, that always faces the viewer. */
+/** A soft coloured halo (or, in navy, a soft shadow), `size` wide, that always faces the viewer. */
 export function lightSprite(env: ModelEnv, rgb: string, size: number, opacity: number): THREE.Sprite {
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(env, rgb), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity, toneMapped: false }));
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(env, rgb), transparent: true, depthWrite: false, opacity, toneMapped: false }));
   s.scale.setScalar(size);
   return s;
 }
@@ -60,22 +60,54 @@ export function circleLine(radius: number, color: number, opacity = 0.4, segment
   return new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color, transparent: true, opacity, toneMapped: false, depthWrite: false }));
 }
 
-/** Polished dark glass: deep blue, a hard clear coat, bright where it catches the light. */
-export const darkGlass = (color: number = GLOW.navy, rough = 0.2): THREE.MeshPhysicalMaterial =>
-  new THREE.MeshPhysicalMaterial({ color, metalness: 0.35, roughness: rough, clearcoat: 1, clearcoatRoughness: 0.12, envMapIntensity: 1.1 });
+/** Polished pale glass: nearly white, a hard clear coat, soft reflections of the studio. (The first argument is kept so a call reads like the others; the glass is always pale.) */
+export const paleGlass = (_color?: number, rough = 0.2): THREE.MeshPhysicalMaterial =>
+  new THREE.MeshPhysicalMaterial({ color: 0xf6f9fc, metalness: 0, roughness: rough, clearcoat: 1, clearcoatRoughness: 0.1, envMapIntensity: 1 });
 
 /** Polished metal that takes the studio's reflections. */
 export const chrome = (color = 0xdbe6f2, rough = 0.2): THREE.MeshStandardMaterial => new THREE.MeshStandardMaterial({ color, metalness: 1, roughness: rough, envMapIntensity: 1.2 });
 
-/** A light that adds to what is behind it. */
-export const lit = (color: number, opacity = 1): THREE.MeshBasicMaterial =>
-  new THREE.MeshBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+/** A flat colour that does not take the studio's light (a thin line of colour, a lit rim). */
+export const lit = (color: number, opacity = 1): THREE.MeshBasicMaterial => new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false, toneMapped: false });
+
+/** A soft shadow on the floor under something: `w` by `d` wide (it is left out of the mirror). */
+export function floorShadow(env: ModelEnv, w: number, d: number, opacity = 0.22, x = 0, z = 0): THREE.Mesh {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "34,66,95"), transparent: true, opacity, depthWrite: false, toneMapped: false }));
+  m.rotation.x = -Math.PI / 2;
+  m.scale.set(w, d, 1);
+  m.position.set(x, 0.012, z);
+  m.renderOrder = -1;
+  m.layers.set(1);
+  return m;
+}
+
+const dots = new WeakMap<ModelEnv, THREE.Texture>();
+/** A small hard-edged round dot (a soft one is lost on a light ground). */
+export function crispDot(env: ModelEnv): THREE.Texture {
+  let t = dots.get(env);
+  if (!t) {
+    t = canvasTexture(
+      64,
+      64,
+      (g, w, h) => {
+        g.beginPath();
+        g.arc(w / 2, h / 2, w * 0.42, 0, Math.PI * 2);
+        g.fillStyle = "#fff";
+        g.fill();
+      },
+      1,
+    );
+    env.textures.push(t);
+    dots.set(env, t);
+  }
+  return t;
+}
 
 /* ---- the nine service icons: drawn as lines, centred, about 260 px across ---- */
 
 type Pen = CanvasRenderingContext2D;
-const LINE = "#c4e3ff";
-const ACC = "#84e255";
+const LINE = "#22425f";
+const ACC = "#5db536";
 const stroke = (g: Pen, c = LINE, w = 15) => {
   g.strokeStyle = c;
   g.lineWidth = w;
@@ -119,7 +151,7 @@ export const ICONS: Record<string, (g: Pen) => void> = {
       g.lineTo(0, y + 52);
       g.lineTo(-118, y);
       g.closePath();
-      fill(g, "#0e2842");
+      fill(g, "#f4f8fc");
       stroke(g, k === 0 ? ACC : LINE, 14);
     }
   },
@@ -132,7 +164,7 @@ export const ICONS: Record<string, (g: Pen) => void> = {
       [62, 62],
     ].forEach(([x, y], i) => {
       rr(g, x - 50, y - 50, 100, 100, 24);
-      if (i === 0) fill(g, "rgba(196,227,255,0.22)");
+      if (i === 0) fill(g, "rgba(34,66,95,0.1)");
       stroke(g, i === 3 ? ACC : LINE, 14);
     });
   },
@@ -208,7 +240,7 @@ export const ICONS: Record<string, (g: Pen) => void> = {
       [112, -74],
     ].forEach(([x, y]) => {
       rr(g, x - 15, y - 15, 30, 30, 6);
-      fill(g, "#0e2842");
+      fill(g, "#f4f8fc");
       stroke(g, LINE, 9);
     });
   },
@@ -237,7 +269,7 @@ export const ICONS: Record<string, (g: Pen) => void> = {
     [0, 1, 2].forEach((r) =>
       [0, 1].forEach((c) => {
         rr(g, -96 + c * 40, 14 + r * 36, 22, 20, 5);
-        fill(g, "rgba(196,227,255,0.55)");
+        fill(g, "rgba(34,66,95,0.32)");
       }),
     );
     g.beginPath();
@@ -341,21 +373,21 @@ export const ICONS: Record<string, (g: Pen) => void> = {
   },
 };
 
-/** The picture on a tile's face: dark glass with a soft light in one corner, a hairline frame and the icon. */
+/** The picture on a tile's face: pale glass with a soft colour in one corner, a hairline frame and the icon. */
 export function tileFace(env: ModelEnv, icon: string, size = 512): THREE.CanvasTexture {
   return drawn(env, size, size, (g, w, h) => {
     const bg = g.createLinearGradient(0, 0, w, h);
-    bg.addColorStop(0, "#1d466b");
-    bg.addColorStop(1, "#0a2036");
+    bg.addColorStop(0, "#ffffff");
+    bg.addColorStop(1, "#e3ecf6");
     g.fillStyle = bg;
     g.fillRect(0, 0, w, h);
     const glow = g.createRadialGradient(w * 0.28, h * 0.22, 0, w * 0.28, h * 0.22, w * 0.85);
-    glow.addColorStop(0, "rgba(130,195,255,0.34)");
-    glow.addColorStop(1, "rgba(130,195,255,0)");
+    glow.addColorStop(0, "rgba(111,178,255,0.2)");
+    glow.addColorStop(1, "rgba(111,178,255,0)");
     g.fillStyle = glow;
     g.fillRect(0, 0, w, h);
     rr(g, 24, 24, w - 48, h - 48, 58);
-    g.strokeStyle = "rgba(170,210,255,0.3)";
+    g.strokeStyle = "rgba(34,66,95,0.14)";
     g.lineWidth = 3;
     g.stroke();
     g.save();
@@ -370,15 +402,15 @@ export function tileFace(env: ModelEnv, icon: string, size = 512): THREE.CanvasT
 export function tileBack(env: ModelEnv, size = 256): THREE.CanvasTexture {
   return drawn(env, size, size, (g, w, h) => {
     const bg = g.createLinearGradient(0, 0, w, h);
-    bg.addColorStop(0, "#14395a");
-    bg.addColorStop(1, "#091c30");
+    bg.addColorStop(0, "#f3f7fb");
+    bg.addColorStop(1, "#dbe6f1");
     g.fillStyle = bg;
     g.fillRect(0, 0, w, h);
     rr(g, 14, 14, w - 28, h - 28, 30);
-    g.strokeStyle = "rgba(170,210,255,0.26)";
+    g.strokeStyle = "rgba(34,66,95,0.14)";
     g.lineWidth = 2;
     g.stroke();
-    g.fillStyle = "rgba(170,210,255,0.2)";
+    g.fillStyle = "rgba(34,66,95,0.1)";
     for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) g.fillRect(52 + x * 36, 52 + y * 36, 6, 6);
   });
 }
@@ -394,11 +426,11 @@ export interface Tile {
   size: number;
 }
 
-/** A square tile of dark glass, its face toward +z: a slab, the picture, a lit edge on both faces and a soft light behind. */
+/** A square tile of pale glass, its face toward +z: a slab, the picture, a thin edge on both faces and a soft shadow behind. */
 export function makeTile(env: ModelEnv, icon: string, size: number, accent: number, rgb: string): Tile {
   const group = new THREE.Group();
   const depth = 0.1;
-  const body = slab(size, size, depth, size * 0.19, darkGlass(GLOW.navy, 0.22));
+  const body = slab(size, size, depth, size * 0.19, paleGlass(undefined, 0.2));
   group.add(body);
   const front = plane(tileFace(env, icon), size - 0.07, size - 0.07, size * 0.16);
   front.position.z = depth / 2 + 0.004;
@@ -410,8 +442,9 @@ export function makeTile(env: ModelEnv, icon: string, size: number, accent: numb
   const e1 = outline(size - 0.02, size - 0.02, size * 0.17, accent, 0.95, depth / 2 + 0.008);
   const e2 = outline(size - 0.02, size - 0.02, size * 0.17, accent, 0.7, -depth / 2 - 0.008);
   group.add(e1, e2);
-  const light = lightSprite(env, rgb, size * 2.6, 0.32);
-  light.position.z = -0.25;
+  void rgb;
+  const light = lightSprite(env, "34,66,95", size * 2.1, 0.2);
+  light.position.set(size * 0.05, -size * 0.12, -0.2);
   group.add(light);
   const top = new THREE.Object3D();
   top.position.set(0, size / 2, 0.06);
@@ -434,15 +467,15 @@ export interface Screen {
 }
 
 /**
- * A rectangle of dark glass with a picture on its face (and a quiet back), a lit edge on both faces and a soft light
- * behind it: a screen, a card, a wall panel. Its face is toward +z.
+ * A rectangle of pale glass with a picture on its face (and a quiet back), a thin edge on both faces and a soft
+ * shadow behind it: a screen, a card, a wall panel. Its face is toward +z.
  */
 export function makeScreen(env: ModelEnv, tex: THREE.Texture, w: number, h: number, o: { accent?: number; rgb?: string; depth?: number; radius?: number; glow?: number; back?: THREE.Texture | null } = {}): Screen {
   const group = new THREE.Group();
   const depth = o.depth ?? 0.09;
   const radius = o.radius ?? Math.min(w, h) * 0.07;
   const accent = o.accent ?? GLOW.sky;
-  group.add(slab(w, h, depth, radius, darkGlass(GLOW.navy, 0.22)));
+  group.add(slab(w, h, depth, radius, paleGlass(undefined, 0.2)));
   const front = plane(tex, w - 0.07, h - 0.07, radius * 0.85);
   front.position.z = depth / 2 + 0.004;
   group.add(front);
@@ -456,9 +489,9 @@ export function makeScreen(env: ModelEnv, tex: THREE.Texture, w: number, h: numb
   const e1 = outline(w - 0.02, h - 0.02, radius, accent, 0.9, depth / 2 + 0.008);
   const e2 = outline(w - 0.02, h - 0.02, radius, accent, 0.6, -depth / 2 - 0.008);
   group.add(e1, e2);
-  const light = lightSprite(env, o.rgb ?? "110,180,255", Math.max(w, h) * 2.3, o.glow ?? 0.26);
-  light.scale.set(w * 2.3, h * 2.3, 1);
-  light.position.z = -0.3;
+  const light = lightSprite(env, "34,66,95", 1, (o.glow ?? 0.26) * 0.8);
+  light.scale.set(w * 1.55, h * 1.55, 1);
+  light.position.set(w * 0.03, -h * 0.09, -0.25);
   group.add(light);
   const top = new THREE.Object3D();
   top.position.set(0, h / 2, 0.06);
@@ -493,8 +526,8 @@ void main() {
   float n = fbm(p + 1.9 * q);
   float r = 1.0 - abs(2.0 * fbm(p * 1.6 + q * 1.4 + uT * 0.12) - 1.0);
   float vein = pow(clamp(r, 0.0, 1.0), 6.0);
-  vec3 deep = vec3(0.015, 0.07, 0.18);
-  vec3 mid = vec3(0.09, 0.34, 0.74);
+  vec3 deep = vec3(0.03, 0.12, 0.28);
+  vec3 mid = vec3(0.10, 0.40, 0.84);
   vec3 hi = vec3(0.50, 0.88, 1.0);
   vec3 gr = vec3(0.52, 0.90, 0.33);
   vec3 col = mix(deep, mid, smoothstep(0.28, 0.78, n));
@@ -576,12 +609,11 @@ export function lightColumn(color: number, rTop: number, rBottom: number, height
     fragmentShader: COLUMN_F,
     transparent: true,
     depthWrite: false,
-    blending: THREE.AdditiveBlending,
     side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBottom, height, 48, 1, true), mat);
   return { mesh, mat };
 }
 
-/** The metal of a stage or a base under a dark scene: nearly black, satin, with only a faint reflection. */
-export const stageMetal = (): THREE.MeshStandardMaterial => new THREE.MeshStandardMaterial({ color: 0x061220, metalness: 0.3, roughness: 0.55, envMapIntensity: 0.18 });
+/** The white gloss of a stage or a base: glazed, soft reflections. */
+export const stageMetal = (): THREE.MeshStandardMaterial => new THREE.MeshPhysicalMaterial({ color: 0xf4f7fa, metalness: 0, roughness: 0.3, clearcoat: 0.9, clearcoatRoughness: 0.18, envMapIntensity: 0.95 });

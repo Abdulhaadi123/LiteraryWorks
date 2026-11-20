@@ -1,5 +1,5 @@
 // Renders the home story's still pictures from the live 3D scene: the nine tiles joined to the AI core (system-ring)
-// and locked into one halo (system-dash), as WebP on the scene's own deep-blue ground (a few tens of kB each, where
+// and locked into one halo (system-dash), as WebP on the scene's own light ground (a few tens of kB each, where
 // the same pictures with a transparent background were over 200 kB), in public/scene/. Phones, tablets, reduced
 // motion and a browser without WebGL show these, so what they see is the real scene and not a drawing of it.
 //
@@ -177,9 +177,9 @@ async function main() {
         writeFileSync(join(out, file), bytes);
         console.log(`  ${file}  ${Math.round(w * DPR * scale)}x${Math.round(h * DPR * scale)}  ${(bytes.length / 1024).toFixed(0)} kB`);
         if (px === cap) {
-          // the scene must be in the picture: some of it is bright (the ground alone is dark blue)
-          const s = await page.ev(`(async () => { const img = new Image(); img.src = "data:image/webp;base64,${shot.data}"; await img.decode(); const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0); const d = g.getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11 > 150) n++; return { bright: n / (d.length / 4) }; })()`);
-          if (s.bright < 0.01) throw new Error(`${file}: the scene is missing from the picture (${(s.bright * 100).toFixed(2)}% bright)`);
+          // the scene must be in the picture: some of it is clearly darker than the pale ground (navy lines, rings, the core)
+          const s = await page.ev(`(async () => { const img = new Image(); img.src = "data:image/webp;base64,${shot.data}"; await img.decode(); const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0); const d = g.getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11 < 120) n++; return { dark: n / (d.length / 4) }; })()`);
+          if (s.dark < 0.002) throw new Error(`${file}: the scene is missing from the picture (${(s.dark * 100).toFixed(2)}% dark)`);
         }
       }
     };

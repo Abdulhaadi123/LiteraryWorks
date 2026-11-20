@@ -15,8 +15,6 @@ export type DeviceType = "phone" | "laptop" | "tablet" | "rack";
 export interface SceneData {
   /** Which picture the scene draws: "hero", "audit" or a service slug ("system"); "services" or "cases" ("deck"). */
   variant: string;
-  /** The ground the scene stands on: "dark" scenes get the glossy floor, the coloured lights and the depth (Xp sets it). */
-  tone?: "light" | "dark";
   title?: string;
   items?: { id: string; title: string; note?: string; tags?: string[]; stats?: { value: string; label: string }[] }[];
 }

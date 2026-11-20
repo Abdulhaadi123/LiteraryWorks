@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { clamp01, lerp, quint, TAU } from "../engine";
-import { chrome, stageMetal, circleLine, GLOW, glowTex, lightSprite, lit, makeScreen, plasmaMaterial, type Screen } from "./glow";
+import { crispDot, floorShadow, chrome, stageMetal, circleLine, GLOW, glowTex, lightSprite, lit, makeScreen, plasmaMaterial, type Screen } from "./glow";
 import { drawn } from "./parts";
 import { uiTexture } from "./ui";
 import type { Frame, Model, ModelBuilder } from "./types";
@@ -17,6 +17,7 @@ const BARS = 96;
 
 const build: ModelBuilder = async (env) => {
   const group = new THREE.Group();
+  group.add(floorShadow(env, 8, 6, 0.18));
 
   /* ---- the stage ---- */
   const plinthMat = stageMetal();
@@ -33,7 +34,7 @@ const build: ModelBuilder = async (env) => {
     group.add(m);
     return m;
   });
-  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "110,190,255"), transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "34,66,95"), transparent: true, opacity: 0.12, depthWrite: false, toneMapped: false }));
   pool.rotation.x = -Math.PI / 2;
   pool.position.y = 0.25;
   pool.scale.set(5.4, 5.4, 1);
@@ -45,7 +46,7 @@ const build: ModelBuilder = async (env) => {
   group.add(ring);
   const bars = new THREE.InstancedMesh(new THREE.BoxGeometry(0.075, 1, 0.075), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }), BARS);
   bars.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(BARS * 3), 3);
-  const halos = new THREE.InstancedMesh(new THREE.BoxGeometry(0.26, 1, 0.04), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), BARS);
+  const halos = new THREE.InstancedMesh(new THREE.BoxGeometry(0.26, 1, 0.04), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.16, depthWrite: false, toneMapped: false }), BARS);
   halos.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(BARS * 3), 3);
   bars.frustumCulled = halos.frustumCulled = false;
   ring.add(halos, bars);
@@ -56,7 +57,7 @@ const build: ModelBuilder = async (env) => {
   const dial = drawn(env, 1024, 1024, (g, w) => {
     const c = w / 2;
     g.translate(c, c);
-    g.strokeStyle = "rgba(170,215,255,0.55)";
+    g.strokeStyle = "rgba(34,66,95,0.55)";
     g.lineWidth = 2.5;
     g.beginPath();
     g.arc(0, 0, c * 0.985, 0, TAU);
@@ -72,7 +73,7 @@ const build: ModelBuilder = async (env) => {
     }
     g.lineCap = "round";
     g.lineWidth = 7;
-    g.strokeStyle = "rgba(132,226,85,0.9)";
+    g.strokeStyle = "rgba(115,201,74,0.9)";
     [
       [0.3, 0.9],
       [3.4, 3.9],
@@ -82,7 +83,7 @@ const build: ModelBuilder = async (env) => {
       g.stroke();
     });
   });
-  const dialMesh = new THREE.Mesh(new THREE.CircleGeometry(R0 + 1.75, 128), new THREE.MeshBasicMaterial({ map: dial, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const dialMesh = new THREE.Mesh(new THREE.CircleGeometry(R0 + 1.75, 128), new THREE.MeshBasicMaterial({ map: dial, transparent: true, opacity: 0.55, depthWrite: false, toneMapped: false }));
   dialMesh.position.z = -0.15;
   ring.add(dialMesh);
 
@@ -90,8 +91,8 @@ const build: ModelBuilder = async (env) => {
   const pl = plasmaMaterial();
   const orb = new THREE.Mesh(new THREE.SphereGeometry(1.05, 64, 48), pl.mat);
   ring.add(orb);
-  ring.add(lightSprite(env, "90,200,150", 6, 0.5));
-  ring.add(lightSprite(env, "90,160,255", 10, 0.22));
+  ring.add(lightSprite(env, "90,200,150", 5, 0.16));
+  ring.add(lightSprite(env, "90,160,255", 8, 0.06));
   const equator = new THREE.Mesh(new THREE.TorusGeometry(1.32, 0.02, 10, 140), chrome(0xe3ecf6, 0.24));
   equator.rotation.x = 1.25;
   ring.add(equator);
@@ -102,13 +103,13 @@ const build: ModelBuilder = async (env) => {
   const mp = Array.from({ length: MN }, () => ({ a: env.rnd() * TAU, r: R0 + 0.4 + env.rnd() * 2.2, z: (env.rnd() - 0.5) * 1.6, v: 0.3 + env.rnd() * 0.7 }));
   const mGeo = new THREE.BufferGeometry();
   mGeo.setAttribute("position", new THREE.BufferAttribute(mPos, 3));
-  const motes = new THREE.Points(mGeo, new THREE.PointsMaterial({ size: 0.12, map: glowTex(env, "190,225,255"), color: 0xbfe0ff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, opacity: 0.8, toneMapped: false }));
+  const motes = new THREE.Points(mGeo, new THREE.PointsMaterial({ size: 0.12, map: crispDot(env), color: 0x3e6d97, transparent: true, depthWrite: false, sizeAttenuation: true, opacity: 0.45, toneMapped: false }));
   motes.frustumCulled = false;
   ring.add(motes);
 
   /* ---- the live call, the transcript and the follow-up ---- */
   const mk = (kind: "voice" | "chat" | "tasks", w: number, h: number, x: number, y: number, z: number, yaw: number, seed: number): Screen => {
-    const s = makeScreen(env, uiTexture(env, kind, 512, Math.round((512 * h) / w), seed, "#84e255"), w, h, { accent: kind === "tasks" ? GLOW.green : GLOW.sky, depth: 0.08, radius: 0.1, glow: 0.2 });
+    const s = makeScreen(env, uiTexture(env, kind, 512, Math.round((512 * h) / w), seed, "#5db536"), w, h, { accent: kind === "tasks" ? GLOW.green : GLOW.sky, depth: 0.08, radius: 0.1, glow: 0.2 });
     s.group.rotation.order = "YXZ";
     s.group.position.set(x, y, z);
     s.group.rotation.y = yaw;
@@ -122,8 +123,8 @@ const build: ModelBuilder = async (env) => {
   const homes = cards.map((c) => c.group.position.clone());
 
   const frame: Frame = { cx: 0, cy: 3.65, hw: 5.4, hh: 3.8 };
-  const blue = new THREE.Color(0x5ea8ff);
-  const green = new THREE.Color(0x9bf070);
+  const blue = new THREE.Color(0x2f6fb5);
+  const green = new THREE.Color(0x73c94a);
   const d = new THREE.Object3D();
   const col = new THREE.Color();
   const model: Model = {
@@ -174,7 +175,7 @@ const build: ModelBuilder = async (env) => {
         (m.material as THREE.MeshBasicMaterial).opacity = (1 - s) * 0.7 * (0.3 + 0.7 * l);
       });
       (rim.material as THREE.MeshBasicMaterial).opacity = 0.5 + 0.5 * l;
-      (pool.material as THREE.MeshBasicMaterial).opacity = 0.25 + 0.3 * l;
+      (pool.material as THREE.MeshBasicMaterial).opacity = 0.1 + 0.06 * l;
       // the cards come in from the sides
       cards.forEach((c, i) => {
         const e = quint(clamp01((a * 1.5 - i * 0.1) / 0.65));

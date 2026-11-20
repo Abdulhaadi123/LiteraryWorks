@@ -105,37 +105,11 @@ html.motion .xp:not(.xp-failed) .xp-stage {
   height: 100svh;
   padding: 0;
   overflow: hidden;
+  /* the light studio ground: a pale blue-grey backdrop with a soft white light behind the set; the scene draws the glossy floor,
+     the shadows and the depth on top */
   background:
-    radial-gradient(46% 60% at 73% 48%, rgba(34, 66, 95, 0.07) 0%, rgba(34, 66, 95, 0) 72%),
-    linear-gradient(180deg, #ffffff 0%, #f4f6f7 100%);
-}
-/* a fine dotted sheet behind the model, fading out toward the edges */
-html.motion .xp:not(.xp-failed) .xp-stage::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(rgba(37, 99, 196, 0.2) 1px, transparent 1.5px) 0 0 / 28px 28px;
-  -webkit-mask-image: radial-gradient(58% 78% at 70% 50%, #000 0%, transparent 100%);
-  mask-image: radial-gradient(58% 78% at 70% 50%, #000 0%, transparent 100%);
-}
-/* the deep-blue studio ground: blue light behind the set, a little green low on the left, a pale light at the top right, a darker floor,
-   and a fine grain over all of it; the scene draws the glossy floor, the rim lights and the depth on top */
-html.motion .xp.xp-dark:not(.xp-failed) .xp-stage {
-  background:
-    radial-gradient(60% 70% at 74% 42%, rgba(63, 130, 220, 0.42) 0%, rgba(63, 130, 220, 0) 70%),
-    radial-gradient(40% 50% at 22% 96%, rgba(115, 201, 74, 0.16) 0%, rgba(115, 201, 74, 0) 70%),
-    radial-gradient(34% 44% at 96% 6%, rgba(143, 210, 255, 0.2) 0%, rgba(143, 210, 255, 0) 70%),
-    radial-gradient(120% 90% at 50% 100%, #07121e 0%, rgba(7, 18, 30, 0) 62%),
-    linear-gradient(180deg, #17344f 0%, #0d2033 58%, #091828 100%);
-}
-html.motion .xp.xp-dark:not(.xp-failed) .xp-stage::before {
-  z-index: 3;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 180px 180px;
-  opacity: 0.05;
-  -webkit-mask-image: none;
-  mask-image: none;
+    radial-gradient(40% 52% at 72% 52%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 70%),
+    linear-gradient(180deg, #d9e5f1 0%, #e8eff6 52%, #f3f6fa 100%);
 }
 html.motion .xp:not(.xp-failed) .xp-poster {
   position: absolute;
@@ -215,6 +189,9 @@ html.motion .xp:not(.xp-failed) .xp-rail {
   position: absolute;
   z-index: 4;
   left: max(1.1rem, calc(max(var(--gutter), (100% - 78rem) / 2) - 2.7rem));
+  /* no width of its own: the line, and the counter centred on it, stand at this x, so the counter never reaches the copy */
+  width: 0;
+  margin-left: 1.5px;
   top: 50%;
   display: flex;
   flex-direction: column;
@@ -283,21 +260,6 @@ html.motion .xp:not(.xp-failed) .xp-rail {
   box-shadow:
     0 0 0 2px var(--green),
     0 0 14px rgba(115, 201, 74, 0.85);
-}
-.xp-dark .xp-rail-line {
-  background: rgba(255, 255, 255, 0.2);
-}
-.xp-dark .xp-rail-tick {
-  background: rgba(255, 255, 255, 0.38);
-}
-.xp-dark .xp-rail-tick.is-on {
-  background: var(--green);
-}
-.xp-dark .xp-rail-num {
-  color: rgba(214, 228, 255, 0.72);
-}
-.xp-dark .xp-rail-num b {
-  color: #fff;
 }
 html.motion .xp:not(.xp-failed) .xp-hint {
   position: absolute;
@@ -412,62 +374,6 @@ html.motion .xp:not(.xp-failed) .xp-hint {
   letter-spacing: -0.012em;
   color: var(--ink);
 }
-.xp-dark .xp-labels li {
-  border-color: rgba(255, 255, 255, 0.22);
-  background: rgba(24, 47, 70, 0.9);
-  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5);
-}
-.xp-dark .xp-labels b {
-  color: #fff;
-}
-
-/* ---- a runway on a deep-blue ground: the copy and the tags change with it ---- */
-.xp-dark {
-  --fg: #fff;
-  --fg-soft: rgba(226, 236, 255, 0.84);
-  --fg-faint: rgba(214, 228, 255, 0.78);
-  --head: #fff;
-  --accent: var(--green);
-  --line: rgba(255, 255, 255, 0.16);
-  color: var(--fg);
-  background: linear-gradient(180deg, #17344f 0%, #0d2033 60%, #091828 100%);
-}
-.xp-dark .kicker {
-  border: 0;
-  background: none;
-  color: #dfe9f0;
-}
-.xp-dark :focus-visible {
-  outline-color: var(--sky);
-}
-.xp-dark .btn-line {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.42);
-  box-shadow: none;
-}
-.xp-dark .btn-line:hover {
-  border-color: #fff;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.14);
-}
-.xp-dark .h-lg em,
-.xp-dark .h-hero em {
-  color: #fff;
-}
-.xp-dark .checks li::before {
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23191716' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 10.4l3 3 6-6.6'/%3E%3C/svg%3E") center / 100% no-repeat,
-    var(--green);
-  box-shadow: none;
-}
-.xp-dark .xp-lines polyline {
-  stroke: var(--sky);
-}
-.xp-dark .xp-lines circle {
-  fill: var(--sky);
-  stroke: #162b40;
-}
 
 /* ---- the services deck: shown only where the scene runs; the plain list takes its place everywhere else ---- */
 .xp-deck {
@@ -495,25 +401,14 @@ html:not(.motion) .xp-compact .xp-phase:not(:first-child),
     padding-top: calc(var(--header) + 2.5rem);
   }
 }
-.xp-dark .metrics {
-  border-top-color: rgba(255, 255, 255, 0.2);
-}
-.xp-dark .metrics dt {
-  color: var(--green);
-  background: none;
-  -webkit-text-fill-color: currentColor;
-}
-.xp-dark .metrics dd {
-  color: rgba(214, 228, 255, 0.82);
-}
 
 html.motion .xp:not(.xp-failed) .xp-phase .checks {
   margin-top: 1.5rem;
 }
 
-/* an inner page whose scene does not run looks like the other inner pages (a dark one stays dark) */
-html:not(.motion) .xp-compact:not(.xp-dark),
-.xp-compact:not(.xp-dark).xp-failed {
+/* an inner page whose scene does not run looks like the other inner pages */
+html:not(.motion) .xp-compact,
+.xp-compact.xp-failed {
   background:
     radial-gradient(46% 70% at 88% 18%, rgba(96, 150, 255, 0.24) 0%, rgba(96, 150, 255, 0) 72%),
     radial-gradient(40% 60% at 4% 4%, rgba(170, 205, 255, 0.4) 0%, rgba(170, 205, 255, 0) 70%),

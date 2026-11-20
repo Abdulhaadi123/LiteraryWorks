@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { clamp01, lerp, quint, smooth, TAU, win } from "../engine";
-import { darkGlass, GLOW, glowTex, lightSprite, lit, makeScreen, stageMetal } from "./glow";
+import { floorShadow, paleGlass, GLOW, glowTex, lightSprite, lit, makeScreen, stageMetal } from "./glow";
 import { drawn, fillRR, rr } from "./parts";
 import { uiTexture } from "./ui";
 import type { Frame, Model, ModelBuilder } from "./types";
@@ -14,7 +14,7 @@ import type { Frame, Model, ModelBuilder } from "./types";
 
 const FLOORS = 10;
 const START = 3;
-const cap = () => new THREE.MeshStandardMaterial({ color: 0x0c2038, metalness: 0.3, roughness: 0.5, envMapIntensity: 0.2 });
+const cap = () => new THREE.MeshStandardMaterial({ color: 0xeaf0f6, metalness: 0, roughness: 0.4, envMapIntensity: 0.6 });
 const FW = 2.6;
 const FH = 0.36;
 const PITCH = 0.46;
@@ -28,18 +28,18 @@ const HOIST = 6.2;
 function blueprint(env: Parameters<ModelBuilder>[0]): THREE.CanvasTexture {
   return drawn(env, 1024, 1024, (g, w, h) => {
     const bg = g.createLinearGradient(0, 0, w, h);
-    bg.addColorStop(0, "#14375a");
-    bg.addColorStop(1, "#0a2038");
+    bg.addColorStop(0, "#eef4fb");
+    bg.addColorStop(1, "#dfeaf6");
     g.fillStyle = bg;
     g.fillRect(0, 0, w, h);
     for (let i = 0; i <= w; i += 32) {
-      g.fillStyle = i % 128 === 0 ? "rgba(170,210,255,0.26)" : "rgba(170,210,255,0.1)";
+      g.fillStyle = i % 128 === 0 ? "rgba(34,66,95,0.26)" : "rgba(34,66,95,0.1)";
       g.fillRect(i, 0, 1.5, h);
       g.fillRect(0, i, w, 1.5);
     }
     // the site boundary, and the footprint of the building
     g.setLineDash([18, 12]);
-    g.strokeStyle = "rgba(132,226,85,0.8)";
+    g.strokeStyle = "rgba(115,201,74,0.8)";
     g.lineWidth = 4;
     rr(g, 60, 60, w - 120, h - 120, 10);
     g.stroke();
@@ -47,9 +47,9 @@ function blueprint(env: Parameters<ModelBuilder>[0]): THREE.CanvasTexture {
     const fx = ((BX - FW / 2 + 4.2) / 8.4) * w;
     const fw = (FW / 8.4) * w;
     const fy = (4.2 - FW / 2) / 8.4 * h;
-    fillRR(g, fx, fy, fw, fw, 6, "rgba(111,178,255,0.18)");
+    fillRR(g, fx, fy, fw, fw, 6, "rgba(47,111,181,0.18)");
     rr(g, fx, fy, fw, fw, 6);
-    g.strokeStyle = "rgba(190,224,255,0.9)";
+    g.strokeStyle = "rgba(34,66,95,0.9)";
     g.lineWidth = 3;
     g.stroke();
     g.beginPath();
@@ -57,11 +57,11 @@ function blueprint(env: Parameters<ModelBuilder>[0]): THREE.CanvasTexture {
     g.lineTo(fx + fw, fy + fw);
     g.moveTo(fx + fw, fy);
     g.lineTo(fx, fy + fw);
-    g.strokeStyle = "rgba(190,224,255,0.35)";
+    g.strokeStyle = "rgba(34,66,95,0.35)";
     g.lineWidth = 2;
     g.stroke();
     // corner marks and a dimension line
-    g.strokeStyle = "#84e255";
+    g.strokeStyle = "#5db536";
     g.lineWidth = 7;
     g.lineCap = "round";
     [
@@ -76,7 +76,7 @@ function blueprint(env: Parameters<ModelBuilder>[0]): THREE.CanvasTexture {
       g.lineTo(x + sx * 60, y);
       g.stroke();
     });
-    g.strokeStyle = "rgba(190,224,255,0.7)";
+    g.strokeStyle = "rgba(34,66,95,0.7)";
     g.lineWidth = 3;
     g.beginPath();
     g.moveTo(fx, fy + fw + 56);
@@ -86,20 +86,20 @@ function blueprint(env: Parameters<ModelBuilder>[0]): THREE.CanvasTexture {
     g.moveTo(fx + fw, fy + fw + 40);
     g.lineTo(fx + fw, fy + fw + 72);
     g.stroke();
-    fillRR(g, fx + fw / 2 - 50, fy + fw + 78, 100, 14, 7, "rgba(190,224,255,0.5)");
+    fillRR(g, fx + fw / 2 - 50, fy + fw + 78, 100, 14, 7, "rgba(34,66,95,0.5)");
   });
 }
 
 function facade(env: Parameters<ModelBuilder>[0], seed: number): THREE.CanvasTexture {
   return drawn(env, 256, 64, (g, w, h) => {
-    g.fillStyle = "#0e2b47";
+    g.fillStyle = "#edf3f9";
     g.fillRect(0, 0, w, h);
     for (let i = 0; i < 7; i++) {
       const warm = (i * 7 + seed * 3) % 5 === 0;
-      g.fillStyle = warm ? "rgba(255,214,140,0.75)" : "rgba(150,210,255,0.6)";
+      g.fillStyle = warm ? "rgba(255,214,140,0.75)" : "rgba(47,111,181,0.5)";
       g.fillRect(10 + i * 35, 16, 24, 30);
     }
-    g.fillStyle = "rgba(190,224,255,0.5)";
+    g.fillStyle = "rgba(34,66,95,0.5)";
     g.fillRect(0, 0, w, 3);
     g.fillRect(0, h - 3, w, 3);
   });
@@ -155,6 +155,7 @@ function lattice(): { mast: THREE.BufferGeometry; jib: THREE.BufferGeometry } {
 
 const build: ModelBuilder = async (env) => {
   const group = new THREE.Group();
+  group.add(floorShadow(env, 10, 10, 0.16));
 
   /* ---- the site: a blueprint on a slab of dark glass ---- */
   const site = new THREE.Mesh(new THREE.BoxGeometry(8.4, 0.2, 8.4), [stageMetal(), stageMetal(), new THREE.MeshBasicMaterial({ map: blueprint(env), toneMapped: false }), stageMetal(), stageMetal(), stageMetal()]);
@@ -163,7 +164,7 @@ const build: ModelBuilder = async (env) => {
   const siteEdge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(8.4, 0.2, 8.4)), new THREE.LineBasicMaterial({ color: GLOW.sky, transparent: true, opacity: 0.7, toneMapped: false }));
   siteEdge.position.y = 0.1;
   group.add(siteEdge);
-  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "110,190,255"), transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "34,66,95"), transparent: true, opacity: 0.12, depthWrite: false, toneMapped: false }));
   pool.rotation.x = -Math.PI / 2;
   pool.position.set(BX, 0.22, 0);
   pool.scale.set(6.5, 6.5, 1);
@@ -188,7 +189,7 @@ const build: ModelBuilder = async (env) => {
     carried.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: GLOW.green, toneMapped: false })));
     group.add(carried);
   }
-  const stockFm = new THREE.MeshBasicMaterial({ map: facade(env, 5), color: 0x777777, toneMapped: false });
+  const stockFm = new THREE.MeshBasicMaterial({ map: facade(env, 5), color: 0xb8c4d0, toneMapped: false });
   const stock = new THREE.Mesh(new THREE.BoxGeometry(FW, FH * 0.9, FW), [stockFm, stockFm, cap(), cap(), stockFm, stockFm]);
   stock.position.set(PILE.x, BASE + FH * 0.45, PILE.z);
   group.add(stock, new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(FW, FH * 0.9, FW)), new THREE.LineBasicMaterial({ color: GLOW.sky, transparent: true, opacity: 0.45, toneMapped: false })));
@@ -200,7 +201,7 @@ const build: ModelBuilder = async (env) => {
 
   // dimension lines: the height, with ticks and a chip
   const dim = new THREE.Group();
-  const dl = (a: number[], b: number[]) => dim.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]), new THREE.LineBasicMaterial({ color: 0x84e255, transparent: true, opacity: 0.9, toneMapped: false })));
+  const dl = (a: number[], b: number[]) => dim.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]), new THREE.LineBasicMaterial({ color: 0x73c94a, transparent: true, opacity: 0.9, toneMapped: false })));
   const dx = BX + FW / 2 + 0.7;
   const dz = -FW / 2 - 0.2;
   dl([dx, BASE, dz], [dx, BASE + totalH, dz]);
@@ -213,7 +214,7 @@ const build: ModelBuilder = async (env) => {
   crane.position.copy(MAST);
   group.add(crane);
   const lat = lattice();
-  const latMat = new THREE.LineBasicMaterial({ color: 0xbfe0ff, transparent: true, opacity: 0.85, toneMapped: false });
+  const latMat = new THREE.LineBasicMaterial({ color: 0x3e6d97, transparent: true, opacity: 0.85, toneMapped: false });
   const mastLines = new THREE.LineSegments(lat.mast, latMat);
   crane.add(mastLines);
   const slew = new THREE.Group();
@@ -223,28 +224,28 @@ const build: ModelBuilder = async (env) => {
   const weight = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.6), stageMetal());
   weight.position.set(-2.3, JIB_Y - 0.1, 0);
   slew.add(weight);
-  const cab = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.5, 0.5), darkGlass(GLOW.navy, 0.2));
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.5, 0.5), paleGlass(GLOW.navy, 0.2));
   cab.position.set(0.55, JIB_Y - 0.2, 0.42);
   slew.add(cab);
-  const trolley = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.14, 0.4), new THREE.MeshBasicMaterial({ color: 0x84e255, toneMapped: false }));
+  const trolley = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.14, 0.4), new THREE.MeshBasicMaterial({ color: 0x73c94a, toneMapped: false }));
   slew.add(trolley);
   const beacon = lightSprite(env, "255,120,120", 0.7, 0.9);
   beacon.position.set(0, JIB_Y + 1.6, 0);
   slew.add(beacon);
   // the cable and the hook's four straps
   const cableGeo = new THREE.BufferGeometry().setFromPoints(Array.from({ length: 10 }, () => new THREE.Vector3()));
-  const cable = new THREE.LineSegments(cableGeo, new THREE.LineBasicMaterial({ color: 0xdff1ff, transparent: true, opacity: 0.9, toneMapped: false }));
+  const cable = new THREE.LineSegments(cableGeo, new THREE.LineBasicMaterial({ color: 0x2f6fb5, transparent: true, opacity: 0.9, toneMapped: false }));
   cable.frustumCulled = false;
   group.add(cable);
 
   // the sweep through the building as it runs
-  const scan = new THREE.Mesh(new THREE.PlaneGeometry(FW + 1.2, FW + 1.2), new THREE.MeshBasicMaterial({ map: glowTex(env, "140,210,255"), transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }));
+  const scan = new THREE.Mesh(new THREE.PlaneGeometry(FW + 1.2, FW + 1.2), new THREE.MeshBasicMaterial({ map: glowTex(env, "47,111,181"), transparent: true, opacity: 0.2, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }));
   scan.rotation.x = -Math.PI / 2;
   scan.position.x = BX;
   group.add(scan);
 
   // the project view
-  const project = makeScreen(env, uiTexture(env, "tasks", 480, 384, 21, "#84e255"), 1.9, 1.5, { accent: GLOW.sky, depth: 0.08, radius: 0.12, glow: 0.2 });
+  const project = makeScreen(env, uiTexture(env, "tasks", 480, 384, 21, "#5db536"), 1.9, 1.5, { accent: GLOW.sky, depth: 0.08, radius: 0.12, glow: 0.2 });
   project.group.rotation.order = "YXZ";
   group.add(project.group);
 
@@ -331,7 +332,7 @@ const build: ModelBuilder = async (env) => {
       const sy = BASE + ((p * 1.3) % 1) * (FLOORS * PITCH);
       scan.position.set(BX, sy, 0);
       scan.visible = l > 0.05;
-      (scan.material as THREE.MeshBasicMaterial).opacity = 0.34 * l;
+      (scan.material as THREE.MeshBasicMaterial).opacity = 0.2 * l;
       // the project view
       const e = quint(clamp01((a * 1.4 - 0.2) / 0.6));
       project.group.position.set(3.5, 2.0 + 0.06 * Math.sin(p * TAU * 2), 2.0);
@@ -339,7 +340,7 @@ const build: ModelBuilder = async (env) => {
       project.group.scale.setScalar(Math.max(0.001, e));
       (project.light.material as THREE.SpriteMaterial).opacity = (0.1 + 0.14 * l) * e;
       (siteEdge.material as THREE.LineBasicMaterial).opacity = 0.45 + 0.4 * l;
-      (pool.material as THREE.MeshBasicMaterial).opacity = 0.16 + 0.16 * l;
+      (pool.material as THREE.MeshBasicMaterial).opacity = 0.1 + 0.06 * l;
       dim.visible = a > 0.05;
       group.updateMatrixWorld(true);
     },

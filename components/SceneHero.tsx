@@ -26,7 +26,6 @@ export function SceneHero({
   actions,
   chapters,
   closing,
-  tone = "light",
 }: {
   id: string;
   variant: string;
@@ -38,11 +37,9 @@ export function SceneHero({
   actions: ReactNode;
   chapters: [Chapter, Chapter];
   closing: { title: ReactNode; lead: string; actions: ReactNode };
-  /** "dark" puts the scene on the deep-blue ground, with the glossy floor and the coloured lights. */
-  tone?: "light" | "dark";
 }) {
   return (
-    <Xp id={id} scene="system" tone={tone} className="xp-compact" vh={320} aria={aria ?? sceneAria(variant)} labels={systemLabelsFor(variant)} data={{ variant }}>
+    <Xp id={id} scene="system" className="xp-compact" vh={320} aria={aria ?? sceneAria(variant)} labels={systemLabelsFor(variant)} data={{ variant }}>
       <Phase from={0} to={0.12}>
         <p className="kicker rise">{kicker}</p>
         <h1 className="h-hero rise" style={{ "--i": 1 } as React.CSSProperties}>

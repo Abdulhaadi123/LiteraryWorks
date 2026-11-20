@@ -22,7 +22,7 @@ export function fitFrame(model: Model, pad = 0.12): void {
   const m4 = new THREE.Matrix4();
   const box = new THREE.Box3();
   const b = new THREE.Box3();
-  for (const [a, l, p] of STATES) {
+  for (const [a, l, p] of [...STATES, ...(model.fitStates ?? [])]) {
     model.set(a, l, p);
     model.group.updateMatrixWorld(true);
     model.group.traverse((o) => {
@@ -30,6 +30,8 @@ export function fitFrame(model: Model, pad = 0.12): void {
       const line = o as THREE.Line;
       if (!mesh.isMesh && !line.isLine) return;
       for (let q: THREE.Object3D | null = o; q; q = q.parent) if (!q.visible) return;
+      // the shadows on the floor live on layer 1 (they are left out of the mirror) and are not part of the thing
+      if (!o.layers.isEnabled(0)) return;
       const mat = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as THREE.Material | undefined;
       if (mat && mat.blending === THREE.AdditiveBlending) return;
       const inst = o as THREE.InstancedMesh;

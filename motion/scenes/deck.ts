@@ -47,22 +47,16 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   scene.environmentIntensity = 0.85;
 
   const cases = ctx.data?.variant === "cases";
-  const dark = ctx.data?.tone === "dark" && !cases;
+  const studio = !cases;
   const ids = ctx.data?.items?.map((i) => i.id) ?? ["a", "b", "c", "d", "e", "f"];
   const N = Math.max(3, ids.length);
   const env = createEnv(renderer, ctx.data?.variant ?? "services");
   const textures = env.textures;
-  // the services stand on the deep-blue ground: a glossy floor under whichever scene is in front, coloured rim lights, depth
-  const dress: Dressing | null = dark ? dressStage(gl, scene, camera, textures) : null;
-  if (dark) {
-    scene.environmentIntensity = 0.7;
-    scene.traverse((o) => {
-      if ((o as THREE.HemisphereLight).isHemisphereLight) (o as THREE.HemisphereLight).intensity = 0.42;
-    });
-  }
+  // the services stand in the light studio: a glossy floor under whichever scene is in front, soft shadows, coloured rim lights
+  const dress: Dressing | null = studio ? dressStage(gl, scene, camera, textures) : null;
 
-  const haloTex = blobTexture(dark ? "70,130,230" : "120,170,200", dark ? 0.6 : 0.5);
-  const dustTex = blobTexture(dark ? "170,215,255" : "90,134,170", 0.9);
+  const haloTex = blobTexture("120,170,200", 0.5);
+  const dustTex = blobTexture("90,134,170", 0.9);
   textures.push(haloTex, dustTex);
   const glowTex = blobTexture("130,185,225", 0.55);
   textures.push(glowTex);
@@ -90,8 +84,8 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
       holder.position.y = -i * SPACE;
       holder.add(model.group);
       let glow: THREE.Mesh | undefined;
-      if (model.ground && !dark) {
-        // a soft pool of light under the scene, so it stands on something on the dark ground
+      if (model.ground && !studio) {
+        // a soft pool of light under the scene, so it stands on something
         glow = new THREE.Mesh(blobGeo, new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, depthWrite: false, opacity: 0.55 }));
         glow.rotation.x = -Math.PI / 2;
         glow.renderOrder = -1;
@@ -104,8 +98,8 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   }
 
   /* ---- the glow behind, and a fine dust in the air that follows the camera a little slower than the scenes ---- */
-  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, transparent: true, depthWrite: false, opacity: 0.6, blending: dark ? THREE.AdditiveBlending : THREE.NormalBlending, toneMapped: !dark }));
-  if (dark) halo.layers.set(1);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, transparent: true, depthWrite: false, opacity: 0.6 }));
+  if (studio) halo.layers.set(1);
   scene.add(halo);
   const dustN = 140;
   const dustPos = new Float32Array(dustN * 3);
@@ -118,9 +112,9 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
   const dust = new THREE.Points(
     dustGeo,
-    new THREE.PointsMaterial({ map: dustTex, size: dark ? 0.22 : 0.18, transparent: true, depthWrite: false, opacity: dark ? 0.55 : 0.7, sizeAttenuation: true, blending: dark ? THREE.AdditiveBlending : THREE.NormalBlending }),
+    new THREE.PointsMaterial({ map: dustTex, size: 0.18, transparent: true, depthWrite: false, opacity: studio ? 0.5 : 0.7, sizeAttenuation: true }),
   );
-  if (dark) dust.layers.set(1);
+  if (studio) dust.layers.set(1);
   scene.add(dust);
 
   /* ---- progress ---- */
@@ -240,7 +234,7 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
       view.subVectors(target, camera.position).normalize();
       halo.position.copy(target).addScaledVector(view, 8);
       halo.scale.setScalar((hw * 2 + 2) * (1 + 8 / dist));
-      (halo.material as THREE.SpriteMaterial).opacity = dark ? 0.42 : 0.6;
+      (halo.material as THREE.SpriteMaterial).opacity = studio ? 0.3 : 0.6;
       if (dress && !cases) {
         // the floor under the scene in front: it glides with the camera and fades while two scenes share the picture
         const i0 = Math.min(N - 2, Math.floor(f));

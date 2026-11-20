@@ -49,7 +49,6 @@ function Deck({
       <Xp
         id={id}
         scene="deck"
-        tone="dark"
         className="xp-deck"
         railSteps={n}
         railIntro={INTRO}

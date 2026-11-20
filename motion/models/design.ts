@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { clamp01, lerp, quint, TAU } from "../engine";
-import { circleLine, GLOW, glowTex, lightSprite, lit, makeScreen, stageMetal, type Screen } from "./glow";
+import { floorShadow, circleLine, GLOW, glowTex, lightSprite, lit, makeScreen, stageMetal, type Screen } from "./glow";
 import { drawn, fillRR, rr } from "./parts";
 import { uiTexture } from "./ui";
 import type { Frame, Model, ModelBuilder } from "./types";
@@ -32,22 +32,23 @@ void main() {
 
 const build: ModelBuilder = async (env) => {
   const group = new THREE.Group();
+  group.add(floorShadow(env, 10.5, 6.5, 0.16));
 
   /* ---- the artboard: the wireframe, and the finished screen painted over it as the line passes ---- */
   const board = new THREE.Group();
   board.position.set(0, AY, 0);
   group.add(board);
-  const wire = makeScreen(env, uiTexture(env, "wire", 960, 614, 2, "#84e255"), AW, AH, { accent: GLOW.sky, depth: 0.1, radius: 0.14, glow: 0.2, back: null });
+  const wire = makeScreen(env, uiTexture(env, "wire", 960, 614, 2, "#5db536"), AW, AH, { accent: GLOW.sky, depth: 0.1, radius: 0.14, glow: 0.2, back: null });
   board.add(wire.group);
-  const finTex = uiTexture(env, "page", 960, 614, 3, "#84e255");
+  const finTex = uiTexture(env, "page", 960, 614, 3, "#5db536");
   const paintU = { map: { value: finTex }, uSweep: { value: 0.6 } };
   const paint = new THREE.Mesh(new THREE.PlaneGeometry(AW - 0.07, AH - 0.07), new THREE.ShaderMaterial({ uniforms: paintU, vertexShader: PAINT_V, fragmentShader: PAINT_F }));
   paint.position.z = 0.058;
   board.add(paint);
-  const sweepLine = new THREE.Mesh(new THREE.PlaneGeometry(0.05, AH + 0.5), new THREE.MeshBasicMaterial({ color: 0xbfe6ff, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const sweepLine = new THREE.Mesh(new THREE.PlaneGeometry(0.05, AH + 0.5), new THREE.MeshBasicMaterial({ color: 0x3e6d97, transparent: true, opacity: 0.95, depthWrite: false, toneMapped: false }));
   sweepLine.position.z = 0.075;
   board.add(sweepLine);
-  const sweepGlow = lightSprite(env, "130,200,255", 1.4, 0.85);
+  const sweepGlow = lightSprite(env, "47,111,181", 1.4, 0.3);
   sweepGlow.scale.set(1.3, AH + 1.3, 1);
   sweepGlow.position.z = 0.07;
   board.add(sweepGlow);
@@ -99,7 +100,7 @@ const build: ModelBuilder = async (env) => {
   board.add(cur);
 
   /* ---- guides across the stage ---- */
-  const guideMat = (c: number, o: number) => new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: o, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+  const guideMat = (c: number, o: number) => new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: o, depthWrite: false, toneMapped: false });
   const seg = (a: number[], b: number[], c: number, o: number) => {
     const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]), guideMat(c, o));
     group.add(l);
@@ -137,8 +138,8 @@ const build: ModelBuilder = async (env) => {
   // the type specimen and the component states
   const typeTex = drawn(env, 384, 384, (g, w, h) => {
     const bg = g.createLinearGradient(0, 0, w, h);
-    bg.addColorStop(0, "#1d466b");
-    bg.addColorStop(1, "#0a2036");
+    bg.addColorStop(0, "#ffffff");
+    bg.addColorStop(1, "#e3ecf6");
     g.fillStyle = bg;
     g.fillRect(0, 0, w, h);
     g.fillStyle = "#fff";
@@ -146,39 +147,39 @@ const build: ModelBuilder = async (env) => {
     g.textAlign = "center";
     g.textBaseline = "middle";
     g.fillText("Aa", w / 2, h * 0.46);
-    fillRR(g, 60, 288, 150, 14, 7, "rgba(190,224,255,0.5)");
-    fillRR(g, 60, 314, 100, 11, 5.5, "rgba(190,224,255,0.28)");
+    fillRR(g, 60, 288, 150, 14, 7, "rgba(34,66,95,0.5)");
+    fillRR(g, 60, 314, 100, 11, 5.5, "rgba(34,66,95,0.28)");
     g.beginPath();
     g.arc(w - 66, 306, 18, 0, TAU);
-    g.fillStyle = "#84e255";
+    g.fillStyle = "#5db536";
     g.fill();
     rr(g, 1.5, 1.5, w - 3, h - 3, 30);
-    g.strokeStyle = "rgba(170,210,255,0.3)";
+    g.strokeStyle = "rgba(34,66,95,0.3)";
     g.lineWidth = 3;
     g.stroke();
   });
   const typeCard = makeScreen(env, typeTex, 1.5, 1.5, { accent: GLOW.sky, depth: 0.08, radius: 0.16, glow: 0.2 });
   const compTex = drawn(env, 576, 352, (g, w, h) => {
     const bg = g.createLinearGradient(0, 0, w, h);
-    bg.addColorStop(0, "#143453");
-    bg.addColorStop(1, "#0a1f35");
+    bg.addColorStop(0, "#ffffff");
+    bg.addColorStop(1, "#e9f0f7");
     g.fillStyle = bg;
     g.fillRect(0, 0, w, h);
-    ["#84e255", "rgba(132,226,85,0.55)", "rgba(190,224,255,0.14)"].forEach((c, i) => {
+    ["#5db536", "rgba(115,201,74,0.55)", "rgba(34,66,95,0.14)"].forEach((c, i) => {
       fillRR(g, 36 + i * 170, 50, 150, 56, 28, c);
-      fillRR(g, 66 + i * 170, 72, 90, 12, 6, i === 2 ? "rgba(190,224,255,0.6)" : "rgba(8,30,12,0.7)");
+      fillRR(g, 66 + i * 170, 72, 90, 12, 6, i === 2 ? "rgba(34,66,95,0.6)" : "rgba(8,30,12,0.7)");
     });
-    fillRR(g, 36, 150, 220, 60, 30, "rgba(190,224,255,0.1)");
+    fillRR(g, 36, 150, 220, 60, 30, "rgba(34,66,95,0.1)");
     g.beginPath();
     g.arc(214, 180, 22, 0, TAU);
-    g.fillStyle = "#84e255";
+    g.fillStyle = "#5db536";
     g.fill();
-    fillRR(g, 300, 156, 240, 48, 14, "rgba(190,224,255,0.1)");
-    fillRR(g, 320, 174, 120, 12, 6, "rgba(190,224,255,0.4)");
-    fillRR(g, 36, 250, 504, 46, 14, "rgba(190,224,255,0.08)");
-    fillRR(g, 56, 268, 200, 11, 5.5, "rgba(190,224,255,0.34)");
+    fillRR(g, 300, 156, 240, 48, 14, "rgba(34,66,95,0.1)");
+    fillRR(g, 320, 174, 120, 12, 6, "rgba(34,66,95,0.4)");
+    fillRR(g, 36, 250, 504, 46, 14, "rgba(34,66,95,0.08)");
+    fillRR(g, 56, 268, 200, 11, 5.5, "rgba(34,66,95,0.34)");
     rr(g, 1.5, 1.5, w - 3, h - 3, 32);
-    g.strokeStyle = "rgba(170,210,255,0.3)";
+    g.strokeStyle = "rgba(34,66,95,0.3)";
     g.lineWidth = 3;
     g.stroke();
   });
@@ -210,14 +211,14 @@ const build: ModelBuilder = async (env) => {
     handlesGroup.add(m);
   });
   [C1, C2].forEach((p) => {
-    const m = new THREE.Mesh(new THREE.SphereGeometry(0.08, 14, 10), new THREE.MeshBasicMaterial({ color: 0x84e255, toneMapped: false }));
+    const m = new THREE.Mesh(new THREE.SphereGeometry(0.08, 14, 10), new THREE.MeshBasicMaterial({ color: 0x73c94a, toneMapped: false }));
     m.position.copy(p);
     handlesGroup.add(m);
   });
   group.add(handlesGroup);
 
   // the floor
-  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "110,190,255"), transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "34,66,95"), transparent: true, opacity: 0.12, depthWrite: false, toneMapped: false }));
   pool.rotation.x = -Math.PI / 2;
   pool.position.set(0, 0.03, 0.4);
   pool.scale.set(10, 5, 1);
@@ -274,7 +275,7 @@ const build: ModelBuilder = async (env) => {
       guides.forEach((g) => ((g.material as THREE.LineBasicMaterial).opacity = (0.3 + 0.3 * l) * e));
       measure.visible = a > 0.3;
       (standRim.material as THREE.MeshBasicMaterial).opacity = 0.5 + 0.5 * l;
-      (pool.material as THREE.MeshBasicMaterial).opacity = 0.18 + 0.16 * l;
+      (pool.material as THREE.MeshBasicMaterial).opacity = 0.1 + 0.06 * l;
       group.updateMatrixWorld(true);
     },
     frame: () => frame,

@@ -33,7 +33,6 @@ export default function Home() {
       <Xp
         id="story"
         scene="system"
-        tone="dark"
         vh={500}
         aria={sceneAria("hero")}
         labels={systemLabelsFor("hero")}

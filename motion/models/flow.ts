@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { clamp01, lerp, quint, smooth, TAU } from "../engine";
-import { bandGeometry, chrome, GLOW, glowTex, lightSprite, lit, makeTile, plasmaMaterial, stageMetal, tickMarks, type Tile } from "./glow";
+import { crispDot, floorShadow, bandGeometry, chrome, GLOW, glowTex, lightSprite, lit, makeTile, plasmaMaterial, stageMetal, tickMarks, type Tile } from "./glow";
 import { drawn } from "./parts";
 import type { Frame, Model, ModelBuilder } from "./types";
 
@@ -20,6 +20,7 @@ const GATE_R = 2.15;
 const build: ModelBuilder = async (env) => {
   const group = new THREE.Group();
   const rnd = env.rnd;
+  group.add(floorShadow(env, 6, 14, 0.12, 0, -0.5));
 
   /* ---- the lane: dark glass with lit edges and chevrons that run toward you ---- */
   const lane = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.12, 13), stageMetal());
@@ -31,7 +32,7 @@ const build: ModelBuilder = async (env) => {
     group.add(e);
   });
   const chev = drawn(env, 128, 256, (g, w, h) => {
-    g.strokeStyle = "rgba(160,215,255,0.9)";
+    g.strokeStyle = "rgba(47,111,181,0.9)";
     g.lineWidth = 7;
     g.lineCap = "round";
     g.lineJoin = "round";
@@ -46,11 +47,11 @@ const build: ModelBuilder = async (env) => {
   });
   chev.wrapS = chev.wrapT = THREE.RepeatWrapping;
   chev.repeat.set(1, 6);
-  const chevMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 13), new THREE.MeshBasicMaterial({ map: chev, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const chevMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 13), new THREE.MeshBasicMaterial({ map: chev, transparent: true, opacity: 0.35, depthWrite: false, toneMapped: false }));
   chevMesh.rotation.x = -Math.PI / 2;
   chevMesh.position.set(0, 0.13, -0.5);
   group.add(chevMesh);
-  const laneGlow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "110,190,255"), transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const laneGlow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "34,66,95"), transparent: true, opacity: 0.1, depthWrite: false, toneMapped: false }));
   laneGlow.rotation.x = -Math.PI / 2;
   laneGlow.position.set(0, 0.14, 0.2);
   laneGlow.scale.set(4.5, 4.5, 1);
@@ -80,9 +81,9 @@ const build: ModelBuilder = async (env) => {
   const lens = new THREE.Mesh(new THREE.SphereGeometry(GATE_R - 0.4, 64, 48), pl.mat);
   lens.scale.set(1, 1, 0.07);
   gate.add(lens);
-  const flare = lightSprite(env, "90,200,150", 7, 0.4);
+  const flare = lightSprite(env, "90,200,150", 6, 0.14);
   gate.add(flare);
-  const flare2 = lightSprite(env, "90,160,255", 11, 0.2);
+  const flare2 = lightSprite(env, "90,160,255", 9, 0.06);
   gate.add(flare2);
   // the stand: two legs down to the lane
   [-1, 1].forEach((s) => {
@@ -93,7 +94,7 @@ const build: ModelBuilder = async (env) => {
     stripe.position.set(s * (GATE_R + 0.05), (GATE_Y - 0.1) / 2 - GATE_Y, 0.26);
     gate.add(stripe);
   });
-  const gatePool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "110,190,255"), transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const gatePool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "34,66,95"), transparent: true, opacity: 0.12, depthWrite: false, toneMapped: false }));
   gatePool.rotation.x = -Math.PI / 2;
   gatePool.position.set(0, 0.15, 0);
   gatePool.scale.set(5, 5, 1);
@@ -114,7 +115,7 @@ const build: ModelBuilder = async (env) => {
       const rho = q.rho * Math.pow(1 - u, 1.35);
       pts.push(new THREE.Vector3(Math.cos(q.phi + u * 1.6) * rho, Math.max(0.55, GATE_Y + Math.sin(q.phi + u * 1.6) * rho * 0.8), lerp(-7.2, -0.6, e)));
     }
-    group.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, 0.014, 4, false), new THREE.MeshBasicMaterial({ color: 0x8fd2ff, transparent: true, opacity: 0.34, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })));
+    group.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, 0.014, 4, false), new THREE.MeshBasicMaterial({ color: 0x4f8fd9, transparent: true, opacity: 0.34, depthWrite: false, toneMapped: false })));
   });
   const outs: { t: Tile; off: number }[] = Array.from({ length: N_OUT }, (_, j) => {
     const t = makeTile(env, "check", 1.0, GLOW.green, "120,215,110");
@@ -128,7 +129,7 @@ const build: ModelBuilder = async (env) => {
   const sp = Array.from({ length: SN }, () => ({ x: (rnd() - 0.5) * 1.2, z: rnd() * 13 - 7, y: 0.2 + rnd() * 0.9, v: 0.3 + rnd() * 0.8 }));
   const sGeo = new THREE.BufferGeometry();
   sGeo.setAttribute("position", new THREE.BufferAttribute(sPos, 3));
-  const sparks = new THREE.Points(sGeo, new THREE.PointsMaterial({ size: 0.1, map: glowTex(env, "170,230,255"), color: 0xbfe0ff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, opacity: 0.8, toneMapped: false }));
+  const sparks = new THREE.Points(sGeo, new THREE.PointsMaterial({ size: 0.1, map: crispDot(env), color: 0x3e6d97, transparent: true, depthWrite: false, sizeAttenuation: true, opacity: 0.8, toneMapped: false }));
   sparks.frustumCulled = false;
   group.add(sparks);
 
@@ -166,7 +167,7 @@ const build: ModelBuilder = async (env) => {
         const s = lerp(1, 0.55, Math.pow(u, 3)) * (1 - smooth(clamp01((u - 0.94) / 0.06)));
         q.t.group.scale.setScalar(Math.max(0.001, s));
         flash = Math.max(flash, Math.exp(-Math.pow((z + 0.6) / 0.9, 2)));
-        (q.t.light.material as THREE.SpriteMaterial).opacity = 0.3 + 0.2 * (1 - tide);
+        (q.t.light.material as THREE.SpriteMaterial).opacity = 0.12 + 0.1 * (1 - tide);
         q.t.edge.forEach((ln) => ((ln.material as THREE.LineBasicMaterial).opacity = 0.7));
       });
       outs.forEach((q) => {
@@ -178,7 +179,7 @@ const build: ModelBuilder = async (env) => {
         const s = lerp(0.5, 1, smooth(clamp01(u / 0.2))) * (1 - smooth(clamp01((u - 0.93) / 0.07)));
         q.t.group.scale.setScalar(Math.max(0.001, s));
         flash = Math.max(flash, Math.exp(-Math.pow((z - 0.8) / 0.7, 2)) * 0.8);
-        (q.t.light.material as THREE.SpriteMaterial).opacity = 0.2 + 0.2 * l;
+        (q.t.light.material as THREE.SpriteMaterial).opacity = 0.14 + 0.08 * l;
       });
       const power = 0.35 + 0.65 * (0.4 * a + 0.6 * l);
       pl.u.uT.value = p * 7;
@@ -186,9 +187,9 @@ const build: ModelBuilder = async (env) => {
       ring.rotation.y = p * 1.2;
       inner.rotation.z = -p * TAU * 0.9;
       arcs.forEach((arc, k) => (arc.rotation.z = k * 2.1 + p * TAU * 1.3));
-      (flare.material as THREE.SpriteMaterial).opacity = 0.2 + 0.3 * power + 0.3 * flash;
-      (flare2.material as THREE.SpriteMaterial).opacity = 0.1 + 0.16 * power;
-      (gatePool.material as THREE.MeshBasicMaterial).opacity = 0.2 + 0.25 * power + 0.2 * flash;
+      (flare.material as THREE.SpriteMaterial).opacity = 0.08 + 0.12 * power + 0.12 * flash;
+      (flare2.material as THREE.SpriteMaterial).opacity = 0.03 + 0.05 * power;
+      (gatePool.material as THREE.MeshBasicMaterial).opacity = 0.1 + 0.08 * power + 0.06 * flash;
       chev.offset.y = -p * 7;
       (chevMesh.material as THREE.MeshBasicMaterial).opacity = 0.18 + 0.28 * l;
       for (let i = 0; i < SN; i++) {

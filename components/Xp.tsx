@@ -18,7 +18,6 @@ export function Xp({
   labels,
   data,
   poster,
-  tone = "light",
   railSteps,
   railIntro = 0,
   className,
@@ -32,8 +31,6 @@ export function Xp({
   data?: SceneData;
   /** The still picture for phones and for the moment before the scene starts; omit it where the section needs none. */
   poster?: ReactNode;
-  /** "dark" for a runway on a navy ground. */
-  tone?: "light" | "dark";
   /** A deck of this many items: the progress rail on the left marks where each starts and counts them. */
   railSteps?: number;
   /** How much of the scroll (0..1) the intro takes before the first item (decks). */
@@ -43,14 +40,14 @@ export function Xp({
 }) {
   const ticks = railSteps ? Array.from({ length: railSteps }, (_, k) => railIntro + (k / railSteps) * (1 - railIntro)) : [];
   return (
-    <section id={id} className={`xp xp-${tone}${className ? ` ${className}` : ""}`} data-pace style={{ "--xp-vh": vh } as CSSProperties}>
+    <section id={id} className={`xp xp-light${className ? ` ${className}` : ""}`} data-pace style={{ "--xp-vh": vh } as CSSProperties}>
       <div className="xp-stage">
         {poster ? (
           <div className="xp-poster" aria-hidden="true">
             {poster}
           </div>
         ) : null}
-        <Stage3D scene={scene} labels={labels} aria={aria} data={data ? { ...data, tone } : undefined} />
+        <Stage3D scene={scene} labels={labels} aria={aria} data={data} />
         <div className="xp-copy">
           <div className="wrap xp-phases">{children}</div>
         </div>

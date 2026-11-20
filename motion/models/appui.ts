@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { clamp01, lerp, quint, TAU } from "../engine";
 import { makePhone, SCREEN_PX } from "../devices";
-import { circleLine, GLOW, glowTex, lightSprite, lit, makeScreen, outline, stageMetal } from "./glow";
+import { floorShadow, circleLine, GLOW, glowTex, lightSprite, lit, makeScreen, outline, stageMetal } from "./glow";
 import { drawn, fillRR, plane, rr } from "./parts";
 import type { Frame, Model, ModelBuilder } from "./types";
 
@@ -16,7 +16,7 @@ const [PX, PY] = SCREEN_PX.phone;
 const ZS = 0.0465 * S + 0.012;
 const SW = 0.668 * S;
 const SH = 1.448 * S;
-const LINE = "rgba(190,224,255,";
+const LINE = "rgba(34,66,95,";
 
 const sk = (g: CanvasRenderingContext2D, x: number, y: number, w: number, h = 12, a = 0.3) => fillRR(g, x, y, w, h, h / 2, `${LINE}${a})`);
 const dotAt = (g: CanvasRenderingContext2D, x: number, y: number, r: number, c: string) => {
@@ -31,25 +31,25 @@ function screenLayer(env: Parameters<ModelBuilder>[0], k: number): THREE.CanvasT
   return drawn(env, PX, PY, (g, w, h) => {
     if (k === 0) {
       const bg = g.createLinearGradient(0, 0, w, h);
-      bg.addColorStop(0, "#143453");
-      bg.addColorStop(1, "#0a1f35");
+      bg.addColorStop(0, "#ffffff");
+      bg.addColorStop(1, "#e9f0f7");
       g.fillStyle = bg;
       g.fillRect(0, 0, w, h);
       // status bar, header with an avatar, the field at the bottom
       sk(g, 40, 38, 70, 12, 0.5);
       sk(g, w - 150, 38, 110, 12, 0.4);
-      fillRR(g, 0, 78, w, 118, 0, "rgba(150,200,255,0.08)");
-      dotAt(g, 78, 138, 30, "rgba(111,178,255,0.6)");
+      fillRR(g, 0, 78, w, 118, 0, "rgba(34,66,95,0.08)");
+      dotAt(g, 78, 138, 30, "rgba(47,111,181,0.6)");
       sk(g, 124, 118, 150, 16, 0.5);
       sk(g, 124, 146, 90, 11, 0.26);
-      dotAt(g, w - 60, 138, 9, "#84e255");
-      fillRR(g, 28, h - 150, w - 56, 84, 42, "rgba(190,224,255,0.1)");
+      dotAt(g, w - 60, 138, 9, "#5db536");
+      fillRR(g, 28, h - 150, w - 56, 84, 42, "rgba(34,66,95,0.1)");
       sk(g, 62, h - 118, 190, 14, 0.3);
-      dotAt(g, w - 78, h - 108, 28, "#84e255");
+      dotAt(g, w - 78, h - 108, 28, "#5db536");
       // faint outlines where the messages go
       for (let i = 0; i < 5; i++) {
         rr(g, i % 2 ? w - 330 : 28, 240 + i * 120, 300, 84, 38);
-        g.strokeStyle = "rgba(170,210,255,0.14)";
+        g.strokeStyle = "rgba(34,66,95,0.14)";
         g.lineWidth = 2;
         g.stroke();
       }
@@ -57,29 +57,29 @@ function screenLayer(env: Parameters<ModelBuilder>[0], k: number): THREE.CanvasT
       for (let i = 0; i < 5; i++) {
         const me = i % 2 === 1;
         const x = me ? w - 330 : 28;
-        fillRR(g, x, 240 + i * 120, 300, 84, 38, me ? "rgba(132,226,85,0.34)" : "rgba(111,178,255,0.34)");
+        fillRR(g, x, 240 + i * 120, 300, 84, 38, me ? "rgba(115,201,74,0.34)" : "rgba(47,111,181,0.34)");
         sk(g, x + 26, 262 + i * 120, 200 - i * 14, 13, 0.7);
         sk(g, x + 26, 288 + i * 120, 130, 11, 0.4);
       }
     } else if (k === 2) {
       // a notification banner coming in at the top, and an avatar with a ring
-      fillRR(g, 24, 56, w - 48, 120, 34, "rgba(14,40,66,0.96)");
+      fillRR(g, 24, 56, w - 48, 120, 34, "rgba(255,255,255,0.97)");
       rr(g, 24, 56, w - 48, 120, 34);
-      g.strokeStyle = "rgba(170,210,255,0.6)";
+      g.strokeStyle = "rgba(34,66,95,0.6)";
       g.lineWidth = 3;
       g.stroke();
-      dotAt(g, 88, 116, 28, "#84e255");
+      dotAt(g, 88, 116, 28, "#5db536");
       sk(g, 138, 92, 190, 16, 0.8);
       sk(g, 138, 124, 280, 12, 0.4);
-      dotAt(g, 88, 880, 54, "rgba(111,178,255,0.5)");
+      dotAt(g, 88, 880, 54, "rgba(47,111,181,0.5)");
       g.beginPath();
       g.arc(88, 880, 66, 0, TAU);
-      g.strokeStyle = "#84e255";
+      g.strokeStyle = "#5db536";
       g.lineWidth = 6;
       g.stroke();
     } else {
       // the reply: typing dots, a heart, the send button lit
-      fillRR(g, 28, 690, 200, 80, 40, "rgba(111,178,255,0.4)");
+      fillRR(g, 28, 690, 200, 80, 40, "rgba(47,111,181,0.4)");
       [0, 1, 2].forEach((i) => dotAt(g, 78 + i * 38, 730, 11, i === 1 ? "#fff" : "rgba(255,255,255,0.7)"));
       g.beginPath();
       const hx = w - 120;
@@ -89,8 +89,8 @@ function screenLayer(env: Parameters<ModelBuilder>[0], k: number): THREE.CanvasT
       g.bezierCurveTo(hx + 36, hy - 66, hx + 70, hy - 16, hx, hy + 34);
       g.fillStyle = "#ff6b8b";
       g.fill();
-      dotAt(g, w - 78, h - 108, 40, "rgba(132,226,85,0.35)");
-      dotAt(g, w - 78, h - 108, 28, "#84e255");
+      dotAt(g, w - 78, h - 108, 40, "rgba(115,201,74,0.35)");
+      dotAt(g, w - 78, h - 108, 28, "#5db536");
     }
   });
 }
@@ -99,11 +99,11 @@ function screenLayer(env: Parameters<ModelBuilder>[0], k: number): THREE.CanvasT
 function chipTexture(env: Parameters<ModelBuilder>[0], kind: "bell" | "heart" | "chat"): THREE.CanvasTexture {
   return drawn(env, 512, 160, (g, w, h) => {
     const bg = g.createLinearGradient(0, 0, w, h);
-    bg.addColorStop(0, "#1d466b");
-    bg.addColorStop(1, "#0a2036");
+    bg.addColorStop(0, "#ffffff");
+    bg.addColorStop(1, "#e3ecf6");
     g.fillStyle = bg;
     g.fillRect(0, 0, w, h);
-    dotAt(g, 80, 80, 40, kind === "heart" ? "rgba(255,107,139,0.25)" : "rgba(132,226,85,0.25)");
+    dotAt(g, 80, 80, 40, kind === "heart" ? "rgba(255,107,139,0.25)" : "rgba(115,201,74,0.25)");
     g.lineCap = "round";
     g.lineJoin = "round";
     if (kind === "bell") {
@@ -112,10 +112,10 @@ function chipTexture(env: Parameters<ModelBuilder>[0], kind: "bell" | "heart" | 
       g.quadraticCurveTo(62, 54, 80, 52);
       g.quadraticCurveTo(98, 54, 102, 96);
       g.closePath();
-      g.strokeStyle = "#84e255";
+      g.strokeStyle = "#5db536";
       g.lineWidth = 7;
       g.stroke();
-      dotAt(g, 80, 108, 7, "#84e255");
+      dotAt(g, 80, 108, 7, "#5db536");
     } else if (kind === "heart") {
       g.beginPath();
       g.moveTo(80, 104);
@@ -125,14 +125,14 @@ function chipTexture(env: Parameters<ModelBuilder>[0], kind: "bell" | "heart" | 
       g.fill();
     } else {
       rr(g, 54, 56, 52, 40, 14);
-      g.strokeStyle = "#84e255";
+      g.strokeStyle = "#5db536";
       g.lineWidth = 7;
       g.stroke();
     }
     sk(g, 150, 54, 220, 18, 0.7);
     sk(g, 150, 88, 150, 13, 0.35);
     rr(g, 1.5, 1.5, w - 3, h - 3, 40);
-    g.strokeStyle = "rgba(170,210,255,0.3)";
+    g.strokeStyle = "rgba(34,66,95,0.3)";
     g.lineWidth = 3;
     g.stroke();
   });
@@ -140,6 +140,7 @@ function chipTexture(env: Parameters<ModelBuilder>[0], kind: "bell" | "heart" | 
 
 const build: ModelBuilder = async (env) => {
   const group = new THREE.Group();
+  group.add(floorShadow(env, 10.5, 6.5, 0.16));
   const CY = 3.05;
 
   /* ---- the phone in the middle, and its screen's layers ---- */
@@ -191,8 +192,8 @@ const build: ModelBuilder = async (env) => {
   group.add(path);
   const runners = [0, 1, 2].map((k) => {
     const g = new THREE.Group();
-    g.add(new THREE.Mesh(new THREE.SphereGeometry(0.075, 14, 10), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false })));
-    g.add(lightSprite(env, k % 2 ? "130,200,255" : "150,235,120", 0.9, 0.9));
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(0.075, 14, 10), new THREE.MeshBasicMaterial({ color: 0x22425f, toneMapped: false })));
+    g.add(lightSprite(env, k % 2 ? "47,111,181" : "115,201,74", 0.9, 0.45));
     group.add(g);
     return g;
   });
@@ -212,7 +213,7 @@ const build: ModelBuilder = async (env) => {
     group.add(m);
     return m;
   });
-  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "110,190,255"), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "34,66,95"), transparent: true, opacity: 0.12, depthWrite: false, toneMapped: false }));
   pool.rotation.x = -Math.PI / 2;
   pool.position.set(0, 0.03, -0.3);
   pool.scale.set(10, 5, 1);
@@ -273,7 +274,7 @@ const build: ModelBuilder = async (env) => {
         m.scale.setScalar(1.3 + 2.0 * s);
         (m.material as THREE.MeshBasicMaterial).opacity = (1 - s) * 0.5 * l;
       });
-      (pool.material as THREE.MeshBasicMaterial).opacity = 0.2 + 0.2 * l;
+      (pool.material as THREE.MeshBasicMaterial).opacity = 0.1 + 0.06 * l;
       (standRim.material as THREE.MeshBasicMaterial).opacity = 0.5 + 0.5 * l;
       group.updateMatrixWorld(true);
     },

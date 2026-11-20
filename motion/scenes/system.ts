@@ -37,33 +37,24 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   const textures = env.textures;
   const hint = model.camera ?? { az: [-0.34, 0.2], elev: [0.17, 0.1] };
 
-  // a scene on the deep-blue ground gets the glossy floor, the coloured rim lights and the soft lights out of focus
-  const dark = ctx.data?.tone === "dark";
-  const dress: Dressing | null = dark ? dressStage(gl, scene, camera, textures) : null;
-  if (dark) {
-    scene.environmentIntensity = 0.7;
-    scene.traverse((o) => {
-      if ((o as THREE.HemisphereLight).isHemisphereLight) (o as THREE.HemisphereLight).intensity = 0.42;
-    });
-  }
+  // every scene stands in the light studio: a glossy floor, soft shadows, coloured rim lights and soft colour out of focus
+  const dress: Dressing | null = dressStage(gl, scene, camera, textures);
 
-  const haloTex = blobTexture(dark ? "70,130,230" : "120,170,200", dark ? 0.6 : 0.5);
-  const shadowTex = blobTexture(dark ? "2,8,18" : "20,40,60", 0.5);
-  const dustTex = blobTexture(dark ? "170,215,255" : "90,134,170", 0.9);
+  const haloTex = blobTexture("120,170,200", 0.5);
+  const shadowTex = blobTexture("20,40,60", 0.5);
+  const dustTex = blobTexture("90,134,170", 0.9);
   textures.push(haloTex, shadowTex, dustTex);
-  const halo = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: haloTex, transparent: true, depthWrite: false, opacity: 0.5, blending: dark ? THREE.AdditiveBlending : THREE.NormalBlending, toneMapped: !dark }),
-  );
-  if (dark) halo.layers.set(1);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, transparent: true, depthWrite: false, opacity: 0.3 }));
+  halo.layers.set(1);
   scene.add(halo);
 
   /* ---- a soft ground under a model that stands on nothing ---- */
   const blobGeo = new THREE.PlaneGeometry(1, 1);
-  const ground = new THREE.Mesh(blobGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, opacity: dark ? 0.55 : 0.4 }));
+  const ground = new THREE.Mesh(blobGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, opacity: 0.4 }));
   ground.rotation.x = -Math.PI / 2;
   ground.renderOrder = -1;
   ground.visible = !!model.ground;
-  if (dark) ground.layers.set(1);
+  ground.layers.set(1);
   scene.add(ground);
 
   /* ---- a fine dust in the air ---- */
@@ -83,9 +74,9 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
   const dust = new THREE.Points(
     dustGeo,
-    new THREE.PointsMaterial({ map: dustTex, size: dark ? 0.2 : 0.16, transparent: true, depthWrite: false, opacity: dark ? 0.55 : 0.7, sizeAttenuation: true, blending: dark ? THREE.AdditiveBlending : THREE.NormalBlending }),
+    new THREE.PointsMaterial({ map: dustTex, size: 0.16, transparent: true, depthWrite: false, opacity: 0.5, sizeAttenuation: true }),
   );
-  if (dark) dust.layers.set(1);
+  dust.layers.set(1);
   scene.add(dust);
 
   /* ---- progress ---- */
@@ -161,7 +152,7 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
       view.subVectors(target, camera.position).normalize();
       halo.position.copy(target).addScaledVector(view, 6);
       halo.scale.setScalar((f.hw * 2 + 1) * (1 + 6 / dist));
-      (halo.material as THREE.SpriteMaterial).opacity = dark ? lerp(0.3, 0.5, l) : lerp(0.4, 0.62, l);
+      (halo.material as THREE.SpriteMaterial).opacity = lerp(0.22, 0.38, l);
       dust.rotation.y = p * 0.5;
       dust.rotation.x = p * 0.1;
     },

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { clamp01, lerp, quint, TAU } from "../engine";
-import { darkGlass, GLOW, lightColumn, lit, makeScreen, type Screen } from "./glow";
+import { floorShadow, paleGlass, GLOW, lightColumn, lit, makeScreen, type Screen } from "./glow";
 import { drawn, rr } from "./parts";
 import { uiTexture } from "./ui";
 import type { Frame, Model, ModelBuilder } from "./types";
@@ -21,21 +21,21 @@ const NAMES = ["cloud", "data", "api", "interface"];
 function gridTexture(env: Parameters<ModelBuilder>[0], accent: string, seed: number): THREE.CanvasTexture {
   return drawn(env, 896, 576, (g, w, h) => {
     const bg = g.createLinearGradient(0, 0, w, h);
-    bg.addColorStop(0, "#143453");
-    bg.addColorStop(1, "#0a1f35");
+    bg.addColorStop(0, "#ffffff");
+    bg.addColorStop(1, "#e9f0f7");
     g.fillStyle = bg;
     g.fillRect(0, 0, w, h);
     const lit = g.createRadialGradient(w * 0.25, 0, 0, w * 0.25, 0, w);
-    lit.addColorStop(0, "rgba(130,195,255,0.22)");
-    lit.addColorStop(1, "rgba(130,195,255,0)");
+    lit.addColorStop(0, "rgba(111,178,255,0.22)");
+    lit.addColorStop(1, "rgba(111,178,255,0)");
     g.fillStyle = lit;
     g.fillRect(0, 0, w, h);
     for (let x = 0; x <= w; x += 56) {
-      g.fillStyle = x % 224 === 0 ? "rgba(170,210,255,0.2)" : "rgba(170,210,255,0.09)";
+      g.fillStyle = x % 224 === 0 ? "rgba(34,66,95,0.2)" : "rgba(34,66,95,0.09)";
       g.fillRect(x, 0, 1.5, h);
     }
     for (let y = 0; y <= h; y += 56) {
-      g.fillStyle = y % 224 === 0 ? "rgba(170,210,255,0.2)" : "rgba(170,210,255,0.09)";
+      g.fillStyle = y % 224 === 0 ? "rgba(34,66,95,0.2)" : "rgba(34,66,95,0.09)";
       g.fillRect(0, y, w, 1.5);
     }
     g.strokeStyle = accent;
@@ -53,10 +53,10 @@ function gridTexture(env: Parameters<ModelBuilder>[0], accent: string, seed: num
       g.lineTo(x + sx * 46, y);
       g.stroke();
     });
-    g.fillStyle = "rgba(190,224,255,0.3)";
+    g.fillStyle = "rgba(34,66,95,0.3)";
     for (let i = 0; i < 3; i++) rr(g, 70, 64 + i * 22, 150 - i * 36 + (seed % 3) * 8, 9, 4.5), g.fill();
     rr(g, 1.5, 1.5, w - 3, h - 3, 28);
-    g.strokeStyle = "rgba(170,210,255,0.28)";
+    g.strokeStyle = "rgba(34,66,95,0.28)";
     g.lineWidth = 3;
     g.stroke();
   });
@@ -64,6 +64,7 @@ function gridTexture(env: Parameters<ModelBuilder>[0], accent: string, seed: num
 
 const build: ModelBuilder = async (env) => {
   const group = new THREE.Group();
+  group.add(floorShadow(env, 8.5, 6.5, 0.18));
   const stack = new THREE.Group();
   group.add(stack);
 
@@ -72,7 +73,7 @@ const build: ModelBuilder = async (env) => {
   const block = (w: number, h: number, d: number, color = GLOW.sky): THREE.Group => {
     const g = new THREE.Group();
     const geo = new THREE.BoxGeometry(w, h, d);
-    g.add(new THREE.Mesh(geo, darkGlass(GLOW.navy, 0.25)));
+    g.add(new THREE.Mesh(geo, paleGlass(GLOW.navy, 0.25)));
     g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat(color)));
     return g;
   };
@@ -80,7 +81,7 @@ const build: ModelBuilder = async (env) => {
   /* ---- the four plates ---- */
   const plates = NAMES.map((name, k) => {
     const g = new THREE.Group();
-    const tex = name === "interface" ? uiTexture(env, "page", 896, 576, 4, "#84e255") : gridTexture(env, name === "cloud" ? "#84e255" : "#8fd2ff", k);
+    const tex = name === "interface" ? uiTexture(env, "page", 896, 576, 4, "#5db536") : gridTexture(env, name === "cloud" ? "#5db536" : "#8fd2ff", k);
     const s = makeScreen(env, tex, PW, PD, { accent: name === "interface" ? GLOW.green : GLOW.sky, depth: T, radius: 0.22, glow: 0.16, back: null });
     s.group.rotation.x = -Math.PI / 2;
     g.add(s.group);
@@ -96,12 +97,12 @@ const build: ModelBuilder = async (env) => {
     const t = plates[3].top;
     const card = block(1.7, 0.12, 1.0, GLOW.sky);
     card.position.set(-1.4, 0.06, -0.55);
-    const btn = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.7, 6, 14), new THREE.MeshBasicMaterial({ color: 0x84e255, toneMapped: false }));
+    const btn = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.7, 6, 14), new THREE.MeshBasicMaterial({ color: 0x73c94a, toneMapped: false }));
     btn.rotation.z = Math.PI / 2;
     btn.position.set(0.7, 0.14, 0.95);
     const toggle = block(0.95, 0.1, 0.42, GLOW.sky);
     toggle.position.set(1.65, 0.05, -0.8);
-    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 14), new THREE.MeshBasicMaterial({ color: 0x84e255, toneMapped: false }));
+    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 14), new THREE.MeshBasicMaterial({ color: 0x73c94a, toneMapped: false }));
     knob.position.set(1.95, 0.16, -0.8);
     t.add(card, btn, toggle, knob);
   }
@@ -120,7 +121,7 @@ const build: ModelBuilder = async (env) => {
     ];
     const pts: number[] = [];
     P.forEach(([x, z], i) => {
-      const m = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, i === 2 ? 0.34 : 0.18, 6), i === 2 ? new THREE.MeshBasicMaterial({ color: 0x84e255, toneMapped: false, transparent: true, opacity: 0.9 }) : darkGlass(GLOW.navy, 0.25));
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, i === 2 ? 0.34 : 0.18, 6), i === 2 ? new THREE.MeshBasicMaterial({ color: 0x73c94a, toneMapped: false, transparent: true, opacity: 0.9 }) : paleGlass(GLOW.navy, 0.25));
       m.position.set(x, i === 2 ? 0.17 : 0.09, z);
       t.add(m);
       gates.push(m);
@@ -149,7 +150,7 @@ const build: ModelBuilder = async (env) => {
     const t = plates[1].top;
     [-1.7, 0, 1.7].forEach((x, i) => {
       for (let d = 0; d < 3; d++) {
-        const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.14, 40), darkGlass(GLOW.navy, 0.22));
+        const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.14, 40), paleGlass(GLOW.navy, 0.22));
         disc.position.set(x, 0.07 + d * 0.22, 0);
         t.add(disc);
         const r = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.012, 6, 60), lit(i === 1 && d === 2 ? GLOW.green : GLOW.sky, 0.9));
@@ -170,7 +171,7 @@ const build: ModelBuilder = async (env) => {
         srv.position.set(-1.9 + c * 1.27, 0.17, -0.8 + r * 1.5);
         t.add(srv);
         for (let l = 0; l < 3; l++) {
-          const led = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.05, 0.02), new THREE.MeshBasicMaterial({ color: 0x84e255, toneMapped: false }));
+          const led = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.05, 0.02), new THREE.MeshBasicMaterial({ color: 0x73c94a, toneMapped: false }));
           led.position.set(-1.9 + c * 1.27 - 0.3 + l * 0.12, 0.2, -0.8 + r * 1.5 + 0.32);
           t.add(led);
           leds.push(led);
@@ -191,11 +192,11 @@ const build: ModelBuilder = async (env) => {
     stack.add(m);
     return m;
   });
-  const col = lightColumn(0x7cc4ff, 0.5, 0.5, 1);
+  const col = lightColumn(0x7cb4f0, 0.5, 0.5, 1);
   stack.add(col.mesh);
   const PK = 12;
   const packets = Array.from({ length: PK }, (_, i) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: i % 3 === 0 ? 0xb6f59a : 0xdff1ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+    const m = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: i % 3 === 0 ? 0x73c94a : 0x2f6fb5, transparent: true, depthWrite: false, toneMapped: false }));
     stack.add(m);
     return { m, x: i % 4 === 3 ? 0 : [-2.6, 2.6, -2.6, 2.6][i % 4], z: i % 4 === 3 ? 0 : [-1.6, -1.6, 1.6, 1.6][i % 4], v: 0.5 + (i % 5) * 0.18, up: i % 2 === 0 };
   });
@@ -247,7 +248,7 @@ const build: ModelBuilder = async (env) => {
       });
       leds.forEach((m, i) => {
         const on = Math.sin(p * 55 + i * 2.3) > -0.2 + (1 - l) * 0.6;
-        (m.material as THREE.MeshBasicMaterial).color.setHex(on ? (i % 5 === 0 ? 0xffc65a : 0x84e255) : 0x1d3f5c);
+        (m.material as THREE.MeshBasicMaterial).color.setHex(on ? (i % 5 === 0 ? 0xffc65a : 0x73c94a) : 0x1d3f5c);
       });
       gates.forEach((m, i) => {
         if (i === 2) (m.material as THREE.MeshBasicMaterial).opacity = 0.65 + 0.3 * Math.sin(p * 30);

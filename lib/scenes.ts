@@ -3,7 +3,7 @@ import type { LabelSpec } from "@/motion/types";
 /**
  * The words that go with each page's 3D scene. The scenes themselves are built in code (motion/models/): every page
  * has its own kind of animation: the home page (an AI core with nine service tiles locking into one halo), the
- * audit (a scan), about (a journey), and one for each service. The keys are the page's variant: "hero", "audit",
+ * audit (a scan), about (a book in chapters), and one for each service. The keys are the page's variant: "hero", "audit",
  * "about", or a service's slug.
  */
 
@@ -26,8 +26,8 @@ const TAGS: Record<string, string[]> = {
 /** What a screen reader is told about each picture: what it shows and what it does. */
 const ARIA: Record<string, string> = {
   hero: "A 3D picture of an AI core on a glossy stage: a glowing nucleus inside a faceted glass shell and three turning metal rings. Nine tiles, one for each service we build, start as a loose swarm around it; a scan sweeps through them, threads of light join each one to the core, and they lock into one halo while the core powers up.",
-  audit: "A 3D picture of an audit: five pages of a business's work stand in an arc, a curtain of light sweeps across them and marks what it finds, and a ranked plan appears in front.",
-  about: "A 3D picture of a journey: a road draws itself across the ground with four stops (plan, build, release, handover), each with one of our projects on it, while a light travels along it.",
+  audit: "A 3D picture of an audit: nine of a business's tools (mail, chat, documents, receipts, a calendar, a dashboard, a website, the cloud and a phone) stand on a glass table joined by lines. A scanner gantry sweeps across it; each tool it passes turns green if it works or amber if work is lost there, and the broken links show as dashed lines. Then the three places that matter most rise as numbered columns: the ranked plan.",
+  about: "A 3D picture of a book written in chapters: an open book stands on a lectern, its pages turn from Plan to Build to Release to Handover, and each chapter lifts a small model off the page: a floor plan with its walls going up, a stack of blocks falling into place, a rocket lifting off, and a card with a green check and a key. Four index tabs on the book's edge show which chapter is open.",
   "ai-automation": "A 3D picture of an automated workflow: requests (mail, documents, chats, dates, receipts) tumble in along a funnel of light, pass through a ring with a lens of living light, the AI agent, and come out the other side in a straight line, each one checked.",
   "ai-voice-systems": "A 3D picture of a voice call being answered: a ring of ninety-six sound bars round a glowing orb goes from a murmur to a full signal, with ripples across the stage, and the live call, the transcript and the follow-up beside it.",
   "saas-platforms": "A 3D picture of the layers of a software product pulled apart: four plates, the interface, the API, the data and the cloud, each with the parts that live on it, joined by lines of light that carry small packets between them.",

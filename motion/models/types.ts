@@ -34,6 +34,8 @@ export interface Model {
   floorY?: number;
   /** False when the model keeps its own frame up to date as it opens (the camera frames what the model reports, not what it measures). */
   fit?: boolean;
+  /** More states (`a`, `l`, `p`) the model passes through that the frame must hold, beside the usual ones (a peak that the usual ones miss). */
+  fitStates?: [number, number, number][];
   /** Frees what it made (geometries and materials are freed with the scene; textures through `env.textures`). */
   dispose?(): void;
 }

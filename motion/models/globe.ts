@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { clamp01, lerp, quint, TAU } from "../engine";
-import { bandGeometry, chrome, stageMetal, circleLine, GLOW, glowTex, lightColumn, lightSprite, lit, tickMarks } from "./glow";
+import { crispDot, floorShadow, bandGeometry, chrome, stageMetal, circleLine, GLOW, glowTex, lightColumn, lightSprite, lit, tickMarks } from "./glow";
 import type { Frame, Model, ModelBuilder } from "./types";
 
 /**
@@ -91,6 +91,7 @@ void main() {
 const build: ModelBuilder = async (env) => {
   const group = new THREE.Group();
   const rnd = env.rnd;
+  group.add(floorShadow(env, 7.5, 5.5, 0.2));
 
   /* ---- the projector base and its beam ---- */
   const baseMat = stageMetal();
@@ -105,9 +106,9 @@ const build: ModelBuilder = async (env) => {
   rimB.rotation.x = Math.PI / 2;
   rimB.position.y = 0.405;
   const beamH = G.y - R - 0.45;
-  const beam = lightColumn(0x7cc4ff, 0.55, 1.15, beamH);
+  const beam = lightColumn(0x7cb4f0, 0.55, 1.15, beamH);
   beam.mesh.position.y = 0.42 + beamH / 2;
-  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "110,190,255"), transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex(env, "34,66,95"), transparent: true, opacity: 0.14, depthWrite: false, toneMapped: false }));
   pool.rotation.x = -Math.PI / 2;
   pool.position.y = 0.42;
   pool.scale.set(3.4, 3.4, 1);
@@ -122,12 +123,13 @@ const build: ModelBuilder = async (env) => {
   globe.add(tilt);
   const spin = new THREE.Group();
   tilt.add(spin);
-  spin.add(new THREE.Mesh(new THREE.SphereGeometry(R * 0.985, 96, 64), new THREE.MeshBasicMaterial({ color: 0x07182c, toneMapped: false })));
+  spin.add(new THREE.Mesh(new THREE.SphereGeometry(R * 0.985, 96, 64), new THREE.MeshBasicMaterial({ color: 0xeaf1f8, toneMapped: false })));
 
-  // points of light: the land bright, the sea faint
+  // points of ink: the land navy, the sea a quiet blue-grey
   const N = 9000;
-  const pos = new Float32Array(N * 3);
-  const col = new Float32Array(N * 3);
+  const landPos: number[] = [];
+  const landCol: number[] = [];
+  const seaPos: number[] = [];
   const GOLD = Math.PI * (3 - Math.sqrt(5));
   for (let i = 0; i < N; i++) {
     const y = 1 - (2 * (i + 0.5)) / N;
@@ -136,28 +138,31 @@ const build: ModelBuilder = async (env) => {
     const x = Math.cos(th) * r;
     const z = Math.sin(th) * r;
     const land = fbm(x * 1.8 + 4.1, y * 1.8 + 2.3, z * 1.8 + 9.7) > 0.5;
-    const k = land ? 0.7 + rnd() * 0.3 : 0.07 + rnd() * 0.09;
-    pos[i * 3] = x * R * 1.004;
-    pos[i * 3 + 1] = y * R * 1.004;
-    pos[i * 3 + 2] = z * R * 1.004;
-    col[i * 3] = (land ? 0.55 : 0.2) * k;
-    col[i * 3 + 1] = (land ? 0.86 : 0.42) * k;
-    col[i * 3 + 2] = (land ? 1 : 0.8) * k;
+    if (land) {
+      landPos.push(x * R * 1.004, y * R * 1.004, z * R * 1.004);
+      const k = 0.75 + rnd() * 0.5;
+      landCol.push(0.13 * k, 0.27 * k, 0.46 * k);
+    } else seaPos.push(x * R * 1.004, y * R * 1.004, z * R * 1.004);
   }
-  const dotsGeo = new THREE.BufferGeometry();
-  dotsGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  dotsGeo.setAttribute("color", new THREE.BufferAttribute(col, 3));
-  const dots = new THREE.Points(dotsGeo, new THREE.PointsMaterial({ size: 0.27, map: glowTex(env, "255,255,255"), vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, toneMapped: false }));
-  dots.frustumCulled = false;
-  spin.add(dots);
+  const mkPoints = (pos: number[], col: number[] | null, size: number, color: number, opacity: number) => {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    if (col) geo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+    const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size, map: crispDot(env), color, vertexColors: !!col, transparent: true, depthWrite: false, sizeAttenuation: true, opacity, toneMapped: false }));
+    pts.frustumCulled = false;
+    spin.add(pts);
+    return pts;
+  };
+  mkPoints(landPos, landCol, 0.27, 0xffffff, 0.95);
+  mkPoints(seaPos, null, 0.2, 0x8aa4c0, 0.45);
 
   // the air round it
   const atm = new THREE.Mesh(
     new THREE.SphereGeometry(R * 1.1, 64, 48),
-    new THREE.ShaderMaterial({ uniforms: { uOpacity: { value: 0.9 } }, vertexShader: ATM_V, fragmentShader: ATM_F, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    new THREE.ShaderMaterial({ uniforms: { uOpacity: { value: 0.9 } }, vertexShader: ATM_V, fragmentShader: ATM_F, transparent: true, depthWrite: false }),
   );
   globe.add(atm);
-  const aura = lightSprite(env, "80,150,255", 12, 0.34);
+  const aura = lightSprite(env, "80,150,255", 10, 0.1);
   globe.add(aura);
 
   // the regions: a light and a ring that goes out from it
@@ -166,7 +171,7 @@ const build: ModelBuilder = async (env) => {
     const g = new THREE.Group();
     g.position.copy(u).multiplyScalar(R * 1.006);
     const dot = lightSprite(env, i % 3 === 0 ? "140,235,110" : "150,215,255", 0.62, 0.95);
-    const core = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 10), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }));
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 10), new THREE.MeshBasicMaterial({ color: 0x22425f, toneMapped: false }));
     const ring = new THREE.Mesh(new THREE.RingGeometry(0.1, 0.125, 40), lit(i % 3 === 0 ? GLOW.green : GLOW.sky, 0.8));
     ring.lookAt(u.clone().multiplyScalar(4));
     g.add(dot, core);
@@ -188,10 +193,10 @@ const build: ModelBuilder = async (env) => {
     }
     const geo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), SEG, 0.017, 5, false);
     const green = k % 3 === 0;
-    const line = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: green ? 0x84e255 : 0x9fd0ff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+    const line = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: green ? 0x73c94a : 0x4f8fd9, transparent: true, opacity: 0.9, depthWrite: false, toneMapped: false }));
     spin.add(line);
     const pulse = new THREE.Group();
-    pulse.add(new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 10), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false })));
+    pulse.add(new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 10), new THREE.MeshBasicMaterial({ color: 0x22425f, toneMapped: false })));
     pulse.add(lightSprite(env, green ? "140,235,110" : "150,215,255", 0.55, 0.9));
     spin.add(pulse);
     return { pts, geo, pulse, line };
@@ -225,7 +230,7 @@ const build: ModelBuilder = async (env) => {
     wing.position.x = s * 0.3;
     sat.add(wing);
   });
-  sat.add(lightSprite(env, "150,215,255", 0.9, 0.7));
+  sat.add(lightSprite(env, "47,111,181", 0.8, 0.25));
   orbitPivot.add(sat);
   globe.add(orbitPivot);
 
@@ -267,8 +272,8 @@ const build: ModelBuilder = async (env) => {
       sat.rotation.y = -ang;
       (rimA.material as THREE.MeshBasicMaterial).opacity = 0.5 + 0.5 * l;
       (rimB.material as THREE.MeshBasicMaterial).opacity = 0.45 + 0.45 * l;
-      beam.mat.uniforms.uOpacity.value = 0.2 + 0.25 * l;
-      (pool.material as THREE.MeshBasicMaterial).opacity = 0.3 + 0.25 * l;
+      beam.mat.uniforms.uOpacity.value = 0.12 + 0.12 * l;
+      (pool.material as THREE.MeshBasicMaterial).opacity = 0.1 + 0.06 * l;
       group.updateMatrixWorld(true);
     },
     frame: () => frame,
