@@ -9,8 +9,8 @@
 //
 // What it checks, following the scroll-driven 3D storytelling skill's "fallbacks and checks":
 //   1. every page in the sitemap answers 200 with a title and exactly one <h1>
-//   2. desktop: motion starts and every pinned 3D scene on the site (the home story and services deck, the services
-//      and work decks, a service page, the audit and about pages) builds without an error, changes the copy as the
+//   2. desktop: motion starts and every pinned 3D scene on the site (the home story, the services and work decks, a
+//      service page, the audit and about pages) builds without an error, changes the copy as the
 //      page scrolls, draws a picture that moves with the scroll, moves on to its next object with the copy, and keeps ONE shared canvas that
 //      moves from scene to scene; the model stays clear of the copy and of the header on small and wide windows
 //   3. phone: no motion, no three.js, GSAP or Lenis code is downloaded, the hero picture loads, the plain list takes
@@ -277,7 +277,6 @@ async function main() {
     console.log("\nDesktop, motion on (1440x900)");
     const runways = [
       { path: "/", id: "#story", name: "home story", at: [0.05, 0.4, 0.8] },
-      { path: "/", id: "#services", name: "home services deck", at: [0.03, 0.3, 0.64] },
       { path: "/services", id: "#services-deck", name: "services deck", at: [0.03, 0.3, 0.64] },
       { path: "/work", id: "#cases-deck", name: "work deck", at: [0.03, 0.3, 0.64] },
       { path: "/services/ai-voice-systems", id: "#top", name: "service page", at: [0.05, 0.3, 0.65] },
@@ -326,6 +325,15 @@ async function main() {
       await sleep(1800);
       const stuck = await page.ev("[...document.querySelectorAll('[data-reveal], [data-stagger] > *, [data-wipe], .split-part')].filter((e) => !e.closest('.xp') && (Number(getComputedStyle(e).opacity) < 0.99 || (e.classList.contains('split-part') && !/matrix\\(1, 0, 0, 1, 0, 0\\)|none/.test(getComputedStyle(e).transform)))).length");
       check(stuck === 0, "home: every scroll reveal completes", `${stuck} still hidden`);
+      // the services grid: nine cards, each with its picture loaded, and no pinned runway in the way (the pictures are lazy:
+      // bring the grid on screen and give them a moment)
+      await page.ev("document.querySelector('#services')?.scrollIntoView({ block: 'center' })");
+      for (let i = 0; i < 40; i++) {
+        if (await page.ev("[...document.querySelectorAll('#services .svc-card img')].every((i) => i.complete && i.naturalWidth > 0)")) break;
+        await sleep(250);
+      }
+      const grid = await page.ev("(() => { const s = document.querySelector('#services'); if (!s) return null; const imgs = [...s.querySelectorAll('.svc-card img')]; return { cards: s.querySelectorAll('.svc-card').length, loaded: imgs.filter((i) => i.complete && i.naturalWidth > 0).length, pinned: !!s.closest('.xp') || s.classList.contains('xp') }; })()");
+      check(grid && grid.cards === 9 && grid.loaded === 9 && !grid.pinned, "home: the services grid shows nine cards with their pictures", JSON.stringify(grid));
       page.close();
     }
 
@@ -339,17 +347,33 @@ async function main() {
         if (!live) await sleep(250);
       }
       check(live, "home: the case studies reel is pinned (motion on)");
-      const at = async (p) => {
+      // (with the software renderer the shaders compile on the main thread, which can hold it for many seconds after the
+      // page opens; so wait for the reel to answer instead of reading it once)
+      const read = () => page.ev("(() => { const t = document.querySelector('[data-reel-track]'); const m = new DOMMatrix(getComputedStyle(t).transform); const b = document.querySelector('[data-reel-bar]'); return { x: m.m41, bar: new DOMMatrix(getComputedStyle(b).transform).a }; })()");
+      const at = async (p, until) => {
         const y = await page.ev(`(() => { const s = document.querySelector('#work'); const top = s.getBoundingClientRect().top + scrollY; return top + ${p} * (s.offsetHeight - innerHeight); })()`);
         await page.ev(`window.scrollTo(0, ${y})`);
         await sleep(3200);
-        return page.ev("(() => { const t = document.querySelector('[data-reel-track]'); const m = new DOMMatrix(getComputedStyle(t).transform); const b = document.querySelector('[data-reel-bar]'); return { x: m.m41, bar: new DOMMatrix(getComputedStyle(b).transform).a }; })()");
+        let r = await read();
+        for (let i = 0; i < 60 && until && !until(r); i++) {
+          await sleep(500);
+          r = await read();
+        }
+        return r;
       };
       const start = await at(0.02);
-      const end = await at(0.98);
+      // through the middle like a visitor, so every card passes the screen (their pictures are lazy)
+      let prev = start;
+      for (const p of [0.35, 0.65]) prev = await at(p, (r) => r.x < prev.x - 100);
+      const end = await at(0.98, (r) => r.x < start.x - 500 && r.bar > start.bar + 0.5);
       check(end.x < start.x - 500, "home: the reel's cards slide sideways as you scroll", `from ${Math.round(start.x)} to ${Math.round(end.x)} px`);
       check(end.bar > start.bar + 0.5, "home: the reel's green line fills as you scroll", `from ${start.bar.toFixed(2)} to ${end.bar.toFixed(2)}`);
-      const pics = await page.ev("[...document.querySelectorAll('#work .reel-img img')].filter((i) => i.complete && i.naturalWidth > 0).length");
+      let pics = 0;
+      for (let i = 0; i < 40; i++) {
+        pics = await page.ev("[...document.querySelectorAll('#work .reel-img img')].filter((i) => i.complete && i.naturalWidth > 0).length");
+        if (pics === 6) break;
+        await sleep(250);
+      }
       check(pics === 6, "home: all six case study pictures load", `${pics} loaded`);
       page.close();
     }
@@ -450,6 +474,11 @@ async function main() {
         console.log(`        (script on a phone: ${kb} kB)`);
         check(kb <= SCRIPT_BUDGET_KB, `the phone downloads at most ${SCRIPT_BUDGET_KB} kB of script`, `${kb} kB`);
         await shot(page, "home-phone.png");
+        // an in-page link lands on its section (it did not while the sections below the first screen were laid out lazily)
+        await page.ev("document.querySelector('a[href$=\"#method\"]')?.click()");
+        await sleep(900);
+        const top = await page.ev("Math.round(document.querySelector('#method')?.getBoundingClientRect().top ?? -1)");
+        check(top >= 0 && top < 200, "an in-page link (See how we build) lands on its section", `${top}px from the top of the window`);
       }
       if (path === "/services" || path === "/work") {
         const list = await page.ev("(() => { const f = document.querySelector('.deck-fallback'); const d = document.querySelector('.xp-deck'); return { list: !!f && f.offsetHeight > 200, deck: !!d && getComputedStyle(d).display !== 'none' }; })()");
@@ -501,22 +530,28 @@ async function main() {
         const img = document.querySelector('.xp-poster img');
         const stage = document.querySelector('.xp-stage');
         const xp = document.querySelector('.xp');
-        const deck = document.querySelector('.xp-deck');
-        const list = document.querySelector('.deck-fallback');
         return {
           picture: !!img && img.complete && img.naturalWidth > 0 && img.getBoundingClientRect().width > 100,
           copy: [...document.querySelectorAll('#story .xp-phase')].every((e) => Number(getComputedStyle(e).opacity) === 1),
           sticky: getComputedStyle(stage).position === 'sticky',
-          tall: xp.offsetHeight > 6 * innerHeight,
+          // a runway is height beyond the stage itself; the static layout is only as tall as its content
+          tall: xp.offsetHeight > stage.offsetHeight + 40,
           sideways: document.documentElement.scrollWidth - innerWidth,
-          deckHidden: !!deck && getComputedStyle(deck).display === 'none',
-          listShown: !!list && list.offsetHeight > 200,
         };
       })()`);
       check(view.picture && view.copy, "the still picture and all the copy are visible", JSON.stringify(view));
       check(!view.sticky && !view.tall && view.sideways <= 1, "no pinned runway is left over (normal height, no sideways scroll)", JSON.stringify(view));
-      check(view.deckHidden && view.listShown, "the services deck gives way to the plain list", JSON.stringify(view));
       page.close();
+      // the services page: its deck gives way to the plain list
+      const svc = await visit(bare, "/services", { width: 1440, height: 900 });
+      let gone = false;
+      for (let i = 0; i < 120 && !gone; i++) {
+        gone = await svc.ev("!!document.querySelector('.xp-deck.xp-failed') || getComputedStyle(document.querySelector('.xp-deck')).display === 'none'");
+        if (!gone) await sleep(250);
+      }
+      const list = await svc.ev("(() => { const d = document.querySelector('.xp-deck'); const f = document.querySelector('.deck-fallback'); return { deckHidden: !!d && getComputedStyle(d).display === 'none', listShown: !!f && f.offsetHeight > 200 }; })()");
+      check(list.deckHidden && list.listShown, "the services deck gives way to the plain list", JSON.stringify(list));
+      svc.close();
     } finally {
       bare.close();
     }

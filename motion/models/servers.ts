@@ -11,7 +11,7 @@ import type { Model, ModelBuilder } from "./types";
  */
 const STEPS = ["Build", "Test", "Deploy", "Monitor"];
 
-const build: ModelBuilder = async (env) => {
+const build: ModelBuilder = async (env, mini) => {
   const group = new THREE.Group();
 
   /* ---- the servers ---- */
@@ -41,7 +41,7 @@ const build: ModelBuilder = async (env) => {
   group.add(shadow(env, 6.4, 3.8, 0.28, -0.8, 0));
 
   /* ---- the pipeline ---- */
-  const face = drawn(env, 640, 760, (g, w) => {
+  const face = drawn(env, mini ? 400 : 640, mini ? 475 : 760, (g, w) => {
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, w, 760);
     fillRR(g, 40, 40, 200, 18, 9, "rgba(34,66,95,0.55)");
@@ -115,7 +115,6 @@ const build: ModelBuilder = async (env) => {
         c.visible = on > 0.01;
       });
       panel.position.y = 2.1 + Math.sin(p * Math.PI * 2) * 0.05;
-      group.updateMatrixWorld(true);
     },
     frame: () => ({ cx: 0.6, cy: 1.8, hw: 4.4, hh: 2.2 }),
   };

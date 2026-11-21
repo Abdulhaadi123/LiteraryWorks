@@ -14,13 +14,13 @@ const ITEMS = ["Workflow review", "Inefficiency map", "AI opportunities", "Direc
 const ROW0 = 330; // the first row on the page (px of 1024)
 const ROWH = 140;
 
-const build: ModelBuilder = async (env) => {
+const build: ModelBuilder = async (env, mini) => {
   const group = new THREE.Group();
   const book = new THREE.Group();
   book.rotation.y = 0.16;
   group.add(book);
 
-  const page = drawn(env, 724, 1024, (g, w, h) => {
+  const page = drawn(env, mini ? 482 : 724, mini ? 682 : 1024, (g, w, h) => {
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, w, h);
     fillRR(g, 0, 0, w, 190, 0, "#22425f");
@@ -127,7 +127,6 @@ const build: ModelBuilder = async (env) => {
         t.scale.setScalar(Math.max(0.001, on));
         t.visible = on > 0.01;
       });
-      group.updateMatrixWorld(true);
     },
     frame: () => ({ cx: 0, cy: 0.5, hw: 3.4, hh: 2.4 }),
   };

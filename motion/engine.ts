@@ -10,7 +10,30 @@ export const win = (p: number, a: number, b: number) => clamp01((p - a) / (b - a
 /** Quintic smoothstep: zero speed and zero acceleration at both ends. */
 export const quint = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 export const smooth = (t: number) => t * t * (3 - 2 * t);
-export const TAU = Math.PI * 2;
+
+/**
+ * Compiles the shaders `obj` needs (off the main thread where the browser can, KHR_parallel_shader_compile) and waits
+ * until they are ready. Unlike `renderer.compileAsync` it cannot crash when the scene is freed meanwhile: three's own
+ * check runs on a timer and throws on a material that was disposed while it waited (it has no program any more), so
+ * leaving a page during a build raised an uncaught error. This one skips freed materials, stops as soon as `alive()`
+ * says the scene is gone, and gives up after about four seconds (the first frame then compiles what is left).
+ */
+export async function compileReady(gl: GL, obj: THREE.Object3D, camera: THREE.Camera, scene: THREE.Scene | null = null, alive: () => boolean = () => true): Promise<void> {
+  let materials: Set<THREE.Material>;
+  try {
+    materials = gl.renderer.compile(obj, camera, scene);
+  } catch {
+    return;
+  }
+  const props = gl.renderer.properties;
+  for (let i = 0; i < 400 && materials.size > 0 && alive(); i++) {
+    materials.forEach((m) => {
+      const program = (props.get(m) as { currentProgram?: { isReady(): boolean } }).currentProgram;
+      if (!program || program.isReady()) materials.delete(m);
+    });
+    if (materials.size > 0) await new Promise((r) => setTimeout(r, 10));
+  }
+}
 
 /* ---- a stage: one scene's world (scene graph, camera, light) drawn with the shared renderer ---- */
 
@@ -55,6 +78,7 @@ export function createStage(gl: GL, opts: { fov?: number; exposure?: number } = 
   };
 
   const v = new THREE.Vector3();
+  let alive = true;
   return {
     gl,
     scene,
@@ -67,13 +91,7 @@ export function createStage(gl: GL, opts: { fov?: number; exposure?: number } = 
       aspect = -1; // forces the projection to be rebuilt
       sync();
     },
-    async warm() {
-      try {
-        await gl.renderer.compileAsync(scene, camera);
-      } catch {
-        // the first render compiles them instead
-      }
-    },
+    warm: () => compileReady(gl, scene, camera, null, () => alive),
     render() {
       if (gl.lost) return;
       sync();
@@ -85,6 +103,7 @@ export function createStage(gl: GL, opts: { fov?: number; exposure?: number } = 
       return { x: (v.x * 0.5 + 0.5) * gl.size.w, y: (-v.y * 0.5 + 0.5) * gl.size.h, behind: v.z > 1 };
     },
     dispose() {
+      alive = false;
       scene.traverse((obj) => {
         const mesh = obj as THREE.Mesh;
         mesh.geometry?.dispose();

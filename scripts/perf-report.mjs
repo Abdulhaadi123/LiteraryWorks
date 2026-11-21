@@ -112,14 +112,10 @@ const profiles = [
 
 async function measure(chrome, profile, path) {
   const page = await openPage(chrome.port);
-  const sizes = new Map();
-  const kinds = new Map();
   try {
     await page.send("Page.enable");
     await page.send("Network.enable");
     await page.send("Network.setCacheDisabled", { cacheDisabled: true });
-    page.on("Network.responseReceived", (e) => kinds.set(e.requestId, e.type));
-    page.on("Network.loadingFinished", (e) => sizes.set(e.requestId, e.encodedDataLength));
     await page.send("Emulation.setDeviceMetricsOverride", { width: profile.width, height: profile.height, deviceScaleFactor: profile.mobile ? 2 : 1, mobile: profile.mobile });
     if (profile.mobile) await page.send("Emulation.setUserAgentOverride", { userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36" });
     if (profile.cpu > 1) await page.send("Emulation.setCPUThrottlingRate", { rate: profile.cpu });
@@ -134,17 +130,24 @@ async function measure(chrome, profile, path) {
     }
     await sleep(4000); // let the page settle (the scene loads when the browser is idle)
     const m = await page.ev("window.__m");
-    const total = { all: 0, js: 0, img: 0, font: 0, css: 0, other: 0, n: 0 };
-    for (const [rid, bytes] of sizes) {
-      const k = kinds.get(rid);
-      total.n++;
-      total.all += bytes;
-      if (k === "Script") total.js += bytes;
-      else if (k === "Image") total.img += bytes;
-      else if (k === "Font") total.font += bytes;
-      else if (k === "Stylesheet") total.css += bytes;
-      else total.other += bytes;
-    }
+    // what was downloaded, from the page's own resource timing (the bytes on the wire, by kind)
+    const total = await page.ev(`(() => {
+      const t = { all: 0, js: 0, img: 0, font: 0, css: 0, other: 0, n: 0 };
+      const nav = performance.getEntriesByType('navigation')[0];
+      const list = [...(nav ? [nav] : []), ...performance.getEntriesByType('resource')];
+      for (const e of list) {
+        const bytes = e.transferSize || e.encodedBodySize || 0;
+        const u = e.name.split('?')[0];
+        t.n++;
+        t.all += bytes;
+        if (/\.js$/.test(u) || e.initiatorType === 'script') t.js += bytes;
+        else if (/\.(webp|png|jpe?g|svg|gif|avif|ico)$/.test(u) || e.initiatorType === 'img') t.img += bytes;
+        else if (/\.(woff2?|ttf|otf)$/.test(u)) t.font += bytes;
+        else if (/\.css$/.test(u)) t.css += bytes;
+        else t.other += bytes;
+      }
+      return t;
+    })()`);
     return { m, total };
   } finally {
     page.close();

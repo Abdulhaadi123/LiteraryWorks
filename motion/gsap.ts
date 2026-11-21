@@ -18,11 +18,9 @@ export const motionOn = (): boolean =>
 
 /**
  * Pacing of the pinned scenes. A scrubbed timeline that follows the scroll 1:1 is over in a blink when someone
- * scrolls fast, so the playhead takes SCRUB seconds to catch up, and inside a scene a wheel notch moves the
- * page only SCENE_PACE of its usual distance (see MotionEngine, `data-pace`).
+ * scrolls fast, so the playhead takes SCRUB seconds to catch up: short, so the picture keeps up with the hand.
  */
-export const SCRUB = 1.5;
-export const SCENE_PACE = 0.68;
+export const SCRUB = 0.6;
 
 /**
  * Where a pinned scene's stage sticks, as a scroll position. Never before the top of the page, so a scene that

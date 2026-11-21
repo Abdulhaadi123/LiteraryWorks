@@ -97,6 +97,8 @@ const build: ModelBuilder = async (env, mini) => {
   const ft = screenFader(tablet.screen!, shots, [0.5]);
 
   const head = new THREE.Vector3();
+  const target = new THREE.Vector3();
+  const mid = new THREE.Vector3();
   const model: Model = {
     group,
     tags: [],
@@ -108,12 +110,12 @@ const build: ModelBuilder = async (env, mini) => {
       const s = smooth(clamp01((f - i) * 1.6));
       const a = labels[i].at;
       const b = labels[Math.min(labels.length - 1, i + 1)].at;
-      const target = new THREE.Vector3(lerp(a.x, b.x, s), lerp(a.y, b.y, s), a.z);
+      target.set(lerp(a.x, b.x, s), lerp(a.y, b.y, s), a.z);
       head.set(target.x + 0.25, target.y + 0.45, target.z + 1.35);
       scanner.position.copy(head);
       scanner.rotation.set(-0.3, 0.18, 0);
       // the beam: a thin fan from the scanner's window to the label
-      const mid = head.clone().add(target).multiplyScalar(0.5);
+      mid.copy(head).add(target).multiplyScalar(0.5);
       beam.position.copy(mid);
       beam.lookAt(head);
       beam.rotateY(Math.PI / 2);
@@ -123,7 +125,6 @@ const build: ModelBuilder = async (env, mini) => {
         l.badge.visible = on > 0;
       });
       ft(p);
-      group.updateMatrixWorld(true);
     },
     frame: () => ({ cx: 0.6, cy: 1.7, hw: 4.6, hh: 2.2 }),
   };

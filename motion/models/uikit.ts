@@ -29,7 +29,7 @@ const build: ModelBuilder = async (env, mini) => {
   const fp = screenFader(phone.screen!, finals, [0.6]);
 
   /* ---- the wireframe, which fills in ---- */
-  const wire = drawn(env, 512, 1040, (g, w, h) => {
+  const wire = drawn(env, mini ? 300 : 512, mini ? 610 : 1040, (g, w, h) => {
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, w, h);
     g.strokeStyle = "rgba(34,66,95,0.5)";
@@ -103,6 +103,7 @@ const build: ModelBuilder = async (env, mini) => {
   const floaters = [toggle, slider, button, typeCard];
   const base = floaters.map((f) => f.position.y);
   const trackMat = track.material as THREE.MeshPhysicalMaterial;
+  const ON = new THREE.Color(0x73c94a);
 
   const model: Model = {
     group,
@@ -114,13 +115,12 @@ const build: ModelBuilder = async (env, mini) => {
       fp(p);
       const on = smooth(clamp01((p - 0.3) * 6));
       knob.position.x = -0.21 + 0.42 * on;
-      trackMat.color.setHex(0x9dbbd3).lerp(new THREE.Color(0x73c94a), on);
+      trackMat.color.setHex(0x9dbbd3).lerp(ON, on);
       const v = smooth(clamp01(p));
       fill.scale.x = Math.max(0.01, 0.15 + 1.55 * v);
       sk.position.x = -0.85 + (0.15 + 1.55 * v);
       floaters.forEach((f, i) => (f.position.y = base[i] + Math.sin(p * Math.PI * 2 + i * 1.4) * 0.07));
       chips.forEach((c, i) => (c.position.y = 1.2 + Math.sin(p * Math.PI * 2 + i) * 0.05));
-      group.updateMatrixWorld(true);
     },
     frame: () => ({ cx: 0, cy: 2.2, hw: 4.4, hh: 2.4 }),
   };

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { clamp01, createStage, lerp, quint, win } from "../engine";
+import { clamp01, compileReady, createStage, lerp, quint, win } from "../engine";
 import { createEnv, loadModel } from "../models/env";
 import { fitFrame } from "../models/fit";
 import { dressStage, type Dressing } from "../stage";
@@ -65,9 +65,12 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   // the rest, one by one, without holding up the first frame
   void (async () => {
     for (let i = 1; i < N && !disposed; i++) {
-      await new Promise((r) => setTimeout(r, 40));
+      await new Promise<void>((r) => (typeof window.requestIdleCallback === "function" ? window.requestIdleCallback(() => r(), { timeout: 700 }) : setTimeout(r, 60)));
       if (disposed) return;
       await make(i);
+      const it = items[i];
+      if (it && !disposed) await compileReady(gl, it.holder, camera, scene, () => !disposed);
+      if (disposed) return;
       ctx.invalidate?.();
     }
   })();

@@ -1,9 +1,9 @@
 import type * as THREE from "three";
 
 /**
- * A model is one kind of 3D animation: a self-contained thing built from code (a pipeline of cards, a ring of sound
- * bars, a stack of layers, a globe, a building going up ...) with our own projects shown on its screens. A page's scene
- * (`scenes/system.ts`) and the services deck (`scenes/deck.ts`) both host models; each service has its own.
+ * A model is one real object built from code (devices on stands, an audit report, a robot arm, a headset, a shelf and a
+ * scanner, a pipeline board, a book ...) with our own projects shown on its screens and pages. A sequence
+ * (`scenes/deck.ts`) shows one model for each beat of the copy; `scenes/system.ts` shows one for a whole section.
  * `set` is a pure function of its arguments, so scrubbing the page forwards and backwards is exact.
  */
 
@@ -46,8 +46,6 @@ export interface ModelEnv {
   textures: THREE.Texture[];
   /** A seeded random generator: the same on every visit and every scrub. */
   rnd: () => number;
-  /** The soft shadow that sits behind a floating panel. */
-  shadow: THREE.Texture;
   /** One of our own project pictures as it is (null if it cannot be fetched), for a model that draws it into something else. */
   image(name: string): Promise<HTMLImageElement | null>;
   /** A screen texture from one of our own project pictures (public/shots/<name>.webp; a leading "/" is a full path); a branded placeholder if it cannot load. */

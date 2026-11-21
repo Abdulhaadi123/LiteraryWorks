@@ -40,7 +40,7 @@ export function Xp({
 }) {
   const ticks = railSteps ? Array.from({ length: railSteps }, (_, k) => railIntro + (k / railSteps) * (1 - railIntro)) : [];
   return (
-    <section id={id} className={`xp xp-light${className ? ` ${className}` : ""}`} data-pace style={{ "--xp-vh": vh } as CSSProperties}>
+    <section id={id} className={`xp xp-light${className ? ` ${className}` : ""}`} style={{ "--xp-vh": vh } as CSSProperties}>
       <div className="xp-stage">
         {poster ? (
           <div className="xp-poster" aria-hidden="true">

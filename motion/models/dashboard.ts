@@ -11,10 +11,10 @@ import type { Model, ModelBuilder, ModelEnv } from "./types";
  * cards: usage in bars, plans with the chosen one in green, accounts with a switch, a donut of the mix. The bars grow,
  * the plan changes and the switch flips as the page scrolls.
  */
-const card = (env: ModelEnv, w: number, h: number, title: number) => {
+const card = (env: ModelEnv, w: number, h: number, title: number, px = 160) => {
   const g = new THREE.Group();
   put(g, rbox(w, h, 0.12, 0.1, 3), mat.white(0.22), 0, 0, 0);
-  const face = drawn(env, Math.round(w * 160), Math.round(h * 160), (c, cw) => {
+  const face = drawn(env, Math.round(w * px), Math.round(h * px), (c, cw) => {
     c.fillStyle = "#ffffff";
     c.fillRect(0, 0, cw, 400);
     fillRR(c, 22, 20, title, 12, 6, "rgba(34,66,95,0.45)");
@@ -48,7 +48,8 @@ const build: ModelBuilder = async (env, mini) => {
   group.add(shadow(env, 7.6, 3.2, 0.2, 0, -0.6));
 
   /* ---- usage, in bars ---- */
-  const bars = card(env, 2.3, 1.6, 120);
+  const px = mini ? 110 : 160;
+  const bars = card(env, 2.3, 1.6, 120, px);
   bars.position.set(-2.7, 1.25, 1.0);
   bars.rotation.y = 0.22;
   const barColors = [0x9dbbd3, 0x2f6fb5, 0x22425f, 0x73c94a, 0x2f6fb5];
@@ -60,14 +61,14 @@ const build: ModelBuilder = async (env, mini) => {
   group.add(bars);
 
   /* ---- plans: three, the chosen one in green ---- */
-  const plans = card(env, 2.5, 1.3, 90);
+  const plans = card(env, 2.5, 1.3, 90, px);
   plans.position.set(2.6, 1.05, 1.4);
   plans.rotation.y = -0.3;
   const pills = [0, 1, 2].map((i) => put(plans, rbox(0.64, 0.36, 0.1, 0.17, 3), mat.paint(0xe8eef4, 0.4), -0.76 + i * 0.76, -0.22, 0.12));
   group.add(plans);
 
   /* ---- accounts, with a switch ---- */
-  const users = card(env, 2.0, 1.0, 80);
+  const users = card(env, 2.0, 1.0, 80, px);
   users.position.set(-2.4, 3.6, 0.5);
   users.rotation.y = 0.16;
   [0x22425f, 0x2f6fb5, 0x73c94a, 0x9dbbd3].forEach((c, i) => put(users, cyl(0.17, 0.17, 0.06, 32).rotateX(Math.PI / 2), mat.paint(c, 0.4), -0.6 + i * 0.26, -0.15, 0.1 + i * 0.002));
@@ -80,7 +81,7 @@ const build: ModelBuilder = async (env, mini) => {
   group.add(users);
 
   /* ---- a donut of the mix ---- */
-  const mix = card(env, 1.8, 1.8, 70);
+  const mix = card(env, 1.8, 1.8, 70, px);
   mix.position.set(2.9, 3.3, 0.4);
   mix.rotation.y = -0.22;
   const arcs = [
@@ -95,6 +96,7 @@ const build: ModelBuilder = async (env, mini) => {
   });
   group.add(mix);
 
+  const ON = new THREE.Color(0x73c94a);
   const cards = [bars, plans, users, mix];
   const base = cards.map((c) => c.position.y);
   const model: Model = {
@@ -111,10 +113,9 @@ const build: ModelBuilder = async (env, mini) => {
       pills.forEach((pl, i) => ((pl.material as THREE.MeshPhysicalMaterial).color.setHex(i === chosen ? 0x73c94a : 0xe8eef4)));
       const on = smooth(clamp01((p - 0.42) * 6));
       knob.position.x = -0.16 + 0.32 * on;
-      swMat.color.setHex(0x9dbbd3).lerp(new THREE.Color(0x73c94a), on);
+      swMat.color.setHex(0x9dbbd3).lerp(ON, on);
       segs.forEach((s, i) => s.scale.setScalar(Math.max(0.001, smooth(clamp01(p * 2.2 - i * 0.25)))));
       cards.forEach((c, i) => (c.position.y = base[i] + Math.sin(p * Math.PI * 2 + i * 1.7) * 0.06));
-      group.updateMatrixWorld(true);
     },
     frame: () => ({ cx: 0, cy: 2.4, hw: 4.2, hh: 2.4 }),
   };

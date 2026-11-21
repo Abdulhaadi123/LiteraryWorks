@@ -87,7 +87,6 @@ const build: ModelBuilder = async (env, mini) => {
     set(_a, _l, p) {
       headset.rotation.y = lerp(0.35, -0.45, p);
       fp(p);
-      group.updateMatrixWorld(true);
     },
     frame: () => ({ cx: 0, cy: 1.6, hw: 4, hh: 2.4 }),
   };

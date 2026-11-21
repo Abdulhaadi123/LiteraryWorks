@@ -137,7 +137,7 @@ async function main() {
       const w = innerWidth, h = innerHeight;
       const copy = document.querySelector('#story .xp-phase').getBoundingClientRect();
       const right = Math.min(w - 32, (w + 1680) / 2);
-      return { left: copy.right + 24, right, top: 92, bottom: h - 20 };
+      return { left: copy.right + 24, right, top: 92, bottom: h - 92 };
     })()`);
     await page.ev(`(() => { const s = document.createElement('style'); s.textContent = ${JSON.stringify(STILL_CSS)}; document.head.appendChild(s); })()`);
 
@@ -185,11 +185,60 @@ async function main() {
     };
 
     await render("system-ring", 0.03, 1200);
-    await render("system-dash", 0.58, 1200);
+    await render("system-dash", 0.86, 1200);
+    await renderServices(page);
     console.log("\nDone. Keep the width, height and srcset sizes in components/Posters.tsx in step with the sizes printed above.");
   } finally {
     page.close();
     chrome.close();
+  }
+}
+
+/** The nine services' stills for the home page's grid: the /services deck, each object in the middle of its beat, cut to 4:3. */
+async function renderServices(page) {
+  const slugs = ["ai-automation", "ai-voice-systems", "saas-platforms", "enterprise-software", "ai-web-apps", "ai-mobile-apps", "ui-ux-design", "cloud-devops", "construction-technology"];
+  const dir = join(out, "services");
+  mkdirSync(dir, { recursive: true });
+  console.log("");
+  await page.send("Page.navigate", { url: `${base}/services?still` });
+  for (let i = 0; i < 160; i++) {
+    try {
+      if (await page.ev("document.readyState === 'complete' && !!document.querySelector('#services-deck.xp-live')")) break;
+    } catch {}
+    await sleep(250);
+  }
+  if (!(await page.ev("!!document.querySelector('#services-deck.xp-live')"))) throw new Error("The services deck did not start.");
+  const band = await page.ev(`(() => {
+    const w = innerWidth, h = innerHeight;
+    const copy = document.querySelector('#services-deck .xp-phase').getBoundingClientRect();
+    const right = Math.min(w - 32, (w + 1680) / 2);
+    return { left: copy.right + 24, right, top: 92, bottom: h - 92 };
+  })()`);
+  await page.ev(`(() => { const s = document.createElement('style'); s.textContent = ${JSON.stringify(STILL_CSS)}; document.head.appendChild(s); })()`);
+  const INTRO = 0.09;
+  const start = (i) => (i === 0 ? 0 : INTRO + (i / slugs.length) * (1 - INTRO));
+  for (let i = 0; i < slugs.length; i++) {
+    const p = (start(i) + (i < slugs.length - 1 ? start(i + 1) : 1)) / 2;
+    const y = await page.ev(`(() => { const s = document.querySelector('#services-deck'); const top = s.getBoundingClientRect().top + scrollY; const end = top + s.offsetHeight - innerHeight; return top + ${p} * (end - top); })()`);
+    await page.ev(`window.scrollTo(0, ${y})`);
+    await sleep(5000);
+    // a 4:3 cut round the middle of the band, with a little air round the object (the header and the copy are hidden)
+    const bw = band.right - band.left;
+    const bh = band.bottom - band.top;
+    let h = Math.min(H - 8, bh * 1.16);
+    let w = (h * 4) / 3;
+    if (w > bw * 1.16) {
+      w = bw * 1.16;
+      h = (w * 3) / 4;
+    }
+    const x = Math.max(0, Math.min(W - w, band.left + (bw - w) / 2));
+    const yy = Math.max(0, Math.min(H - h, band.top + (bh - h) / 2));
+    const sy = await page.ev("scrollY");
+    const scale = Math.min(1, 720 / (w * DPR));
+    const shot = await page.send("Page.captureScreenshot", { format: "webp", quality: 70, fromSurface: true, clip: { x, y: yy + sy, width: w, height: h, scale } });
+    const bytes = Buffer.from(shot.data, "base64");
+    writeFileSync(join(dir, `${slugs[i]}.webp`), bytes);
+    console.log(`  services/${slugs[i]}.webp  ${Math.round(w * DPR * scale)}x${Math.round(h * DPR * scale)}  ${(bytes.length / 1024).toFixed(0)} kB`);
   }
 }
 

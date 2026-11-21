@@ -59,7 +59,6 @@ const build: ModelBuilder = async (env, mini) => {
       ft(p);
       fp(p);
       L.rotation.y = -0.12 + Math.sin(p * Math.PI) * 0.05;
-      group.updateMatrixWorld(true);
     },
     frame: () => ({ cx: 0, cy: 1.6, hw: 5, hh: 2.6 }),
   };

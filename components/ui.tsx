@@ -74,25 +74,6 @@ export function PageHero({
   );
 }
 
-/** A strip of the sectors the work is done in. */
-export function Strip({ title, items }: { title: string; items: { name: string; icon: IconName }[] }) {
-  return (
-    <section className="strip" aria-label={title}>
-      <div className="wrap">
-        <p>{title}</p>
-        <ul>
-          {items.map((i) => (
-            <li key={i.name}>
-              <Icon name={i.icon} />
-              {i.name}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  );
-}
-
 /** Short statements with an icon each. */
 export function Tiles({ items }: { items: { icon: IconName; title: string; text: string }[] }) {
   return (

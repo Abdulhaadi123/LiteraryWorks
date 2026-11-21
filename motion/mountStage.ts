@@ -319,14 +319,14 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
   };
 
   // about a screen and a half before it is reached, when the browser is idle; but a scene already on screen (the top of
-  // a page) starts at once, so its picture arrives with the copy beside it and not after it
+  // a page) starts right after the first paint, so its picture arrives with the copy beside it without delaying the page
   const near = new IntersectionObserver(
     (entries) => {
       const e = entries.find((x) => x.isIntersecting);
       if (!e) return;
       near.disconnect();
       const onScreen = e.boundingClientRect.top < window.innerHeight && e.boundingClientRect.bottom > 0;
-      if (onScreen) void start();
+      if (onScreen) requestAnimationFrame(() => window.setTimeout(() => void start(), 0));
       else idleId = ric(() => void start());
     },
     { rootMargin: "160% 0px" },

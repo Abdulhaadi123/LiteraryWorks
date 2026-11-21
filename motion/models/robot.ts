@@ -216,7 +216,6 @@ const build: ModelBuilder = async (env, mini) => {
         cd.badge.visible = done;
       });
       fs(p);
-      group.updateMatrixWorld(true);
     },
     frame: () => ({ cx: 0, cy: 1.8, hw: 4.2, hh: 2.4 }),
   };

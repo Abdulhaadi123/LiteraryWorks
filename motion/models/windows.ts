@@ -10,13 +10,11 @@ import type { Model, ModelBuilder, ModelEnv } from "./types";
  * workspace, an executive search tool). Real windows: a title bar with its three buttons, a tab and an address bar over
  * the page. As the page scrolls they drift apart in depth and each moves on to another project.
  */
-const W = 1024;
-const H = 640;
 
 /** One of our projects inside a browser window, drawn as one picture. */
-async function windowPicture(env: ModelEnv, name: string, host: string): Promise<THREE.Texture> {
+async function windowPicture(env: ModelEnv, name: string, host: string, mini: boolean): Promise<THREE.Texture> {
   const img = await env.image(name);
-  return drawn(env, W, H, (g, w, h) => {
+  return drawn(env, mini ? 640 : 1024, mini ? 400 : 640, (g, w, h) => {
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, w, h);
     // the title bar
@@ -74,12 +72,11 @@ const SPECS = [
 ];
 
 const build: ModelBuilder = async (env, mini) => {
-  void mini;
   const group = new THREE.Group();
   const wins = await Promise.all(
     SPECS.map(async (s) => {
-      const pics = await Promise.all(s.names.map((n, i) => windowPicture(env, n, s.hosts[i])));
-      const h = (s.w * H) / W;
+      const pics = await Promise.all(s.names.map((n, i) => windowPicture(env, n, s.hosts[i], mini)));
+      const h = s.w * 0.625;
       const g = new THREE.Group();
       put(g, rbox(s.w + 0.1, h + 0.1, 0.1, 0.05), mat.white(0.3), 0, 0, 0);
       const face = plane(pics[0], s.w, h, 0.07);
@@ -110,7 +107,6 @@ const build: ModelBuilder = async (env, mini) => {
         w.g.position.y = SPECS[i].y + Math.sin(p * Math.PI * 2 + i * 1.3) * 0.05;
         w.fade(p + i * 0.04);
       });
-      group.updateMatrixWorld(true);
     },
     frame: () => ({ cx: 0.4, cy: 2.4, hw: 4.2, hh: 2.6 }),
   };

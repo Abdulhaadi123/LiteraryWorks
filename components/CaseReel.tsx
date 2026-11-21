@@ -10,7 +10,7 @@ import { CaseImage } from "./ui";
  */
 export function CaseReel({ id, items, head }: { id: string; items: CaseStudy[]; head: ReactNode }) {
   return (
-    <section id={id} className="reel" data-reel data-pace>
+    <section id={id} className="reel" data-reel>
       <div className="reel-stage">
         <div className="wrap reel-head">{head}</div>
         <ul className="reel-track" data-reel-track>

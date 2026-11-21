@@ -1,13 +1,12 @@
 import * as THREE from "three";
-import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { canvasTexture, fitUV, roundedShape } from "./kit";
 import type { DeviceType } from "./types";
 
 export type { DeviceType };
 
 /**
- * The devices our work runs on, modelled in code (no model files): a phone, a laptop whose lid opens, a tablet, a
- * and a server rack. Each shows a picture of one of our own projects on its screen. Sizes follow
+ * The devices our work runs on, modelled in code (no model files): a phone, a laptop whose lid opens, a tablet and a
+ * desktop display. Each shows a picture of one of our own projects on its screen. Sizes follow
  * the real things (a phone is 70 x 147 mm, a laptop 312 mm wide) in units of about 100 mm.
  */
 
@@ -52,7 +51,6 @@ export const SCREEN_PX: Record<DeviceType, [number, number]> = {
   tablet: [1024, 640],
   laptop: [1024, 640],
   monitor: [1280, 720],
-  rack: [4, 4],
 };
 
 const AL = 0xb9c0c8; // silver aluminium
@@ -379,101 +377,5 @@ export function makeMonitor(tex: THREE.Texture | null, wide = false): Device {
     },
     open() {},
     tick() {},
-  };
-}
-
-/** A cabinet of servers: seven units with vents, and small lights that blink. */
-export function makeRack(): Device {
-  const W = 1.3;
-  const H = 2.6;
-  const D = 1.0;
-  const UNITS = 7;
-  const PW = W - 0.1;
-  const PH = H - 0.14;
-  const TW = 512;
-  const TH = Math.round((TW * PH) / PW);
-  const top = 34;
-  const gap = 12;
-  const unitH = (TH - top * 2 - gap * (UNITS - 1)) / UNITS;
-  const own: THREE.Texture[] = [];
-  const g = new THREE.Group();
-  const body = new THREE.Mesh(
-    new RoundedBoxGeometry(W, H, D, 4, 0.05),
-    new THREE.MeshPhysicalMaterial({ color: 0x3a3f46, metalness: 0.8, roughness: 0.38, envMapIntensity: 1.1, clearcoat: 0.2, clearcoatRoughness: 0.35 }),
-  );
-  g.add(body);
-  const frontTex = canvasTexture(
-    TW,
-    TH,
-    (c, w, h) => {
-      c.fillStyle = "#14171b";
-      c.fillRect(0, 0, w, h);
-      for (let i = 0; i < UNITS; i++) {
-        const y = top + i * (unitH + gap);
-        const gr = c.createLinearGradient(0, y, 0, y + unitH);
-        gr.addColorStop(0, "#4a5058");
-        gr.addColorStop(1, "#2a2e34");
-        c.fillStyle = gr;
-        c.beginPath();
-        c.roundRect(26, y, w - 52, unitH, 12);
-        c.fill();
-        c.strokeStyle = "rgba(210,215,220,0.28)";
-        c.lineWidth = 2;
-        c.stroke();
-        // the vent slots
-        c.fillStyle = "#0b0d10";
-        for (let k = 0; k < 9; k++) c.fillRect(w * 0.5 + k * 22, y + unitH * 0.27, 11, unitH * 0.46);
-        // empty light sockets (the lit ones are real, so they can blink)
-        for (let k = 0; k < 4; k++) {
-          c.fillStyle = "#0b0d10";
-          c.beginPath();
-          c.arc(66 + k * 34, y + unitH / 2, 9, 0, Math.PI * 2);
-          c.fill();
-        }
-      }
-    },
-    8,
-  );
-  own.push(frontTex);
-  const frontPlane = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.MeshBasicMaterial({ map: frontTex, toneMapped: false }));
-  frontPlane.position.z = D / 2 + STEP;
-  g.add(frontPlane);
-
-  const lights: THREE.Mesh[] = [];
-  const colors = [0x73c94a, 0x6cc3ff, 0x73c94a, 0xe8a317];
-  const mats = colors.map((c) => new THREE.MeshBasicMaterial({ color: c, toneMapped: false }));
-  const dotGeo = new THREE.SphereGeometry(0.03, 12, 8);
-  for (let i = 0; i < UNITS; i++) {
-    const py = top + i * (unitH + gap) + unitH / 2;
-    for (let k = 0; k < 4; k++) {
-      // some lights stay off, so the rows are not all alike
-      if ((i * 4 + k) % 5 === 3) continue;
-      const dot = new THREE.Mesh(dotGeo, mats[(k + i) % 4 === 3 && i % 3 !== 1 ? 0 : (k + i) % 4]);
-      dot.position.set(((66 + k * 34) / TW - 0.5) * PW, (0.5 - py / TH) * PH, D / 2 + 0.012);
-      dot.scale.setScalar(0.85);
-      g.add(dot);
-      lights.push(dot);
-    }
-  }
-  return {
-    type: "rack",
-    group: g,
-    tagObj: marker(g, -W / 2 + 0.12, H / 2 - 0.16, D / 2 + 0.06),
-    centerObj: marker(g, 0, 0.2, D / 2 + 0.06),
-    topObj: marker(g, 0, H / 2 + 0.06, 0),
-    cy: 0,
-    extent: { w: W, h: H },
-    textures: own,
-    power(v) {
-      lights.forEach((l) => {
-        l.visible = v > 0.05;
-      });
-    },
-    open() {},
-    tick(p) {
-      lights.forEach((l, i) => {
-        l.scale.setScalar(0.55 + 0.6 * Math.abs(Math.sin(p * 40 + i * 1.9)));
-      });
-    },
   };
 }

@@ -50,7 +50,6 @@ const build: ModelBuilder = async (env, mini) => {
         ph.g.rotation.y = -s * lerp(0.1, 0.34, fan);
         ph.fade(p);
       });
-      group.updateMatrixWorld(true);
     },
     frame: () => ({ cx: 0, cy: 1.8, hw: 3.8, hh: 2.4 }),
   };

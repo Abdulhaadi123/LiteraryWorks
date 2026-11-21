@@ -39,7 +39,7 @@ export function SceneHero({
   closing: { title: ReactNode; lead: string; actions: ReactNode };
 }) {
   return (
-    <Xp id={id} scene="deck" className="xp-compact" vh={360} aria={aria ?? sceneAria(variant)} labels={[]} data={pageScene(variant)}>
+    <Xp id={id} scene="deck" className="xp-compact" vh={260} aria={aria ?? sceneAria(variant)} labels={[]} data={pageScene(variant)}>
       <Phase from={0} to={0.12}>
         <p className="kicker rise">{kicker}</p>
         <h1 className="h-hero rise" style={{ "--i": 1 } as React.CSSProperties}>

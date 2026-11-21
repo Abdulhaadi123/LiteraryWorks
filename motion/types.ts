@@ -9,7 +9,7 @@ import type { GL } from "./gl";
 export type SceneName = "system" | "deck";
 
 /** The devices our work runs on, which the scenes show with our own projects on their screens. */
-export type DeviceType = "phone" | "laptop" | "tablet" | "monitor" | "rack";
+export type DeviceType = "phone" | "laptop" | "tablet" | "monitor";
 
 /** What a page tells its scene: which variant to draw and the words to put on it. Plain data, so a server component can pass it. */
 export interface SceneData {

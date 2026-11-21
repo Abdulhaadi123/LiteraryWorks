@@ -101,7 +101,7 @@ export function ServicesDeck({ id, intro, fallback }: { id: string; intro: React
     <Deck
       id={id}
       variant="services"
-      vh={640}
+      vh={420}
       aria={servicesAria}
       intro={intro}
       fallback={fallback}
@@ -125,7 +125,7 @@ export function CasesDeck({ id, intro, fallback }: { id: string; intro: ReactNod
       id={id}
       variant="book:cases"
       scene="system"
-      vh={560}
+      vh={400}
       aria={`A book of our ${cases.length} case studies lying open. As the page scrolls it turns to each case: its story and results on the left page, its picture on the right.`}
       intro={intro}
       fallback={fallback}

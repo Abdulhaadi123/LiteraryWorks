@@ -214,7 +214,8 @@ html.motion .xp:not(.xp-failed) .xp-rail {
   font-weight: 700;
   color: var(--navy);
 }
-@media (min-width: 80rem) {
+/* the counter is about 46px wide and centred on the line; below ~1380px the line is too close to the window's edge for it */
+@media (min-width: 87rem) {
   .xp-rail-num {
     display: block;
   }

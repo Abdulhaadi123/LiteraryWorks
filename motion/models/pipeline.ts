@@ -28,8 +28,8 @@ const JOBS: { c: string; from: number; moves: number[] }[] = [
   { c: "#73c94a", from: 3, moves: [] },
 ];
 
-export function scheduleTexture(env: ModelEnv): THREE.Texture {
-  return drawn(env, 1024, 640, (g, w, h) => {
+export function scheduleTexture(env: ModelEnv, mini = false): THREE.Texture {
+  return drawn(env, mini ? 640 : 1024, mini ? 400 : 640, (g, w, h) => {
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, w, h);
     fillRR(g, 0, 0, w, 70, 0, "#22425f");
@@ -60,13 +60,13 @@ export function scheduleTexture(env: ModelEnv): THREE.Texture {
   });
 }
 
-const build: ModelBuilder = async (env) => {
+const build: ModelBuilder = async (env, mini) => {
   const group = new THREE.Group();
 
   /* ---- the board on its stand ---- */
   const alu = mat.alu(0xc4cad1, 0.32);
   put(group, rbox(BW + 0.2, BH + 0.2, 0.12, 0.06), alu, 0, BY, 0);
-  const boardTex = drawn(env, 1440, 780, (g, w, h) => {
+  const boardTex = drawn(env, mini ? 960 : 1440, mini ? 520 : 780, (g, w, h) => {
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, w, h);
     const cw = w / COLS.length;
@@ -120,7 +120,7 @@ const build: ModelBuilder = async (env) => {
   });
 
   /* ---- a tablet with the project's schedule ---- */
-  const tablet = makeTablet(scheduleTexture(env));
+  const tablet = makeTablet(scheduleTexture(env, mini));
   env.textures.push(...tablet.textures);
   const T = standFor(tablet, 0.2);
   T.scale.setScalar(1.05);
@@ -130,34 +130,33 @@ const build: ModelBuilder = async (env) => {
   group.add(T);
 
   const colX = (c: number) => -BW / 2 + (c + 0.5) * (BW / COLS.length);
+  // (kept between frames, so scrolling allocates nothing)
+  const slots = [0, 0, 0, 0];
   const model: Model = {
     group,
     tags: [],
     camera: { az: [-0.26, 0.22], elev: [0.16, 0.1] },
     floorY: 0,
     set(_a, _l, p) {
-      // where each job is (a column, and a fraction of the way to the next while it moves)
-      const at = JOBS.map((j) => {
+      slots.fill(0);
+      for (let i = 0; i < JOBS.length; i++) {
+        const j = JOBS[i];
+        // where the job is: a column, and a fraction of the way to the next while it moves
         let c = j.from;
         let t = 0;
-        j.moves.forEach((m) => {
+        for (const m of j.moves) {
           const s = smooth(clamp01((p - (m - 0.04)) / 0.08));
           if (s >= 1) c += 1;
           else if (s > 0) t = s;
-        });
-        return { c, t };
-      });
-      // stack them in their column, top down
-      const slots = [0, 0, 0, 0];
-      at.forEach((a, i) => {
-        const col = Math.min(3, a.c);
+        }
+        // stacked in its column, top down
+        const col = Math.min(3, c);
         const slot = slots[col]++;
-        const x = lerp(colX(col), colX(Math.min(3, col + 1)), a.t);
+        const x = lerp(colX(col), colX(Math.min(3, col + 1)), t);
         const y = BY + BH / 2 - 0.82 - slot * (CH + 0.14);
-        cards[i].position.set(x, y, 0.09 + Math.sin(Math.PI * a.t) * 0.45);
-        cards[i].rotation.z = Math.sin(Math.PI * a.t) * -0.08;
-      });
-      group.updateMatrixWorld(true);
+        cards[i].position.set(x, y, 0.09 + Math.sin(Math.PI * t) * 0.45);
+        cards[i].rotation.z = Math.sin(Math.PI * t) * -0.08;
+      }
     },
     frame: () => ({ cx: 0.6, cy: 2.6, hw: 4.6, hh: 2.4 }),
   };

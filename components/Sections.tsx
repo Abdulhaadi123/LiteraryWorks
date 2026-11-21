@@ -6,7 +6,7 @@ import { Checks, SectionHead } from "./ui";
 
 /** The sections the pages are built from: the problem, the phases in full, the path of a service, before and after, results, sectors, the audit hour, how we work, the tools. */
 
-/* ---- the four phases, in full (the home page) ---- */
+/* ---- the four phases (the home page): four steps in a row, joined by a line ---- */
 
 const art = { fill: "none", strokeLinecap: "round", strokeLinejoin: "round" } as const;
 function PhaseArt({ n }: { n: string }) {
@@ -55,9 +55,9 @@ function PhaseArt({ n }: { n: string }) {
 
 export function Phases({ items = phases }: { items?: Phase[] }) {
   return (
-    <section className="section on-white phases" id="method">
-      <div className="wrap phases-grid">
-        <div className="phases-aside">
+    <section className="section on-white process" id="method">
+      <div className="wrap">
+        <div className="process-head">
           <SectionHead
             kicker="How we build"
             title={
@@ -67,50 +67,22 @@ export function Phases({ items = phases }: { items?: Phase[] }) {
             }
             lead="A structured path built for clarity, speed and a result that lasts. Each phase ends with something you can hold, and you decide whether to go on."
           />
-          <ol className="phases-index" aria-label="The four phases">
-            {items.map((p) => (
-              <li key={p.n}>
-                <a href={`#phase-${p.n}`}>
-                  <span>{p.n}</span>
-                  <b>{p.title}</b>
-                  <em>{p.goal}</em>
-                </a>
-              </li>
-            ))}
-          </ol>
-          <div className="cta-row">
-            <Link className="btn btn-navy" href="/contact?topic=audit">
-              Book a free AI audit
-            </Link>
-          </div>
+          <Link className="btn btn-navy" href="/contact?topic=audit">
+            Book a free AI audit
+          </Link>
         </div>
-        <ol className="phase-list">
+        <ol className="process-steps" data-stagger>
           {items.map((p) => (
-            <li key={p.n} id={`phase-${p.n}`} className="phase" data-reveal>
-              <span className="phase-node" aria-hidden="true">
-                {p.n}
-              </span>
-              <div className="phase-head">
-                <div>
-                  <p className="phase-n">Phase {p.n}</p>
-                  <h3>{p.title}</h3>
-                  <p className="phase-goal">{p.goal}</p>
-                </div>
+            <li key={p.n} id={`phase-${p.n}`} className="process-step">
+              <div className="process-top">
+                <span className="process-n">{p.n}</span>
                 <PhaseArt n={p.n} />
               </div>
-              <div className="phase-cols">
-                <div>
-                  <h4>What we do</h4>
-                  <ul className="dots">
-                    {p.does.map((t) => (
-                      <li key={t}>{t}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h4>What you get</h4>
-                  <Checks items={p.gets} />
-                </div>
+              <h3>{p.title}</h3>
+              <p className="process-goal">{p.goal}</p>
+              <div className="process-gets">
+                <h4>What you get</h4>
+                <Checks items={p.gets} />
               </div>
             </li>
           ))}

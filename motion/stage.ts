@@ -79,7 +79,7 @@ export function dressStage(gl: GL, scene: THREE.Scene, camera: THREE.Perspective
   camera.layers.enable(1);
 
   /* ---- the glossy floor ---- */
-  const floor = new Reflector(new THREE.PlaneGeometry(90, 90), { textureWidth: 512, textureHeight: 512, clipBias: 0.003, multisample: 2, shader: FLOOR_SHADER });
+  const floor = new Reflector(new THREE.PlaneGeometry(90, 90), { textureWidth: 512, textureHeight: 512, clipBias: 0.003, multisample: 0, shader: FLOOR_SHADER });
   floor.rotation.x = -Math.PI / 2;
   floor.renderOrder = -2;
   const fm = floor.material as THREE.ShaderMaterial;
@@ -118,7 +118,7 @@ export function dressStage(gl: GL, scene: THREE.Scene, camera: THREE.Perspective
     },
     resize(w, h) {
       const rt = floor.getRenderTarget();
-      const k = 0.6 * gl.ratio;
+      const k = 0.45 * gl.ratio;
       rt.setSize(Math.max(64, Math.min(1400, Math.round(w * k))), Math.max(64, Math.min(1400, Math.round(h * k))));
     },
     dispose() {

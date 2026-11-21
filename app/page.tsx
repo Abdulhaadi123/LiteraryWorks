@@ -2,8 +2,8 @@ import Link from "next/link";
 import { SystemDashPoster, SystemPoster } from "@/components/Posters";
 import { CaseReel } from "@/components/CaseReel";
 import { Marquee } from "@/components/Marquee";
-import { d, Faq, Ladder, Quotes, SectionHead, ServiceCards, Tiles } from "@/components/ui";
-import { ServicesDeck } from "@/components/ServicesDeck";
+import { d, Faq, Ladder, Quotes, SectionHead, Tiles } from "@/components/ui";
+import { ServicesGrid } from "@/components/ServicesGrid";
 import { AuditStrip, Industries, Phases, Problems, ResultsBand, Transformation } from "@/components/Sections";
 import { Phase, Xp } from "@/components/Xp";
 import { cases, voices } from "@/lib/content";
@@ -33,13 +33,13 @@ export default function Home() {
       <Xp
         id="story"
         scene="deck"
-        vh={560}
+        vh={300}
         aria={sceneAria("story")}
         labels={[]}
         data={storyScene()}
         poster={<SystemPoster />}
       >
-        <Phase from={0} to={0.11}>
+        <Phase from={0} to={0.25}>
           <p className="kicker rise" style={d(0)}>
             AI, software and cloud engineering
           </p>
@@ -58,41 +58,27 @@ export default function Home() {
             </Link>
           </div>
         </Phase>
-        <Phase from={0.11} to={0.31}>
+        <Phase from={0.25} to={0.5}>
           <p className="kicker">01 / Discover</p>
           <h2 className="h-lg">Start with how the work really runs.</h2>
           <p className="lead">
             Most businesses run on a dozen tools that do not talk to each other. A free audit maps them, finds the handoffs that waste time, and shows what is worth automating before anything is built.
           </p>
         </Phase>
-        <Phase from={0.31} to={0.49}>
+        <Phase from={0.5} to={0.75}>
           <p className="kicker">02 / Connect</p>
           <h2 className="h-lg">Wire the pieces into one system.</h2>
           <p className="lead">
             AI assistants, voice agents and workflows connected to the apps and data you already use, so work moves between them on its own, with people reviewing the steps that matter.
           </p>
         </Phase>
-        <Phase from={0.49} to={0.69}>
+        <Phase from={0.75} to={1}>
           <p className="kicker">03 / Build</p>
           <h2 className="h-lg">Build it as one product.</h2>
           <p className="lead">
             Web and mobile apps designed around the people who use them, on cloud infrastructure that is secure, monitored and ready to grow. One team, one plan, one system.
           </p>
           <SystemDashPoster />
-        </Phase>
-        <Phase from={0.69} to={0.88}>
-          <p className="kicker">04 / Run</p>
-          <h2 className="h-lg">Then keep it running.</h2>
-          <p className="lead">
-            We launch it, monitor it and keep improving it. Every decision is written down, and you get the whole system handed over, documented, whether or not we stay on.
-          </p>
-        </Phase>
-        <Phase from={0.88} to={1}>
-          <p className="kicker">Start here</p>
-          <h2 className="h-lg">See how yours would come together.</h2>
-          <p className="lead">
-            A free one-hour audit shows where AI and software will pay for themselves, before you commit to building anything.
-          </p>
           <div className="cta-row">
             <Link className="btn btn-navy" href="/contact?topic=audit">
               Book a free AI audit
@@ -136,36 +122,7 @@ export default function Home() {
 
       <Problems />
 
-      <ServicesDeck
-        id="services"
-        intro={
-          <>
-            <p className="kicker">What we build</p>
-            <h2 className="h-lg">
-              AI, software and cloud, <em>built as one system.</em>
-            </h2>
-            <p className="lead">
-              Nine services, one method: map the work, design the system, build it into the tools you already use, then measure it. Keep scrolling to turn through them.
-            </p>
-          </>
-        }
-        fallback={
-          <section className="section on-mist" id="services-list">
-            <div className="wrap">
-              <SectionHead
-                kicker="What we build"
-                title={
-                  <>
-                    AI, software and cloud, <em>built as one system.</em>
-                  </>
-                }
-                lead="Whatever we are building, the method is the same: map the work, design the system, build it into the tools you already use, then measure it."
-              />
-              <ServiceCards />
-            </div>
-          </section>
-        }
-      />
+      <ServicesGrid />
 
       <Phases />
 

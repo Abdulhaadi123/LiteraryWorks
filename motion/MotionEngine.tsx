@@ -3,13 +3,11 @@
 import Lenis from "lenis";
 import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect } from "react";
-import { gsap, runwayStart, SCENE_PACE, ScrollTrigger } from "./gsap";
+import { gsap, ScrollTrigger } from "./gsap";
 import { splitText } from "./split";
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-/** The pinned scenes (`data-pace`) that are on screen right now: while any is, the wheel moves the page less. */
-const pinned = new Set<Element>();
 let lenis: Lenis | null = null;
 let refreshTimer = 0;
 
@@ -28,7 +26,6 @@ function refreshSoon(delay = 120) {
  *   data-parallax="0.08"                       drifts while scrolling
  *   data-split="words|chars"                   masked word / letter rise-in for headings
  *   data-progress                              a bar that tracks page scroll
- *   data-pace                                  a pinned scene: while it is on screen the wheel moves the page less
  * It re-runs on every route change.
  */
 function setupPage(): () => void {
@@ -116,26 +113,6 @@ function setupPage(): () => void {
       });
     });
 
-    /* pinned scenes: note when one is on screen (the wheel is slowed meanwhile, see Lenis below) */
-    q("[data-pace]").forEach((scene) => {
-      const stage = scene.querySelector<HTMLElement>(".xp-stage");
-      const stageTop = stage ? Number.parseFloat(getComputedStyle(stage).top) : 0;
-      const top = Number.isFinite(stageTop) ? stageTop : 0;
-      const st = ScrollTrigger.create({
-        trigger: scene,
-        start: runwayStart(scene, top),
-        end: "bottom bottom",
-        onToggle: (self) => {
-          if (self.isActive) pinned.add(scene);
-          else pinned.delete(scene);
-        },
-      });
-      cleanups.push(() => {
-        st.kill();
-        pinned.delete(scene);
-      });
-    });
-
     q("[data-progress]").forEach((bar) => {
       gsap.to(bar, { scaleX: 1, ease: "none", scrollTrigger: { start: 0, end: "max", scrub: 0.3 } });
     });
@@ -162,15 +139,6 @@ export function MotionEngine() {
       lerp: 0.1,
       smoothWheel: true,
       anchors: true,
-      // inside a pinned scene a wheel notch counts for less, so a fast flick cannot skip the animation
-      // (Lenis reads the deltas after this callback, so changing them here takes effect)
-      virtualScroll: (data) => {
-        if (pinned.size && data.event.type === "wheel") {
-          data.deltaX *= SCENE_PACE;
-          data.deltaY *= SCENE_PACE;
-        }
-        return true;
-      },
     });
     lenis = instance;
     instance.on("scroll", ScrollTrigger.update);

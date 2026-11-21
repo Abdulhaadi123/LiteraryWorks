@@ -23,8 +23,8 @@ const COVER = 0.12;
 const BLOCK = 0.2;
 const Y0 = COVER + BLOCK;
 const STEP = 0.012;
-const PX = 512;
-const PY = 683;
+/** A page's picture, in pixels: [width, height] (smaller where the book is one of several objects on the stage). */
+const PAGE_PX: Record<"full" | "mini", [number, number]> = { full: [512, 683], mini: [384, 512] };
 const NAVY = "#22425f";
 const GREEN = "#5db536";
 const INK = "#191716";
@@ -35,8 +35,8 @@ interface Spread {
   right: Pen;
 }
 
-const page = (env: ModelEnv, spine: "left" | "right", draw: Pen) =>
-  drawn(env, PX, PY, (g, w, h) => {
+const page = (env: ModelEnv, size: [number, number], spine: "left" | "right", draw: Pen) =>
+  drawn(env, size[0], size[1], (g, w, h) => {
     const bg = g.createLinearGradient(0, 0, w, h);
     bg.addColorStop(0, "#ffffff");
     bg.addColorStop(1, "#f2f5f8");
@@ -135,7 +135,7 @@ const servicesPage: Pen = (g, w) => {
   g.font = "700 30px Inter, system-ui, sans-serif";
   g.fillText("Nine services,", 40, 128);
   g.fillText("one system.", 40, 164);
-  const icons = ["spark", "wave", "layers", "grid", "browser", "phone", "pen", "cloud", "tower"];
+  const icons = ["spark", "wave", "layers", "grid", "browser", "phone", "pen", "cloud", "board"];
   services.forEach((s, i) => {
     const cx = 40 + (i % 3) * ((w - 80) / 3);
     const cy = 210 + Math.floor(i / 3) * 140;
@@ -300,7 +300,8 @@ async function contents(env: ModelEnv, kind: string): Promise<{ spreads: Spread[
 
 export const bookFor =
   (kind: string): ModelBuilder =>
-  async (env) => {
+  async (env, mini) => {
+    const size = PAGE_PX[mini ? "mini" : "full"];
     const { spreads, turns } = await contents(env, kind);
     const group = new THREE.Group();
     const book = new THREE.Group();
@@ -328,7 +329,7 @@ export const bookFor =
 
     /* ---- the pages ---- */
     const n = spreads.length;
-    const firstLeft = new THREE.Mesh(new THREE.PlaneGeometry(W - 0.04, H - 0.04), new THREE.MeshStandardMaterial({ map: page(env, "right", spreads[0].left), roughness: 0.85, envMapIntensity: 0.5 }));
+    const firstLeft = new THREE.Mesh(new THREE.PlaneGeometry(W - 0.04, H - 0.04), new THREE.MeshStandardMaterial({ map: page(env, size, "right", spreads[0].left), roughness: 0.85, envMapIntensity: 0.5 }));
     firstLeft.rotation.x = -Math.PI / 2;
     firstLeft.position.set(-W / 2, Y0 + 0.003, 0);
     book.add(firstLeft);
@@ -342,9 +343,9 @@ export const bookFor =
     // leaf k: the right page of spread k on its front, the left page of spread k+1 on its back
     const leaves = spreads.map((s, k) => {
       const geo = new THREE.PlaneGeometry(W, H, COLS, 1);
-      const front = new THREE.Mesh(geo, leafMat(page(env, "left", s.right), THREE.FrontSide));
+      const front = new THREE.Mesh(geo, leafMat(page(env, size, "left", s.right), THREE.FrontSide));
       const backPen = k + 1 < n ? spreads[k + 1].left : () => {};
-      const back = new THREE.Mesh(geo, leafMat(flip(page(env, "right", backPen)), THREE.BackSide));
+      const back = new THREE.Mesh(geo, leafMat(flip(page(env, size, "right", backPen)), THREE.BackSide));
       front.frustumCulled = back.frustumCulled = false;
       book.add(front, back);
       return geo;
@@ -371,6 +372,7 @@ export const bookFor =
       leaves[k].computeVertexNormals();
     };
 
+    const last: number[] = spreads.map(() => -1);
     const model: Model = {
       group,
       tags: [],
@@ -378,8 +380,13 @@ export const bookFor =
       floorY: 0,
       set(_a, _l, p) {
         const t = turns(p);
-        for (let k = 0; k < n; k++) lay(k, clamp01(t[k] ?? 0));
-        group.updateMatrixWorld(true);
+        for (let k = 0; k < n; k++) {
+          const v = clamp01(t[k] ?? 0);
+          if (v !== last[k]) {
+            last[k] = v;
+            lay(k, v);
+          }
+        }
       },
       frame: () => ({ cx: 0, cy: 0.4, hw: 3.8, hh: 2.6 }),
     };

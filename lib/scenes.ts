@@ -44,9 +44,9 @@ const describe = (id: string) => (id.startsWith("book:") ? DESC[id.slice(5)] ?? 
 
 const sequence = (ids: string[], at: number[]): SceneData => ({ variant: ids[0], items: ids.map((id) => ({ id, title: id })), at });
 
-/** The home page's story: one object for each of its six beats. */
-const STORY = ["devices", "report", "robot", "browsers", "book:handbook", "dashboard"];
-export const storyScene = (): SceneData => sequence(STORY, [0, 0.11, 0.31, 0.49, 0.69, 0.88]);
+/** The home page's story: one object for each of its four beats. */
+const STORY = ["devices", "report", "robot", "browsers"];
+export const storyScene = (): SceneData => sequence(STORY, [0, 0.25, 0.5, 0.75]);
 
 /** An inner page's scene (components/SceneHero.tsx: the headline, two chapters and a closing call to action). */
 export function pageScene(variant: string): SceneData {
@@ -64,6 +64,12 @@ export function sceneAria(variant: string): string {
   const ids = variant === "story" ? STORY : pageIds(variant);
   return `A 3D picture that changes with the copy beside it: ${ids.map(describe).join("; then ")}.`;
 }
+
+/** What a service's still (the home page's grid) shows. */
+export const serviceStillAlt = (slug: string): string => {
+  const d = DESC[(SERVICE_MODELS[slug] ?? ["devices"])[0]] ?? "";
+  return d.charAt(0).toUpperCase() + d.slice(1);
+};
 
 /** The services deck: one object for each service, in the order the site lists them. */
 export const servicesAria =

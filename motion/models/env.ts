@@ -1,5 +1,5 @@
 import type * as THREE from "three";
-import { loadImage, rectShadowTexture } from "../kit";
+import { loadImage } from "../kit";
 import { placeholderScreen, screenTexture } from "../screens";
 import type { ModelBuilder, ModelEnv } from "./types";
 
@@ -29,18 +29,17 @@ const picture = (url: string) => {
 export function createEnv(renderer: THREE.WebGLRenderer, seed: string): ModelEnv {
   const textures: THREE.Texture[] = [];
   const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-  const shadow = rectShadowTexture();
-  textures.push(shadow);
   return {
     aniso,
     textures,
     rnd: rng(hash(seed)),
-    shadow,
     image: (name) => picture(name.startsWith("/") ? `${name}.webp` : `/shots/${name}.webp`),
     async shot(name, w = 1024, h = 576) {
       const img = await picture(name.startsWith("/") ? `${name}.webp` : `/shots/${name}.webp`);
       const tex = img ? screenTexture(img, aniso, w, h) : placeholderScreen(aniso, w, h);
       textures.push(tex);
+      // give the browser a breath between pictures, so building a scene is many short tasks, not one long one
+      await new Promise((r) => setTimeout(r, 0));
       return tex;
     },
   };
