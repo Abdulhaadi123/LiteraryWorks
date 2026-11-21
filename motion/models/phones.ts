@@ -6,12 +6,12 @@ import type { Model, ModelBuilder } from "./types";
 
 /**
  * AI mobile apps: three of our apps on three phones standing on a round white podium. The phones fan out from a stack
- * as the page scrolls, and each one moves on to a second screen of its app.
+ * as the page scrolls.
  */
 const APPS = [
-  ["phone-civilchat", "phone-civilfeed"],
-  ["phone-beanstalk", "phone-faith1"],
-  ["phone-faith2", "phone-faith3"],
+  ["phone-civilchat"],
+  ["phone-beanstalk"],
+  ["phone-faith2"],
 ];
 
 const build: ModelBuilder = async (env, mini) => {

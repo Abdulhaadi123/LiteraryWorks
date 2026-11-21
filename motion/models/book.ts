@@ -276,16 +276,18 @@ function aboutSpreads(imgs: (HTMLImageElement | null)[]): Spread[] {
 
 /** The spreads of a book, and where each leaf turns. */
 async function contents(env: ModelEnv, kind: string): Promise<{ spreads: Spread[]; turns: (p: number) => number[] }> {
-  const imgs = await Promise.all(cases.map((c) => env.image(`/cases/${c.slug}`)));
-  const caseSpreads: Spread[] = cases.map((c, i) => ({ left: caseText(c), right: picture(imgs[i], c.client, c.tags.join(" / ")) }));
+  // (each book fetches only the pictures it shows: the handbook none, our principles one each)
   if (kind === "handbook") {
     const spreads = handbookSpreads();
     return { spreads, turns: (p) => [smooth(win(p, 0.52, 0.7))] };
   }
+  const load = (list: typeof cases) => Promise.all(list.map((c) => env.image(`/cases/${c.slug}`)));
   if (kind === "about") {
-    const spreads = aboutSpreads(imgs);
+    const spreads = aboutSpreads(await load(cases.slice(0, Math.min(cases.length, principles.length))));
     return { spreads, turns: (p) => spreads.slice(1).map((_, k) => smooth(win(p, 0.52 + k * 0.12, 0.62 + k * 0.12))) };
   }
+  const imgs = await load(cases);
+  const caseSpreads: Spread[] = cases.map((c, i) => ({ left: caseText(c), right: picture(imgs[i], c.client, c.tags.join(" / ")) }));
   // the portfolio: an opening spread (the list of cases, and what we build), then one spread for each case
   const spreads: Spread[] = [{ left: introPage, right: servicesPage }, ...caseSpreads];
   if (kind === "cases") {

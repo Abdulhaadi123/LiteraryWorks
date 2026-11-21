@@ -4,14 +4,14 @@ import { caseForService } from "./content";
 /**
  * Which real objects each pinned section shows, one for each beat of its copy, and what a screen reader is told about
  * them. The objects themselves are built in code (motion/models/): our projects on a laptop, a tablet and a phone, an
- * audit report, a robot arm, a headset, a product dashboard, a stock shelf with a scanner, browser windows, phones, a
+ * audit report, a document scanner, a system blueprint, a speakerphone, a headset, a product dashboard, a stock shelf with a scanner, browser windows, phones, a
  * design system, rack servers, a pipeline board and a book of our case studies. As the copy moves on to its next beat,
  * the picture moves on to the next object.
  */
 
 /** Each service's own object, and the one that goes with "What we build" on its page. */
 const SERVICE_MODELS: Record<string, [string, string]> = {
-  "ai-automation": ["robot", "pipeline"],
+  "ai-automation": ["scanner", "pipeline"],
   "ai-voice-systems": ["headset", "phones"],
   "saas-platforms": ["dashboard", "servers"],
   "enterprise-software": ["warehouse", "pipeline"],
@@ -27,7 +27,11 @@ const SERVICE_CASE: Record<string, string> = { ...caseForService, "ai-mobile-app
 const DESC: Record<string, string> = {
   devices: "our projects on a laptop, a tablet and a phone",
   report: "an audit report whose checklist is ticked under a magnifying glass",
-  robot: "a robot arm moving requests from an inbox to a done tray, with our assistant on the screen behind",
+  scanner: "a document scanner taking in invoices, orders and contracts one by one and sending each to the right system, with our automation projects on a monitor",
+  blueprint: "a blueprint of a client's system plan unrolling on the table, with a ruler and a pencil",
+  hub: "an aluminium hub whose ports take the cables of the tools a business uses, one after another, each light turning green",
+  product: "a white product box whose lid lifts away to show a phone with one of our apps waking up inside",
+  call: "a conference speakerphone whose light turns green as the call starts, beside a phone with the invite for a free one-hour session",
   headset: "a call-centre headset on its stand beside a phone with a live call",
   dashboard: "a product dashboard with usage bars, plans, accounts and a donut chart standing out of it",
   warehouse: "a shelf of stock whose labels a handheld scanner reads, beside a rugged tablet with our operations platforms",
@@ -45,7 +49,8 @@ const describe = (id: string) => (id.startsWith("book:") ? DESC[id.slice(5)] ?? 
 const sequence = (ids: string[], at: number[]): SceneData => ({ variant: ids[0], items: ids.map((id) => ({ id, title: id })), at });
 
 /** The home page's story: one object for each of its four beats. */
-const STORY = ["devices", "report", "robot", "browsers"];
+// (only the home page shows these four: no other page repeats them)
+const STORY = ["devices", "report", "hub", "product"];
 export const storyScene = (): SceneData => sequence(STORY, [0, 0.25, 0.5, 0.75]);
 
 /** An inner page's scene (components/SceneHero.tsx: the headline, two chapters and a closing call to action). */
@@ -53,10 +58,10 @@ export function pageScene(variant: string): SceneData {
   return sequence(pageIds(variant), [0, 0.12, 0.5, 0.8]);
 }
 function pageIds(variant: string): string[] {
-  if (variant === "audit") return ["report", "robot", "pipeline", "devices"];
-  if (variant === "about") return ["book:about", "report", "browsers", "devices"];
-  const [first, second] = SERVICE_MODELS[variant] ?? ["devices", "report"];
-  return [first, second, `book:${SERVICE_CASE[variant] ?? "cases"}`, "report"];
+  if (variant === "audit") return ["dashboard", "headset", "pipeline", "book:handbook"];
+  if (variant === "about") return ["book:about", "blueprint", "servers", "call"];
+  const [first, second] = SERVICE_MODELS[variant] ?? ["dashboard", "pipeline"];
+  return [first, second, `book:${SERVICE_CASE[variant] ?? "cases"}`, "call"];
 }
 
 /** What a screen reader is told about a section's picture. */

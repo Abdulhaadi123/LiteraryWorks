@@ -49,7 +49,11 @@ export function createEnv(renderer: THREE.WebGLRenderer, seed: string): ModelEnv
 export const modelLoaders: Record<string, () => Promise<{ default: ModelBuilder }>> = {
   devices: () => import("./hero"),
   report: () => import("./report"),
-  robot: () => import("./robot"),
+  scanner: () => import("./scanner"),
+  blueprint: () => import("./blueprint"),
+  call: () => import("./call"),
+  hub: () => import("./hub"),
+  product: () => import("./product"),
   headset: () => import("./headset"),
   dashboard: () => import("./dashboard"),
   warehouse: () => import("./warehouse"),
@@ -63,7 +67,7 @@ export const modelLoaders: Record<string, () => Promise<{ default: ModelBuilder 
 
 /** The model each service shows first (the services deck passes the services' slugs). */
 export const serviceModel: Record<string, string> = {
-  "ai-automation": "robot",
+  "ai-automation": "scanner",
   "ai-voice-systems": "headset",
   "saas-platforms": "dashboard",
   "enterprise-software": "warehouse",

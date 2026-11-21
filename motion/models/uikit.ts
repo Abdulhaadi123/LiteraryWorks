@@ -15,7 +15,7 @@ const build: ModelBuilder = async (env, mini) => {
   const group = new THREE.Group();
   const k = mini ? 0.62 : 1;
   const [pw, ph] = SCREEN_PX.phone;
-  const finals = await Promise.all(["phone-beanstalk", "phone-civilfeed"].map((n) => env.shot(n, Math.round(pw * k), Math.round(ph * k))));
+  const finals = await Promise.all(["phone-beanstalk"].map((n) => env.shot(n, Math.round(pw * k), Math.round(ph * k))));
 
   /* ---- the phone with the finished design ---- */
   const phone = makePhone(finals[0]);

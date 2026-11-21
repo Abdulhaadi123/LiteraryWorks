@@ -21,7 +21,7 @@ export function SystemPoster() {
   );
 }
 
-/** The web apps we built, in three browser windows (the story's last object), shown inside the closing chapter wherever the scene itself is not playing. */
+/** The story's last object (a product box opening on one of our apps), shown inside the closing chapter wherever the scene itself is not playing. */
 export function SystemDashPoster() {
   return (
     // eslint-disable-next-line @next/next/no-img-element
@@ -32,7 +32,7 @@ export function SystemDashPoster() {
       sizes="(min-width: 64rem) 40vw, 92vw"
       width={1200}
       height={1149}
-      alt="Three browser windows, one behind the other, showing web apps we built: an AI language tutor, a workspace and an executive search tool."
+      alt="A white product box with its lid lifted, and inside it a phone showing one of our apps."
       loading="lazy"
       decoding="async"
       fetchPriority="low"

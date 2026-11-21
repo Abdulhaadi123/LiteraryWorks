@@ -7,4 +7,12 @@
  * everything is simply visible. If the engine has not taken over (html.motion-ready) within eight seconds the
  * class is removed again, so a failed script can never leave a page hidden.
  */
-export const headScript = `(function(){try{var d=document.documentElement;d.classList.add('js');var n=navigator,c=n.connection;if(matchMedia('(prefers-reduced-motion: reduce)').matches||!matchMedia('(min-width: 64rem)').matches||(c&&(c.saveData||/^(slow-)?2g$/.test(c.effectiveType||'')))||(n.deviceMemory&&n.deviceMemory<=2))return;d.classList.add('motion');setTimeout(function(){if(!d.classList.contains('motion-ready'))d.classList.remove('motion')},8000)}catch(e){}})();`;
+/**
+ * The first part, phones and tablets only: on a fresh visit (no #section in the address, not a reload or Back) the
+ * sections below the first screen are laid out only when they come near it (html.lazy, see app/styles/site.css), so
+ * the first paint does not wait for the whole page. Before anything that jumps to a place on the page (a link with a
+ * #, Back or Forward, a change of #) the class comes off, so the jump is worked out from the sections' real heights.
+ */
+const lazyScript = `(function(){try{var d=document.documentElement;if(!matchMedia('(max-width: 63.99rem)').matches)return;var v=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];if(location.hash||(v&&v.type!=='navigate'))return;d.classList.add('lazy');var off=function(){d.classList.remove('lazy');removeEventListener('click',k,true);removeEventListener('popstate',off);removeEventListener('hashchange',off)};var k=function(e){var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(a&&a.getAttribute('href').indexOf('#')>=0)off()};addEventListener('click',k,true);addEventListener('popstate',off);addEventListener('hashchange',off)}catch(e){}})();`;
+
+export const headScript = lazyScript + `(function(){try{var d=document.documentElement;d.classList.add('js');var n=navigator,c=n.connection;if(matchMedia('(prefers-reduced-motion: reduce)').matches||!matchMedia('(min-width: 64rem)').matches||(c&&(c.saveData||/^(slow-)?2g$/.test(c.effectiveType||'')))||(n.deviceMemory&&n.deviceMemory<=2))return;d.classList.add('motion');setTimeout(function(){if(!d.classList.contains('motion-ready'))d.classList.remove('motion')},8000)}catch(e){}})();`;

@@ -13,7 +13,7 @@ import type { Model, ModelBuilder } from "./types";
 const build: ModelBuilder = async (env, mini) => {
   const group = new THREE.Group();
   const k = mini ? 0.62 : 1;
-  const shots = await Promise.all(["kalibur", "/cases/fleet-logistics-platform"].map((n) => env.shot(n, Math.round(SCREEN_PX.tablet[0] * k), Math.round(SCREEN_PX.tablet[1] * k))));
+  const shots = await Promise.all(["kalibur"].map((n) => env.shot(n, Math.round(SCREEN_PX.tablet[0] * k), Math.round(SCREEN_PX.tablet[1] * k))));
   const rnd = rng(11);
 
   /* ---- the shelf ---- */

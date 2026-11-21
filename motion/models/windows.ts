@@ -8,7 +8,7 @@ import type { Model, ModelBuilder, ModelEnv } from "./types";
 /**
  * AI web apps: three browser windows, one behind the other, each showing a web app we built (a language tutor, a
  * workspace, an executive search tool). Real windows: a title bar with its three buttons, a tab and an address bar over
- * the page. As the page scrolls they drift apart in depth and each moves on to another project.
+ * the page. As the page scrolls they drift apart in depth.
  */
 
 /** One of our projects inside a browser window, drawn as one picture. */
@@ -66,9 +66,9 @@ async function windowPicture(env: ModelEnv, name: string, host: string, mini: bo
 }
 
 const SPECS = [
-  { names: ["tutor", "kalibur"], hosts: ["tutor.example", "kalibur.example"], w: 5.6, y: 3.0, z: -2.0, x: 0.6, yaw: -0.1 },
-  { names: ["wizilink", "storyia"], hosts: ["workspace.example", "storyia.example"], w: 4.8, y: 2.0, z: -0.4, x: -1.0, yaw: 0.06 },
-  { names: ["aztech", "vyarl"], hosts: ["search.example", "vyarl.example"], w: 4.0, y: 1.2, z: 1.3, x: 1.6, yaw: -0.14 },
+  { names: ["tutor"], hosts: ["tutor.example"], w: 5.6, y: 3.0, z: -2.0, x: 0.6, yaw: -0.1 },
+  { names: ["wizilink"], hosts: ["workspace.example"], w: 4.8, y: 2.0, z: -0.4, x: -1.0, yaw: 0.06 },
+  { names: ["aztech"], hosts: ["search.example"], w: 4.0, y: 1.2, z: 1.3, x: 1.6, yaw: -0.14 },
 ];
 
 const build: ModelBuilder = async (env, mini) => {

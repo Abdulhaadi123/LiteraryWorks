@@ -29,7 +29,7 @@ const card = (env: ModelEnv, w: number, h: number, title: number, px = 160) => {
 const build: ModelBuilder = async (env, mini) => {
   const group = new THREE.Group();
   const k = mini ? 0.62 : 1;
-  const shots = await Promise.all(["vendibly", "monetiza", "vyarl"].map((n) => env.shot(n, Math.round(SCREEN_PX.monitor[0] * k), Math.round(SCREEN_PX.monitor[1] * k))));
+  const shots = await Promise.all(["vendibly"].map((n) => env.shot(n, Math.round(SCREEN_PX.monitor[0] * k), Math.round(SCREEN_PX.monitor[1] * k))));
 
   /* ---- the product itself ---- */
   const main = new THREE.Group();

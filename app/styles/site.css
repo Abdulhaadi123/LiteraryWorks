@@ -139,6 +139,15 @@ html.lenis body {
 .section {
   padding-block: clamp(4.5rem, 8vw, 7.5rem);
 }
+/* Phones and tablets on a fresh visit (html.lazy, set and cleared by motion/head.ts): a section is laid out and painted
+   only when it comes near the screen, so the first paint does not wait for the whole page to be measured. The class
+   is removed before any jump to a place on the page, so links and Back always land on the right section. */
+@media (max-width: 63.99rem) {
+  html.lazy main > .section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 900px;
+  }
+}
 
 /* type */
 .h-hero,

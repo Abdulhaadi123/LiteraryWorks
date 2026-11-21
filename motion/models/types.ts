@@ -1,8 +1,8 @@
 import type * as THREE from "three";
 
 /**
- * A model is one real object built from code (devices on stands, an audit report, a robot arm, a headset, a shelf and a
- * scanner, a pipeline board, a book ...) with our own projects shown on its screens and pages. A sequence
+ * A model is one real object built from code (devices on stands, an audit report, a document scanner, a headset, a stock
+ * shelf, a pipeline board, a book ...) with our own projects shown on its screens and pages. A sequence
  * (`scenes/deck.ts`) shows one model for each beat of the copy; `scenes/system.ts` shows one for a whole section.
  * `set` is a pure function of its arguments, so scrubbing the page forwards and backwards is exact.
  */

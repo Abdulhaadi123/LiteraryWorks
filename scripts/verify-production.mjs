@@ -479,6 +479,24 @@ async function main() {
         await sleep(900);
         const top = await page.ev("Math.round(document.querySelector('#method')?.getBoundingClientRect().top ?? -1)");
         check(top >= 0 && top < 200, "an in-page link (See how we build) lands on its section", `${top}px from the top of the window`);
+        // Back returns to the same place: a fresh visit (lower sections laid out lazily), scroll down by hand, open a
+        // service, come back
+        await page.send("Page.navigate", { url: `${base}/` });
+        await sleep(2500);
+        const lazy = await page.ev("document.documentElement.classList.contains('lazy')");
+        for (let i = 0; i < 60; i++) {
+          await page.ev("window.scrollBy(0, 400)");
+          await sleep(100);
+          if ((await page.ev("document.querySelector('#method').getBoundingClientRect().top")) < 150) break;
+        }
+        await sleep(500);
+        const was = await page.ev("Math.round(document.querySelector('#method').getBoundingClientRect().top)");
+        await page.ev("document.querySelector('#services .svc-card').click()");
+        await sleep(2500);
+        await page.ev("history.back()");
+        await sleep(2500);
+        const back = await page.ev("Math.round(document.querySelector('#method').getBoundingClientRect().top)");
+        check(lazy && Math.abs(back - was) < 60, "Back after opening a service returns to the same place", `lazy ${lazy}, #method at ${was}px, after Back ${back}px`);
       }
       if (path === "/services" || path === "/work") {
         const list = await page.ev("(() => { const f = document.querySelector('.deck-fallback'); const d = document.querySelector('.xp-deck'); return { list: !!f && f.offsetHeight > 200, deck: !!d && getComputedStyle(d).display !== 'none' }; })()");

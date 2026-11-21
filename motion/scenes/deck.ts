@@ -8,8 +8,8 @@ import type { SceneAnchor, SceneCtx, SceneHandle, SceneLayout } from "../types";
 
 /**
  * A sequence of real objects, one at a time: as the page scrolls and the copy beside it moves on, the camera moves on
- * to the next object, so every beat of a section has its own model (the services deck: a robot arm, a headset, a
- * dashboard ...; a page's story: devices, an audit report, a robot arm, browser windows, a handbook ...). They stand
+ * to the next object, so every beat of a section has its own model (the services deck: a document scanner, a headset, a
+ * dashboard ...; a page's story: devices, an audit report, a document scanner, browser windows, a handbook ...). They stand
  * in a column, far enough apart that the next is only in view while the camera travels to it. The first is built
  * before the first frame; the others follow in the background.
  */
@@ -38,7 +38,7 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   camera.updateProjectionMatrix();
   scene.environmentIntensity = 0.85;
 
-  const ids = ctx.data?.items?.map((i) => i.id) ?? ["devices", "report", "robot"];
+  const ids = ctx.data?.items?.map((i) => i.id) ?? ["devices", "report", "scanner"];
   const N = Math.max(2, ids.length);
   const at = ctx.data?.at;
   const env = createEnv(renderer, ctx.data?.variant ?? "deck");

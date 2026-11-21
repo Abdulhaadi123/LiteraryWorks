@@ -1,21 +1,21 @@
 import * as THREE from "three";
 import { clamp01, smooth } from "../engine";
 import { makeLaptop, makePhone, makeTablet, SCREEN_PX } from "../devices";
-import { screenFader, shadow, standFor } from "./real";
+import { shadow, standFor } from "./real";
 import type { Model, ModelBuilder } from "./types";
 
 /**
  * The home page: our work on the devices it runs on. A laptop with a web platform, a tablet with an assistant and a
- * phone with an app stand together on one floor, and as the story goes from discovery to running it, the projects on
- * their screens move on (the same moments as the copy: 0.31, 0.49, 0.69, 0.88). The camera drifts round them.
+ * phone with an app stand together on one floor; the laptop opens a little and the camera drifts round them. Each
+ * screen keeps one project: the picture changes only when the copy moves on to the next object.
  */
 const build: ModelBuilder = async (env, mini) => {
   const k = mini ? 0.62 : 1;
   const shots = (names: string[], kind: "laptop" | "tablet" | "phone") => Promise.all(names.map((n) => env.shot(n, Math.round(SCREEN_PX[kind][0] * k), Math.round(SCREEN_PX[kind][1] * k))));
   const [lt, tt, pt] = await Promise.all([
-    shots(["siqetra", "assistant", "cordial", "/cases/predictive-maintenance"], "laptop"),
-    shots(["grace", "support", "wrk"], "tablet"),
-    shots(["phone-beanstalk", "phone-civilchat", "phone-faith3"], "phone"),
+    shots(["siqetra"], "laptop"),
+    shots(["grace"], "tablet"),
+    shots(["phone-beanstalk"], "phone"),
   ]);
 
   const group = new THREE.Group();
@@ -44,9 +44,6 @@ const build: ModelBuilder = async (env, mini) => {
   P.add(shadow(env, 2.2, 1.8, 0.3, 0, 0));
   group.add(L, T, P);
 
-  const fl = screenFader(laptop.screen!, lt, [0.3, 0.55, 0.8]);
-  const ft = screenFader(tablet.screen!, tt, [0.4, 0.75]);
-  const fp = screenFader(phone.screen!, pt, [0.5, 0.85]);
 
   const model: Model = {
     group,
@@ -55,9 +52,6 @@ const build: ModelBuilder = async (env, mini) => {
     floorY: 0,
     set(_a, _l, p) {
       laptop.open(0.9 + 0.1 * smooth(clamp01(p * 4)));
-      fl(p);
-      ft(p);
-      fp(p);
       L.rotation.y = -0.12 + Math.sin(p * Math.PI) * 0.05;
     },
     frame: () => ({ cx: 0, cy: 1.6, hw: 5, hh: 2.6 }),

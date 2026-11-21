@@ -16,7 +16,7 @@ const YC = 1.55; // the height of the middle of the cups
 const build: ModelBuilder = async (env, mini) => {
   const group = new THREE.Group();
   const k = mini ? 0.62 : 1;
-  const shots = await Promise.all(["phone-faith2", "phone-faith3"].map((n) => env.shot(n, Math.round(SCREEN_PX.phone[0] * k), Math.round(SCREEN_PX.phone[1] * k))));
+  const shots = await Promise.all(["phone-faith2"].map((n) => env.shot(n, Math.round(SCREEN_PX.phone[0] * k), Math.round(SCREEN_PX.phone[1] * k))));
 
   const graphite = mat.plastic(0x2c3139, 0.45);
   const soft = mat.plastic(0x5a6572, 0.85);

@@ -6,7 +6,7 @@ import { dressStage, type Dressing } from "../stage";
 import type { SceneAnchor, SceneCtx, SceneHandle, SceneLayout } from "../types";
 
 /**
- * A page's 3D scene: one model (`models/`), a real object that suits the page (a robot arm, a headset, a book, a building
+ * A page's 3D scene: one model (`models/`), a real object that suits the page (a document scanner, a headset, a book, a building
  * model ...), with our own projects on it. The scroll moves it on (the objects work, the pictures change, the pages
  * turn) while the camera drifts a little round it. This file is only the stage: the camera and the tags. Everything is a
  * pure function of the scroll.
