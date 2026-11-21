@@ -99,8 +99,8 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
     const right = Math.min(w - EDGE, (w + MAX_CONTENT) / 2);
     const copy = phases[0]?.el.getBoundingClientRect();
     const copyRight = copy && copy.width ? copy.right - host.getBoundingClientRect().left : w * 0.4;
-    // below the floating header, above the bottom edge
-    lay = { left: copyRight + 24, right, top: HEADER_CLEAR, bottom: host.clientHeight - 20 };
+    // below the floating header and as far from the bottom edge, so the picture is centred on the copy beside it
+    lay = { left: copyRight + 24, right, top: HEADER_CLEAR, bottom: host.clientHeight - HEADER_CLEAR };
     tagW = items.map((li) => li.offsetWidth || 160);
   };
 
@@ -168,6 +168,11 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
 
   const draw = () => {
     if (!handle || !visible) return;
+    // the scene that is drawing owns the one canvas: take it back if another scene's late start moved it away
+    if (gl && gl.canvas.parentElement !== host) {
+      attach(true);
+      return;
+    }
     handle.setProgress(state.p);
     handle.render();
     placeLabels();
@@ -284,7 +289,7 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
       if (disposed) return;
       const t0 = performance.now();
       gl = getGL();
-      const built = await mod.default({ gl, keys: labels.map((l) => l.key), data });
+      const built = await mod.default({ gl, keys: labels.map((l) => l.key), data, invalidate: () => draw() });
       // the page may have moved on while the model was being built: give the graphics memory back at once
       if (disposed) {
         built.dispose();
@@ -313,14 +318,16 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
     }
   };
 
-  // about a screen and a half before it is reached; starts when the browser is idle, so the page's own first
-  // paint and hydration never wait for it
+  // about a screen and a half before it is reached, when the browser is idle; but a scene already on screen (the top of
+  // a page) starts at once, so its picture arrives with the copy beside it and not after it
   const near = new IntersectionObserver(
     (entries) => {
-      if (entries.some((e) => e.isIntersecting)) {
-        near.disconnect();
-        idleId = ric(() => void start());
-      }
+      const e = entries.find((x) => x.isIntersecting);
+      if (!e) return;
+      near.disconnect();
+      const onScreen = e.boundingClientRect.top < window.innerHeight && e.boundingClientRect.bottom > 0;
+      if (onScreen) void start();
+      else idleId = ric(() => void start());
     },
     { rootMargin: "160% 0px" },
   );

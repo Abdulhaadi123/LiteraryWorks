@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { sceneAria, systemLabelsFor } from "@/lib/scenes";
+import { pageScene, sceneAria } from "@/lib/scenes";
 import { Checks } from "./ui";
 import { Phase, Xp } from "./Xp";
 
@@ -39,7 +39,7 @@ export function SceneHero({
   closing: { title: ReactNode; lead: string; actions: ReactNode };
 }) {
   return (
-    <Xp id={id} scene="system" className="xp-compact" vh={320} aria={aria ?? sceneAria(variant)} labels={systemLabelsFor(variant)} data={{ variant }}>
+    <Xp id={id} scene="deck" className="xp-compact" vh={360} aria={aria ?? sceneAria(variant)} labels={[]} data={pageScene(variant)}>
       <Phase from={0} to={0.12}>
         <p className="kicker rise">{kicker}</p>
         <h1 className="h-hero rise" style={{ "--i": 1 } as React.CSSProperties}>

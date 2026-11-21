@@ -7,7 +7,7 @@ import { ServicesDeck } from "@/components/ServicesDeck";
 import { AuditStrip, Industries, Phases, Problems, ResultsBand, Transformation } from "@/components/Sections";
 import { Phase, Xp } from "@/components/Xp";
 import { cases, voices } from "@/lib/content";
-import { sceneAria, systemLabelsFor } from "@/lib/scenes";
+import { sceneAria, storyScene } from "@/lib/scenes";
 import { siteName, siteUrl } from "@/lib/seo";
 
 /** What a search engine may know about the business: its name, address and logo. Nothing here that the site does not already say. */
@@ -32,11 +32,11 @@ export default function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
       <Xp
         id="story"
-        scene="system"
-        vh={500}
-        aria={sceneAria("hero")}
-        labels={systemLabelsFor("hero")}
-        data={{ variant: "hero" }}
+        scene="deck"
+        vh={560}
+        aria={sceneAria("story")}
+        labels={[]}
+        data={storyScene()}
         poster={<SystemPoster />}
       >
         <Phase from={0} to={0.11}>

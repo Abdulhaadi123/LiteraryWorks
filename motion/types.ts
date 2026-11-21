@@ -9,7 +9,7 @@ import type { GL } from "./gl";
 export type SceneName = "system" | "deck";
 
 /** The devices our work runs on, which the scenes show with our own projects on their screens. */
-export type DeviceType = "phone" | "laptop" | "tablet" | "rack";
+export type DeviceType = "phone" | "laptop" | "tablet" | "monitor" | "rack";
 
 /** What a page tells its scene: which variant to draw and the words to put on it. Plain data, so a server component can pass it. */
 export interface SceneData {
@@ -17,6 +17,8 @@ export interface SceneData {
   variant: string;
   title?: string;
   items?: { id: string; title: string; note?: string; tags?: string[]; stats?: { value: string; label: string }[] }[];
+  /** For a deck: where in the scroll each item takes over (the first is 0); by default after a short intro, evenly. */
+  at?: number[];
 }
 
 /** A tag that follows a panel of the model. */
@@ -37,6 +39,8 @@ export interface SceneCtx {
   /** The label keys, in the order the page lists them. */
   keys: string[];
   data?: SceneData;
+  /** Asks for a new frame (a scene that finishes building parts of itself later calls it). */
+  invalidate?: () => void;
 }
 
 export interface SceneAnchor {

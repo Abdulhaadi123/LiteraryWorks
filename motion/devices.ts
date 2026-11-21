@@ -11,9 +11,21 @@ export type { DeviceType };
  * the real things (a phone is 70 x 147 mm, a laptop 312 mm wide) in units of about 100 mm.
  */
 
+/** The picture plane of a screen, so the scene can swap and cross-fade what is on it. */
+export interface ScreenHandle {
+  mesh: THREE.Mesh;
+  mat: THREE.MeshBasicMaterial;
+  w: number;
+  h: number;
+  /** The object the plane lives in (the lid of a laptop, the body of a phone). */
+  parent: THREE.Object3D;
+}
+
 export interface Device {
   type: DeviceType;
   group: THREE.Group;
+  /** Where the pictures go (a rack has no screen). */
+  screen?: ScreenHandle;
   /** A point at the top-left of the screen (a tag points at it); it follows the lid of a laptop. */
   tagObj: THREE.Object3D;
   /** The middle of the screen. */
@@ -39,6 +51,7 @@ export const SCREEN_PX: Record<DeviceType, [number, number]> = {
   phone: [512, 1108],
   tablet: [1024, 640],
   laptop: [1024, 640],
+  monitor: [1280, 720],
   rack: [4, 4],
 };
 
@@ -125,7 +138,8 @@ function makeSlate(opts: { w: number; h: number; d: number; r: number; bezel: nu
   const front = d / 2;
   g.add(plate(w - 0.028, h - 0.028, r - 0.014, dark(0x04060a, 1), front + STEP));
   const mat = screenMaterial(tex);
-  g.add(plate(w - 2 * bezel, h - 2 * bezel, Math.max(0.02, r - bezel), mat, front + STEP * 2));
+  const picture = plate(w - 2 * bezel, h - 2 * bezel, Math.max(0.02, r - bezel), mat, front + STEP * 2);
+  g.add(picture);
   if (phone) {
     const island = plate(0.2, 0.056, 0.028, dark(0x020305, 3), front + STEP * 3);
     island.position.y = h / 2 - 0.1;
@@ -170,6 +184,7 @@ function makeSlate(opts: { w: number; h: number; d: number; r: number; bezel: nu
   return {
     type,
     group: g,
+    screen: { mesh: picture, mat, w: w - 2 * bezel, h: h - 2 * bezel, parent: g },
     tagObj: marker(g, -w / 2 + bezel + 0.02, h / 2 - bezel - 0.02, front + 0.01),
     centerObj: marker(g, 0, 0, front + 0.01),
     topObj: marker(g, 0, h / 2 + 0.06, 0),
@@ -303,6 +318,7 @@ export function makeLaptop(tex: THREE.Texture | null): Device {
   return {
     type: "laptop",
     group: g,
+    screen: { mesh: screen, mat, w: sw, h: sh, parent: lid },
     tagObj: marker(lid, -sw / 2 + 0.05, screen.position.y + sh / 2 - 0.05, front + 0.01),
     centerObj: marker(lid, 0, screen.position.y, front + 0.01),
     topObj: marker(lid, 0, LH + 0.1, 0),
@@ -313,6 +329,55 @@ export function makeLaptop(tex: THREE.Texture | null): Device {
       mat.color.setScalar(v);
     },
     open,
+    tick() {},
+  };
+}
+
+/** A desktop display on a slim stand: a thin aluminium panel (16:9, or wide when `wide`), a neck and a flat foot. */
+export function makeMonitor(tex: THREE.Texture | null, wide = false): Device {
+  const sw = wide ? 7.4 : 5.8;
+  const sh = wide ? sw / 2.1 : (sw * 9) / 16;
+  const bz = 0.17;
+  const W = sw + 2 * bz;
+  const H = sh + 2 * bz;
+  const D = 0.11;
+  const LIFT = 1.2; // the bottom edge of the panel above the desk
+  const g = new THREE.Group();
+  const alu = metal(AL, 0.32);
+  const panel = new THREE.Group();
+  panel.position.y = LIFT + H / 2;
+  g.add(panel);
+  panel.add(new THREE.Mesh(slabGeo(W, H, D, 0.09), alu));
+  const front = D / 2;
+  panel.add(plate(W - 0.03, H - 0.03, 0.07, dark(0x04060a, 1), front + STEP));
+  const mat = screenMaterial(tex);
+  const screen = plate(sw, sh, 0.02, mat, front + STEP * 2);
+  panel.add(screen);
+  const sheen = glareTexture();
+  panel.add(glare(sheen, sw, sh, 0.02, front + STEP * 4));
+  // the neck stands behind the middle of the panel; the foot lies on the desk
+  const neck = new THREE.Mesh(slabGeo(0.62, LIFT + H * 0.45, 0.1, 0.05), alu);
+  neck.position.set(0, (LIFT + H * 0.45) / 2, -D / 2 - 0.12);
+  g.add(neck);
+  const footGeo = slabGeo(2.5, 1.5, 0.09, 0.14);
+  footGeo.rotateX(-Math.PI / 2);
+  const foot = new THREE.Mesh(footGeo, alu);
+  foot.position.set(0, 0.045, -0.1);
+  g.add(foot);
+  return {
+    type: "monitor",
+    group: g,
+    screen: { mesh: screen, mat, w: sw, h: sh, parent: panel },
+    tagObj: marker(panel, -sw / 2 + 0.06, sh / 2 - 0.06, front + 0.01),
+    centerObj: marker(panel, 0, 0, front + 0.01),
+    topObj: marker(panel, 0, H / 2 + 0.08, 0),
+    cy: LIFT + H / 2,
+    extent: { w: W, h: LIFT + H },
+    textures: [sheen],
+    power(v) {
+      mat.color.setScalar(v);
+    },
+    open() {},
     tick() {},
   };
 }
@@ -334,33 +399,33 @@ export function makeRack(): Device {
   const g = new THREE.Group();
   const body = new THREE.Mesh(
     new RoundedBoxGeometry(W, H, D, 4, 0.05),
-    new THREE.MeshPhysicalMaterial({ color: 0x2b5071, metalness: 0.75, roughness: 0.4, envMapIntensity: 1.1, clearcoat: 0.2, clearcoatRoughness: 0.35 }),
+    new THREE.MeshPhysicalMaterial({ color: 0x3a3f46, metalness: 0.8, roughness: 0.38, envMapIntensity: 1.1, clearcoat: 0.2, clearcoatRoughness: 0.35 }),
   );
   g.add(body);
   const frontTex = canvasTexture(
     TW,
     TH,
     (c, w, h) => {
-      c.fillStyle = "#101e2d";
+      c.fillStyle = "#14171b";
       c.fillRect(0, 0, w, h);
       for (let i = 0; i < UNITS; i++) {
         const y = top + i * (unitH + gap);
         const gr = c.createLinearGradient(0, y, 0, y + unitH);
-        gr.addColorStop(0, "#2c4a68");
-        gr.addColorStop(1, "#1b3149");
+        gr.addColorStop(0, "#4a5058");
+        gr.addColorStop(1, "#2a2e34");
         c.fillStyle = gr;
         c.beginPath();
         c.roundRect(26, y, w - 52, unitH, 12);
         c.fill();
-        c.strokeStyle = "rgba(157,187,211,0.3)";
+        c.strokeStyle = "rgba(210,215,220,0.28)";
         c.lineWidth = 2;
         c.stroke();
         // the vent slots
-        c.fillStyle = "#0a131d";
+        c.fillStyle = "#0b0d10";
         for (let k = 0; k < 9; k++) c.fillRect(w * 0.5 + k * 22, y + unitH * 0.27, 11, unitH * 0.46);
         // empty light sockets (the lit ones are real, so they can blink)
         for (let k = 0; k < 4; k++) {
-          c.fillStyle = "#0a131d";
+          c.fillStyle = "#0b0d10";
           c.beginPath();
           c.arc(66 + k * 34, y + unitH / 2, 9, 0, Math.PI * 2);
           c.fill();

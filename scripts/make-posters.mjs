@@ -1,5 +1,5 @@
-// Renders the home story's still pictures from the live 3D scene: the nine tiles joined to the AI core (system-ring)
-// and locked into one halo (system-dash), as WebP on the scene's own light ground (a few tens of kB each, where
+// Renders the home story's still pictures from the live 3D scene: our projects on a laptop, a tablet and a phone
+// (system-ring) and the browser windows of the build beat (system-dash), as WebP on the scene's own light ground (a few tens of kB each, where
 // the same pictures with a transparent background were over 200 kB), in public/scene/. Phones, tablets, reduced
 // motion and a browser without WebGL show these, so what they see is the real scene and not a drawing of it.
 //
@@ -184,8 +184,8 @@ async function main() {
       }
     };
 
-    await render("system-ring", 0.4, 1200);
-    await render("system-dash", 0.86, 1200);
+    await render("system-ring", 0.03, 1200);
+    await render("system-dash", 0.58, 1200);
     console.log("\nDone. Keep the width, height and srcset sizes in components/Posters.tsx in step with the sizes printed above.");
   } finally {
     page.close();

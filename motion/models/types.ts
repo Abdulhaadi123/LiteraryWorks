@@ -48,6 +48,8 @@ export interface ModelEnv {
   rnd: () => number;
   /** The soft shadow that sits behind a floating panel. */
   shadow: THREE.Texture;
+  /** One of our own project pictures as it is (null if it cannot be fetched), for a model that draws it into something else. */
+  image(name: string): Promise<HTMLImageElement | null>;
   /** A screen texture from one of our own project pictures (public/shots/<name>.webp; a leading "/" is a full path); a branded placeholder if it cannot load. */
   shot(name: string, w?: number, h?: number): Promise<THREE.Texture>;
 }

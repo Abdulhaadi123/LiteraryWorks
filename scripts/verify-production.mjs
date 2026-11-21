@@ -11,7 +11,7 @@
 //   1. every page in the sitemap answers 200 with a title and exactly one <h1>
 //   2. desktop: motion starts and every pinned 3D scene on the site (the home story and services deck, the services
 //      and work decks, a service page, the audit and about pages) builds without an error, changes the copy as the
-//      page scrolls, draws a picture that moves with the scroll, shows its tags, and keeps ONE shared canvas that
+//      page scrolls, draws a picture that moves with the scroll, moves on to its next object with the copy, and keeps ONE shared canvas that
 //      moves from scene to scene; the model stays clear of the copy and of the header on small and wide windows
 //   3. phone: no motion, no three.js, GSAP or Lenis code is downloaded, the hero picture loads, the plain list takes
 //      the deck's place, no sideways scrolling, a small script budget
@@ -276,13 +276,13 @@ async function main() {
     // 2. desktop with motion: every pinned 3D scene on the site
     console.log("\nDesktop, motion on (1440x900)");
     const runways = [
-      { path: "/", id: "#story", name: "home story", tags: 5, at: [0.05, 0.4, 0.8] },
+      { path: "/", id: "#story", name: "home story", at: [0.05, 0.4, 0.8] },
       { path: "/", id: "#services", name: "home services deck", at: [0.03, 0.3, 0.64] },
       { path: "/services", id: "#services-deck", name: "services deck", at: [0.03, 0.3, 0.64] },
       { path: "/work", id: "#cases-deck", name: "work deck", at: [0.03, 0.3, 0.64] },
-      { path: "/services/ai-voice-systems", id: "#top", name: "service page", tags: 3, at: [0.05, 0.3, 0.65] },
-      { path: "/ai-audit", id: "#top", name: "audit page", tags: 3, at: [0.05, 0.3, 0.65] },
-      { path: "/about", id: "#top", name: "about page", tags: 4, at: [0.05, 0.3, 0.65] },
+      { path: "/services/ai-voice-systems", id: "#top", name: "service page", at: [0.05, 0.3, 0.65] },
+      { path: "/ai-audit", id: "#top", name: "audit page", at: [0.05, 0.3, 0.65] },
+      { path: "/about", id: "#top", name: "about page", at: [0.05, 0.3, 0.65] },
     ];
     for (const r of runways) {
       const page = await visit(chrome, r.path, { width: 1440, height: 900 });

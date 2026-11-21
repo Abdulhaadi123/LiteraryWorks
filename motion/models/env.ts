@@ -36,6 +36,7 @@ export function createEnv(renderer: THREE.WebGLRenderer, seed: string): ModelEnv
     textures,
     rnd: rng(hash(seed)),
     shadow,
+    image: (name) => picture(name.startsWith("/") ? `${name}.webp` : `/shots/${name}.webp`),
     async shot(name, w = 1024, h = 576) {
       const img = await picture(name.startsWith("/") ? `${name}.webp` : `/shots/${name}.webp`);
       const tex = img ? screenTexture(img, aniso, w, h) : placeholderScreen(aniso, w, h);
@@ -45,18 +46,39 @@ export function createEnv(renderer: THREE.WebGLRenderer, seed: string): ModelEnv
   };
 }
 
-/** Each kind of model is its own chunk, fetched only by the page that shows it (and by the deck, which shows them all). */
+/** Each model is its own chunk, fetched only by the page that shows it. */
 export const modelLoaders: Record<string, () => Promise<{ default: ModelBuilder }>> = {
-  hero: () => import("./core"),
-  audit: () => import("./audit"),
-  about: () => import("./journey"),
-  "ai-automation": () => import("./flow"),
-  "ai-voice-systems": () => import("./voice"),
-  "saas-platforms": () => import("./layers"),
-  "enterprise-software": () => import("./wall"),
-  "ai-web-apps": () => import("./browser"),
-  "ai-mobile-apps": () => import("./appui"),
-  "ui-ux-design": () => import("./design"),
-  "cloud-devops": () => import("./globe"),
-  "construction-technology": () => import("./building"),
+  devices: () => import("./hero"),
+  report: () => import("./report"),
+  robot: () => import("./robot"),
+  headset: () => import("./headset"),
+  dashboard: () => import("./dashboard"),
+  warehouse: () => import("./warehouse"),
+  browsers: () => import("./windows"),
+  phones: () => import("./phones"),
+  uikit: () => import("./uikit"),
+  servers: () => import("./servers"),
+  pipeline: () => import("./pipeline"),
+  book: () => import("./book"),
 };
+
+/** The model each service shows first (the services deck passes the services' slugs). */
+export const serviceModel: Record<string, string> = {
+  "ai-automation": "robot",
+  "ai-voice-systems": "headset",
+  "saas-platforms": "dashboard",
+  "enterprise-software": "warehouse",
+  "ai-web-apps": "browsers",
+  "ai-mobile-apps": "phones",
+  "ui-ux-design": "uikit",
+  "cloud-devops": "servers",
+  "construction-technology": "pipeline",
+};
+
+/** A model by its id: a model's name, a service's slug, or "book:<kind>" (a case's slug, "cases", "handbook" or "about"). */
+export async function loadModel(id: string): Promise<ModelBuilder> {
+  const [name, arg] = id.split(":");
+  if (name === "book") return (await import("./book")).bookFor(arg ?? "cases");
+  const load = modelLoaders[serviceModel[name] ?? name] ?? modelLoaders.devices;
+  return (await load()).default;
+}

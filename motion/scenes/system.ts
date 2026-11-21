@@ -1,16 +1,15 @@
 import * as THREE from "three";
-import { createStage, lerp, quint, TAU, win } from "../engine";
-import { blobTexture } from "../kit";
-import { createEnv, hash, modelLoaders, rng } from "../models/env";
+import { createStage, lerp, quint, win } from "../engine";
+import { createEnv, loadModel } from "../models/env";
 import { fitFrame } from "../models/fit";
 import { dressStage, type Dressing } from "../stage";
 import type { SceneAnchor, SceneCtx, SceneHandle, SceneLayout } from "../types";
 
 /**
- * A page's 3D scene: one model (`models/`), the kind of animation that suits the page (a pipeline of work, a ring of
- * sound, a stack of layers, a globe, a building going up ...), with our own projects on its screens. The page's scroll
- * builds it (loose pieces come together), then runs it (it starts to work), while the camera moves slowly round it.
- * This file is only the stage: the camera, the tags, the glow and the dust. Everything is a pure function of the scroll.
+ * A page's 3D scene: one model (`models/`), a real object that suits the page (a robot arm, a headset, a book, a building
+ * model ...), with our own projects on it. The scroll moves it on (the objects work, the pictures change, the pages
+ * turn) while the camera drifts a little round it. This file is only the stage: the camera and the tags. Everything is a
+ * pure function of the scroll.
  */
 
 const FOV = 28;
@@ -28,60 +27,19 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   camera.updateProjectionMatrix();
   scene.environmentIntensity = 0.85;
 
-  const variant = ctx.data?.variant ?? "hero";
+  const variant = ctx.data?.variant ?? "devices";
   const env = createEnv(renderer, variant);
-  const loader = modelLoaders[variant] ?? modelLoaders.hero;
-  const model = await (await loader()).default(env, false);
+  const model = await (await loadModel(variant))(env, false);
   fitFrame(model);
   scene.add(model.group);
   const textures = env.textures;
-  const hint = model.camera ?? { az: [-0.34, 0.2], elev: [0.17, 0.1] };
+  const hint = model.camera ?? { az: [-0.34, 0.2], elev: [0.3, 0.24] };
 
-  // every scene stands in the light studio: a glossy floor, soft shadows, coloured rim lights and soft colour out of focus
+  // every scene stands in the same plain studio: a glossy floor and three soft lights
   const dress: Dressing | null = dressStage(gl, scene, camera, textures);
-
-  const haloTex = blobTexture("120,170,200", 0.5);
-  const shadowTex = blobTexture("20,40,60", 0.5);
-  const dustTex = blobTexture("90,134,170", 0.9);
-  textures.push(haloTex, shadowTex, dustTex);
-  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, transparent: true, depthWrite: false, opacity: 0.3 }));
-  halo.layers.set(1);
-  scene.add(halo);
-
-  /* ---- a soft ground under a model that stands on nothing ---- */
-  const blobGeo = new THREE.PlaneGeometry(1, 1);
-  const ground = new THREE.Mesh(blobGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, opacity: 0.4 }));
-  ground.rotation.x = -Math.PI / 2;
-  ground.renderOrder = -1;
-  ground.visible = !!model.ground;
-  ground.layers.set(1);
-  scene.add(ground);
-
-  /* ---- a fine dust in the air ---- */
-  const dustN = 110;
-  const dustPos = new Float32Array(dustN * 3);
-  const dr = rng(hash(variant) ^ 0x51ed);
-  const f0 = model.frame();
-  for (let i = 0; i < dustN; i++) {
-    const a = dr() * TAU;
-    const b = Math.acos(2 * dr() - 1);
-    const r = 6 + dr() * 5;
-    dustPos[i * 3] = f0.cx + Math.sin(b) * Math.cos(a) * r * 1.2;
-    dustPos[i * 3 + 1] = f0.cy + Math.cos(b) * r * 0.7;
-    dustPos[i * 3 + 2] = Math.sin(b) * Math.sin(a) * r - 3;
-  }
-  const dustGeo = new THREE.BufferGeometry();
-  dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
-  const dust = new THREE.Points(
-    dustGeo,
-    new THREE.PointsMaterial({ map: dustTex, size: 0.16, transparent: true, depthWrite: false, opacity: 0.5, sizeAttenuation: true }),
-  );
-  dust.layers.set(1);
-  scene.add(dust);
 
   /* ---- progress ---- */
   const A = new THREE.Vector3();
-  const view = new THREE.Vector3();
   const target = new THREE.Vector3();
   let lay: SceneLayout | null = null;
   let px = 0;
@@ -115,8 +73,8 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
       return { drawCalls: i.render.calls, triangles: i.render.triangles, geometries: i.memory.geometries, textures: i.memory.textures, shaderPrograms: i.programs?.length ?? 0, pixelRatio: gl.ratio };
     },
     setProgress(p) {
-      const a = quint(win(p, 0.04, 0.5)); // loose -> built
-      const l = win(p, 0.45, 0.85); // still -> running
+      const a = quint(win(p, 0.04, 0.5)); // (kept for models that grow in)
+      const l = win(p, 0.45, 0.85);
       model.set(a, l, p);
       scene.updateMatrixWorld();
       const f = model.frame();
@@ -142,19 +100,7 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
       camera.updateMatrixWorld();
 
       const floorY = model.floorY ?? f.cy - f.hh;
-      if (model.ground) {
-        ground.position.set(f.cx, floorY, 0);
-        const size = Math.max(f.hw * 2.5, 4);
-        ground.scale.set(size, size * 0.55, 1);
-      }
-      dress?.update({ floorY, cx: f.cx, hw: f.hw, p, l });
-      // the glow sits well behind the model, on the line from the eye through its middle, so it never cuts through it
-      view.subVectors(target, camera.position).normalize();
-      halo.position.copy(target).addScaledVector(view, 6);
-      halo.scale.setScalar((f.hw * 2 + 1) * (1 + 6 / dist));
-      (halo.material as THREE.SpriteMaterial).opacity = lerp(0.22, 0.38, l);
-      dust.rotation.y = p * 0.5;
-      dust.rotation.x = p * 0.1;
+      dress?.update({ floorY, cx: f.cx, hw: f.hw });
     },
     anchors(): SceneAnchor[] {
       camera.updateMatrixWorld();
@@ -170,8 +116,6 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
       model.dispose?.();
       dress?.dispose();
       textures.forEach((t) => t.dispose());
-      blobGeo.dispose();
-      dustGeo.dispose();
       st.dispose();
     },
   };

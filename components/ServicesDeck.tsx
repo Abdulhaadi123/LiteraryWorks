@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { cases } from "@/lib/content";
+import { servicesAria } from "@/lib/scenes";
 import { servicePages } from "@/lib/service-pages";
 import { services } from "@/lib/services";
 import { Checks } from "./ui";
@@ -28,6 +29,7 @@ interface DeckItem {
 function Deck({
   id,
   variant,
+  scene = "deck",
   aria,
   items,
   intro,
@@ -36,6 +38,8 @@ function Deck({
 }: {
   id: string;
   variant: string;
+  /** "deck": one model for each item; "system": one model (the book) whose pages follow the items. */
+  scene?: "deck" | "system";
   aria: string;
   items: DeckItem[];
   intro: ReactNode;
@@ -48,14 +52,14 @@ function Deck({
     <>
       <Xp
         id={id}
-        scene="deck"
+        scene={scene}
         className="xp-deck"
         railSteps={n}
         railIntro={INTRO}
         vh={vh}
         aria={aria}
         labels={[]}
-        data={{ variant, items: items.map((s) => ({ id: s.id, title: s.title })) }}
+        data={scene === "system" ? { variant } : { variant, items: items.map((s) => ({ id: s.id, title: s.title })) }}
       >
         <Phase from={0} to={INTRO}>
           {intro}
@@ -98,7 +102,7 @@ export function ServicesDeck({ id, intro, fallback }: { id: string; intro: React
       id={id}
       variant="services"
       vh={640}
-      aria="Nine 3D scenes, one for each service, shown one at a time, each a different kind of animation: a gate that sorts a stream of requests for AI and automation, a ring of sound for AI voice systems, four layers pulled apart for SaaS platforms, a wall of live dashboards for enterprise software, a browser built of layers for AI web apps, an app pulled apart for AI mobile apps, a wireframe painted into a design for UI and UX design, a planet of cloud regions for cloud and DevOps, and a building going up with a crane for construction technology."
+      aria={servicesAria}
       intro={intro}
       fallback={fallback}
       items={services.map((s) => ({
@@ -114,14 +118,15 @@ export function ServicesDeck({ id, intro, fallback }: { id: string; intro: React
   );
 }
 
-/** The case studies as a deck: their covers climbing a spiral, one for each, with its summary and three results beside it. */
+/** The case studies as a book: it lies open and turns to each case in turn, with its summary and three results beside it. */
 export function CasesDeck({ id, intro, fallback }: { id: string; intro: ReactNode; fallback: ReactNode }) {
   return (
     <Deck
       id={id}
-      variant="cases"
+      variant="book:cases"
+      scene="system"
       vh={560}
-      aria={`A spiral of ${cases.length} covers, one for each case study, climbing one above the other. Each comes to the front in turn.`}
+      aria={`A book of our ${cases.length} case studies lying open. As the page scrolls it turns to each case: its story and results on the left page, its picture on the right.`}
       intro={intro}
       fallback={fallback}
       items={cases.map((c) => ({

@@ -138,7 +138,7 @@ html.motion .xp:not(.xp-failed) .xp-canvas {
   z-index: 2;
   display: block;
   opacity: 0;
-  transition: opacity 1s ease;
+  transition: opacity 0.45s ease;
 }
 html.motion .xp.xp-live .xp-canvas {
   opacity: 1;
