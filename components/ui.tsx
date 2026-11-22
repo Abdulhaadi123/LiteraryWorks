@@ -288,7 +288,7 @@ const initials = (name: string) =>
 
 export function Quotes({ items }: { items: Quote[] }) {
   return (
-    <ul className="cards cards-3" data-stagger>
+    <ul className="cards cards-3 quote-grid" data-stagger>
       {items.map((q) => (
         <li key={q.name + q.role}>
           <figure className="quote">

@@ -135,8 +135,7 @@ main {
 .card,
 .panel,
 .svc-card,
-.ladder > li,
-.process-step {
+.ladder > li {
   border-color: var(--rule);
   border-radius: 14px;
   box-shadow: none;
@@ -174,138 +173,6 @@ main {
 }
 .on-navy.statement .big {
   color: #fff;
-}
-
-/* ---- sectors: a ruled grid, the cells open ---- */
-.sectors {
-  gap: 0;
-  border-top: 1px solid var(--rule);
-}
-.sectors li {
-  padding: 2rem 1.75rem 2.1rem 0;
-  border: 0;
-  border-bottom: 1px solid var(--rule);
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-}
-.sectors li:hover {
-  translate: none;
-  box-shadow: none;
-}
-@media (min-width: 40rem) {
-  .sectors li {
-    padding-left: 1.75rem;
-    border-left: 1px solid var(--rule);
-  }
-  .sectors li:nth-child(2n + 1) {
-    padding-left: 0;
-    border-left: 0;
-  }
-}
-@media (min-width: 64rem) {
-  .sectors li:nth-child(2n + 1) {
-    padding-left: 1.75rem;
-    border-left: 1px solid var(--rule);
-  }
-  .sectors li:nth-child(3n + 1) {
-    padding-left: 0;
-    border-left: 0;
-  }
-}
-
-/* ---- the four phases: ruled columns, the number set as type ---- */
-.process-steps {
-  gap: 0;
-  border-top: 1px solid var(--rule);
-}
-.process-steps::before {
-  display: none;
-}
-.process-step {
-  padding: 1.75rem 1.5rem 1.75rem 0;
-  border: 0;
-  border-bottom: 1px solid var(--rule);
-  border-radius: 0;
-  background: none;
-}
-.process-step:hover {
-  translate: none;
-  box-shadow: none;
-}
-.process-n {
-  width: auto;
-  height: auto;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  color: var(--green-ink);
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
-}
-@media (min-width: 48rem) {
-  .process-step {
-    padding-left: 1.5rem;
-    border-left: 1px solid var(--rule);
-  }
-  .process-step:nth-child(2n + 1) {
-    padding-left: 0;
-    border-left: 0;
-  }
-}
-@media (min-width: 64rem) {
-  .process-step {
-    border-bottom: 0;
-  }
-  .process-step:nth-child(2n + 1) {
-    padding-left: 1.5rem;
-    border-left: 1px solid var(--rule);
-  }
-  .process-step:first-child {
-    padding-left: 0;
-    border-left: 0;
-  }
-}
-
-/* ---- what clients say: open columns, the quote set larger ---- */
-.quote {
-  padding: 1.75rem 0 0;
-  border: 0;
-  border-top: 2px solid var(--ink);
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-}
-.quote::before {
-  width: 1.6rem;
-  height: 1.6rem;
-  border-radius: 0;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235db536'%3E%3Cpath d='M9.6 6C6.5 7.3 4.5 10 4.5 13.6V18h5.7v-5.2H7.6c.2-2 1.2-3.5 3-4.4zm9 0c-3.1 1.3-5.1 4-5.1 7.6V18h5.7v-5.2h-2.6c.2-2 1.2-3.5 3-4.4z'/%3E%3C/svg%3E") left center / contain no-repeat;
-}
-.quote blockquote {
-  font-size: 1.15rem;
-  line-height: 1.55;
-  letter-spacing: -0.01em;
-}
-
-/* ---- questions: ruled rows ---- */
-.faq {
-  gap: 0;
-  border-top: 1px solid var(--rule);
-}
-.faq details,
-.faq details[open] {
-  border: 0;
-  border-bottom: 1px solid var(--rule);
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-}
-.faq summary {
-  padding-left: 0;
-}
-.faq details p {
-  padding-left: 0;
 }
 
 /* ---- what changes (service pages) and the tools: rows and quiet chips ---- */
@@ -727,4 +594,316 @@ main {
   font-size: clamp(2.4rem, 4.6vw, 4.2rem);
   font-weight: 600;
   letter-spacing: -0.05em;
+}
+
+/* ============ four phases: a navy band, a sticky intro with the phase index, four large cards ============ */
+.process {
+  background: linear-gradient(180deg, #17324b 0%, #10243a 100%);
+}
+.process-layout {
+  display: grid;
+  gap: 3rem;
+}
+.process-intro .section-head {
+  margin-bottom: 2rem;
+}
+.process-index {
+  display: grid;
+  margin: 0 0 2.25rem;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.process-index a {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.95rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  transition: color 0.3s, padding 0.3s;
+}
+.process-index a span {
+  color: var(--green);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.process-index a:hover {
+  padding-left: 0.4rem;
+  color: var(--green);
+}
+.process-steps {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.process-step {
+  display: grid;
+  gap: 1.75rem;
+  padding: clamp(1.75rem, 3vw, 2.75rem);
+  border-radius: 24px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 40px 80px -48px rgba(0, 0, 0, 0.6);
+  --fg-soft: #4f5866;
+  --head: var(--ink);
+}
+.process-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.process-n {
+  color: transparent;
+  font-size: clamp(3.6rem, 6vw, 5.4rem);
+  font-weight: 600;
+  line-height: 0.85;
+  letter-spacing: -0.06em;
+  -webkit-text-stroke: 1.5px var(--green);
+}
+.process-step .phase-art {
+  width: clamp(4.5rem, 7vw, 6.5rem);
+  height: auto;
+  stroke: var(--navy);
+  stroke-width: 2.4;
+}
+.process-step .phase-art .art-acc {
+  stroke: var(--green);
+}
+.process-step h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+.process-goal {
+  margin: 0.5rem 0 0;
+  color: #4f5866;
+  font-size: 1.08rem;
+  line-height: 1.5;
+}
+.process-gets {
+  align-self: end;
+  padding: 1.4rem 1.5rem;
+  border-radius: 16px;
+  background: #f3f6f8;
+}
+.process-gets h4 {
+  margin: 0 0 0.85rem;
+  color: var(--navy);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.process-gets .checks li {
+  color: var(--ink);
+  font-size: 0.97rem;
+}
+@media (min-width: 48rem) {
+  .process-step {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+@media (min-width: 64rem) {
+  .process-layout {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr);
+    gap: 4.5rem;
+    align-items: start;
+  }
+  .process-intro {
+    position: sticky;
+    top: calc(var(--header, 5rem) + 2.5rem);
+  }
+}
+
+/* ============ problems, sectors, quotes, questions: cards with weight, a feature tile in each ============ */
+
+/* ---- the problem: three white cards with large numbers ---- */
+.problems {
+  gap: 1rem;
+}
+.problems li,
+.problems li:last-child {
+  align-items: start;
+  padding: 1.6rem 1.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 48px -36px rgba(15, 34, 51, 0.35);
+}
+.problem-n {
+  color: var(--green-ink);
+  font-size: clamp(2.2rem, 3vw, 2.8rem);
+  font-weight: 600;
+  -webkit-text-stroke: 0;
+}
+
+/* ---- sectors: a bento grid, the first sector a large navy tile ---- */
+.sectors {
+  gap: 1rem;
+  border: 0;
+}
+.sectors li {
+  padding: 1.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 48px -38px rgba(15, 34, 51, 0.4);
+  transition:
+    translate 0.4s var(--ease-out),
+    box-shadow 0.4s var(--ease-out),
+    border-color 0.3s;
+}
+.sectors li:hover {
+  translate: 0 -4px;
+  border-color: var(--rule-strong);
+  box-shadow: 0 30px 60px -36px rgba(15, 34, 51, 0.45);
+}
+.sectors li .card-icon {
+  border: 0;
+  background: #eaf6e4;
+  color: var(--green-ink);
+}
+.sectors li:first-child {
+  border-color: transparent;
+  background: linear-gradient(160deg, #22425f 0%, #142b40 100%);
+  color: #fff;
+}
+.sectors li:first-child h3 {
+  color: #fff;
+  font-size: clamp(1.5rem, 2.2vw, 1.9rem);
+}
+.sectors li:first-child p {
+  color: rgba(226, 236, 243, 0.82);
+  font-size: 1.05rem;
+}
+.sectors li:first-child .card-icon {
+  width: 3.4rem;
+  height: 3.4rem;
+  background: var(--green);
+  color: #10202f;
+}
+@media (min-width: 64rem) {
+  .sectors li:first-child {
+    grid-column: span 2;
+    grid-row: span 2;
+    align-content: end;
+    padding: 2.5rem;
+  }
+}
+
+/* ---- what clients say: the first quote a large navy card, the others white beside it ---- */
+.quote-grid .quote {
+  height: 100%;
+  padding: 2rem;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 48px -38px rgba(15, 34, 51, 0.4);
+}
+.quote-grid .quote::before {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235db536'%3E%3Cpath d='M9.6 6C6.5 7.3 4.5 10 4.5 13.6V18h5.7v-5.2H7.6c.2-2 1.2-3.5 3-4.4zm9 0c-3.1 1.3-5.1 4-5.1 7.6V18h5.7v-5.2h-2.6c.2-2 1.2-3.5 3-4.4z'/%3E%3C/svg%3E") left center / contain no-repeat;
+}
+.quote-grid > li:first-child .quote {
+  border-color: transparent;
+  background: linear-gradient(160deg, #22425f 0%, #142b40 100%);
+}
+.quote-grid > li:first-child blockquote {
+  color: #fff;
+  font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+  line-height: 1.5;
+  letter-spacing: -0.015em;
+}
+.quote-grid > li:first-child figcaption b {
+  color: #fff;
+}
+.quote-grid > li:first-child figcaption span {
+  color: rgba(226, 236, 243, 0.78);
+}
+@media (min-width: 64rem) {
+  .quote-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  }
+  .quote-grid > li:first-child {
+    grid-row: span 2;
+  }
+}
+
+/* ---- questions: white cards with a round control, navy when open ---- */
+.faq {
+  gap: 0.75rem;
+}
+.faq details {
+  border-radius: 16px;
+}
+.faq details[open] {
+  border-color: var(--navy);
+  box-shadow: 0 24px 48px -36px rgba(15, 34, 51, 0.4);
+}
+.faq summary {
+  padding-right: 4.5rem;
+  background: right 1rem center / 2.3rem 2.3rem no-repeat radial-gradient(circle, #eef3f8 0 66%, transparent 67%);
+}
+.faq summary::before,
+.faq summary::after {
+  right: 1.7rem;
+}
+.faq details[open] summary {
+  color: var(--navy);
+  background-image: radial-gradient(circle, var(--green) 0 66%, transparent 67%);
+}
+.quote-grid > li:first-child .avatar {
+  background: var(--green);
+  color: #10202f;
+}
+
+/* ============ inner pages: outcomes as tiles on navy, how we work as cards, the form raised ============ */
+.on-navy .outcomes {
+  display: grid;
+  gap: 0.85rem;
+  border: 0;
+}
+.on-navy .outcomes li {
+  padding: 1.4rem 1.5rem 1.4rem 4.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 1.1rem;
+}
+@media (min-width: 48rem) {
+  .on-navy .outcomes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.rhythm .panel {
+  padding: 2rem;
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--green);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 48px -38px rgba(15, 34, 51, 0.4);
+}
+
+.form {
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border: 1px solid var(--rule);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 40px 80px -48px rgba(15, 34, 51, 0.45);
 }

@@ -55,9 +55,9 @@ function PhaseArt({ n }: { n: string }) {
 
 export function Phases({ items = phases }: { items?: Phase[] }) {
   return (
-    <section className="section on-mist process" id="method">
-      <div className="wrap">
-        <div className="process-head">
+    <section className="section on-navy process" id="method">
+      <div className="wrap process-layout">
+        <div className="process-intro">
           <SectionHead
             kicker="How we build"
             title={
@@ -67,6 +67,16 @@ export function Phases({ items = phases }: { items?: Phase[] }) {
             }
             lead="A structured path built for clarity, speed and a result that lasts. Each phase ends with something you can hold, and you decide whether to go on."
           />
+          <ol className="process-index" aria-label="The four phases">
+            {items.map((p) => (
+              <li key={p.n}>
+                <a href={`#phase-${p.n}`}>
+                  <span>{p.n}</span>
+                  {p.title}
+                </a>
+              </li>
+            ))}
+          </ol>
           <Link className="btn btn-navy" href="/contact?topic=audit">
             Book a free AI audit
           </Link>
@@ -74,12 +84,14 @@ export function Phases({ items = phases }: { items?: Phase[] }) {
         <ol className="process-steps" data-stagger>
           {items.map((p) => (
             <li key={p.n} id={`phase-${p.n}`} className="process-step">
-              <div className="process-top">
-                <span className="process-n">{p.n}</span>
-                <PhaseArt n={p.n} />
+              <div className="process-main">
+                <div className="process-top">
+                  <span className="process-n">{p.n}</span>
+                  <PhaseArt n={p.n} />
+                </div>
+                <h3>{p.title}</h3>
+                <p className="process-goal">{p.goal}</p>
               </div>
-              <h3>{p.title}</h3>
-              <p className="process-goal">{p.goal}</p>
               <div className="process-gets">
                 <h4>What you get</h4>
                 <Checks items={p.gets} />
