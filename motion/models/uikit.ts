@@ -30,6 +30,10 @@ const build: ModelBuilder = async (env, mini) => {
 
   /* ---- the wireframe, which fills in ---- */
   const wire = drawn(env, mini ? 300 : 512, mini ? 610 : 1040, (g, w, h) => {
+    // laid out in full-size units at any size, so nothing is cut off on the lite version
+    g.scale(w / 512, h / 1040);
+    w = 512;
+    h = 1040;
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, w, h);
     g.strokeStyle = "rgba(34,66,95,0.5)";

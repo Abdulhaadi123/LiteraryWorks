@@ -15,6 +15,10 @@ import type { Model, ModelBuilder, ModelEnv } from "./types";
 async function windowPicture(env: ModelEnv, name: string, host: string, mini: boolean): Promise<THREE.Texture> {
   const img = await env.image(name);
   return drawn(env, mini ? 640 : 1024, mini ? 400 : 640, (g, w, h) => {
+    // laid out in full-size units at any size, so nothing is cut off on the lite version
+    g.scale(w / 1024, h / 640);
+    w = 1024;
+    h = 640;
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, w, h);
     // the title bar

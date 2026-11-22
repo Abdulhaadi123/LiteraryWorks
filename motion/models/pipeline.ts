@@ -30,6 +30,10 @@ const JOBS: { c: string; from: number; moves: number[] }[] = [
 
 export function scheduleTexture(env: ModelEnv, mini = false): THREE.Texture {
   return drawn(env, mini ? 640 : 1024, mini ? 400 : 640, (g, w, h) => {
+    // laid out in full-size units at any size, so no row falls off the smaller screen
+    g.scale(w / 1024, h / 640);
+    w = 1024;
+    h = 640;
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, w, h);
     fillRR(g, 0, 0, w, 70, 0, "#22425f");
@@ -67,6 +71,10 @@ const build: ModelBuilder = async (env, mini) => {
   const alu = mat.alu(0xc4cad1, 0.32);
   put(group, rbox(BW + 0.2, BH + 0.2, 0.12, 0.06), alu, 0, BY, 0);
   const boardTex = drawn(env, mini ? 960 : 1440, mini ? 520 : 780, (g, w, h) => {
+    // laid out in full-size units at any size, so nothing is cut off on the lite version
+    g.scale(w / 1440, h / 780);
+    w = 1440;
+    h = 780;
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, w, h);
     const cw = w / COLS.length;

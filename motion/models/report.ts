@@ -21,6 +21,10 @@ const build: ModelBuilder = async (env, mini) => {
   group.add(book);
 
   const page = drawn(env, mini ? 482 : 724, mini ? 682 : 1024, (g, w, h) => {
+    // laid out in full-size units at any size, so the boxes stay where the ticks are placed
+    g.scale(w / 724, h / 1024);
+    w = 724;
+    h = 1024;
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, w, h);
     fillRR(g, 0, 0, w, 190, 0, "#22425f");

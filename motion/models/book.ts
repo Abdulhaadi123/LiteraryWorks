@@ -37,6 +37,10 @@ interface Spread {
 
 const page = (env: ModelEnv, size: [number, number], spine: "left" | "right", draw: Pen) =>
   drawn(env, size[0], size[1], (g, w, h) => {
+    // the pages are laid out in full-size units, so the lite book shows the same page, only smaller
+    g.scale(w / 512, h / 683);
+    w = 512;
+    h = 683;
     const bg = g.createLinearGradient(0, 0, w, h);
     bg.addColorStop(0, "#ffffff");
     bg.addColorStop(1, "#f2f5f8");

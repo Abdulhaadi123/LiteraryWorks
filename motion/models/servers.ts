@@ -41,7 +41,10 @@ const build: ModelBuilder = async (env, mini) => {
   group.add(shadow(env, 6.4, 3.8, 0.28, -0.8, 0));
 
   /* ---- the pipeline ---- */
-  const face = drawn(env, mini ? 400 : 640, mini ? 475 : 760, (g, w) => {
+  const face = drawn(env, mini ? 400 : 640, mini ? 475 : 760, (g, w, h) => {
+    // laid out in full-size units at any size, so nothing is cut off on the lite version
+    g.scale(w / 640, h / 760);
+    w = 640;
     g.fillStyle = "#ffffff";
     g.fillRect(0, 0, w, 760);
     fillRR(g, 40, 40, 200, 18, 9, "rgba(34,66,95,0.55)");
