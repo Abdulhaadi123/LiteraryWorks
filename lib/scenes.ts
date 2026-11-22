@@ -30,7 +30,12 @@ const DESC: Record<string, string> = {
   scanner: "a document scanner taking in invoices, orders and contracts one by one and sending each to the right system, with our automation projects on a monitor",
   blueprint: "a blueprint of a client's system plan unrolling on the table, with a ruler and a pencil",
   hub: "an aluminium hub whose ports take the cables of the tools a business uses, one after another, each light turning green",
-  product: "a white product box whose lid lifts away to show a phone with one of our apps waking up inside",
+  product: "a white product box whose lid lifts away to show two phones with our Beanstalk and DreamyBot apps waking up inside",
+  calculator: "a printing calculator whose keys are pressed in turn while its paper tape rolls out to a green total",
+  stopwatch: "a stopwatch whose hand makes one full turn of its sixty-minute dial while a green ring fills",
+  calendar: "a desk calendar open at a two-week page, its days ticked off one by one and the last day ringed",
+  keys: "three binders of documentation standing on the table, and a ring of keys with a green tag sliding in front of them",
+  letter: "an envelope addressed to LiteraryWorks; a letter slides in, the flap closes and a green seal goes on",
   call: "a conference speakerphone whose light turns green as the call starts, beside a phone with the invite for a free one-hour session",
   headset: "a call-centre headset on its stand beside a phone with a live call",
   dashboard: "a product dashboard with usage bars, plans, accounts and a donut chart standing out of it",
@@ -58,8 +63,8 @@ export function pageScene(variant: string): SceneData {
   return sequence(pageIds(variant), [0, 0.12, 0.5, 0.8]);
 }
 function pageIds(variant: string): string[] {
-  if (variant === "audit") return ["dashboard", "headset", "pipeline", "book:handbook"];
-  if (variant === "about") return ["book:about", "blueprint", "servers", "call"];
+  if (variant === "audit") return ["calculator", "stopwatch", "calendar", "book:handbook"];
+  if (variant === "about") return ["book:about", "blueprint", "keys", "letter"];
   const [first, second] = SERVICE_MODELS[variant] ?? ["dashboard", "pipeline"];
   return [first, second, `book:${SERVICE_CASE[variant] ?? "cases"}`, "call"];
 }
@@ -69,6 +74,9 @@ export function sceneAria(variant: string): string {
   const ids = variant === "story" ? STORY : pageIds(variant);
   return `A 3D picture that changes with the copy beside it: ${ids.map(describe).join("; then ")}.`;
 }
+
+/** Bumped whenever the stills are rendered again, so browsers fetch the new pictures instead of a cached old one. */
+export const STILL_VERSION = "3";
 
 /** What a service's still (the home page's grid) shows. */
 export const serviceStillAlt = (slug: string): string => {

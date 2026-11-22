@@ -132,95 +132,88 @@
   }
 }
 
-/* ---------- the path of a service: a timeline that zigzags down the page ---------- */
+/* ---------- the path of a service: a track of numbered steps (a column on phones, a row on wide screens) ---------- */
 .tl {
-  position: relative;
   display: grid;
-  gap: 1.5rem;
+  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
   counter-reset: tl;
-}
-.tl::before {
-  content: "";
-  position: absolute;
-  left: 1.2rem;
-  top: 0.5rem;
-  bottom: 0.5rem;
-  width: 2px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, var(--green) 0%, rgba(115, 201, 74, 0.18) 100%);
+  border-top: 1px solid var(--rule, #e2e6e9);
 }
 .tl li {
   position: relative;
-  padding-left: 3.6rem;
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0 1rem;
+  padding: 1.6rem 0;
+  border-bottom: 1px solid var(--rule, #e2e6e9);
   counter-increment: tl;
 }
 .tl li::before {
-  content: counter(tl);
-  position: absolute;
-  left: 0;
-  top: 0.6rem;
-  display: grid;
-  place-items: center;
-  width: 2.4rem;
-  height: 2.4rem;
-  border: 2px solid var(--green);
-  border-radius: 50%;
-  background: #fff;
-  font-size: 0.9rem;
-  font-weight: 700;
+  content: counter(tl, decimal-leading-zero);
+  font-size: 2.6rem;
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
-  color: var(--navy);
-  box-shadow: 0 0 0 6px rgba(115, 201, 74, 0.14);
-}
-.tl-card {
-  padding: 1.25rem 1.5rem;
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  background: #fff;
-  box-shadow: var(--shadow-sm);
+  color: transparent;
+  -webkit-text-stroke: 1.2px var(--navy);
 }
 .tl-card h3 {
-  font-size: 1.15rem;
-  font-weight: 650;
+  font-size: 1.2rem;
+  font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.025em;
   color: var(--ink);
 }
 .tl-card p {
-  margin-top: 0.45rem;
+  margin-top: 0.5rem;
   font-size: 0.97rem;
   line-height: 1.6;
   color: var(--fg-soft);
 }
-@media (min-width: 56rem) {
+@media (min-width: 64rem) {
   .tl {
-    gap: 1.25rem;
-  }
-  .tl::before {
-    left: 50%;
-    margin-left: -1px;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    border-top: 0;
   }
   .tl li {
-    width: 50%;
-    padding: 0 3.4rem 0 0;
-  }
-  .tl li:nth-child(even) {
-    margin-left: 50%;
-    padding: 0 0 0 3.4rem;
+    grid-template-columns: 1fr;
+    align-content: start;
+    gap: 1.4rem;
+    padding: 0 1.75rem 0 0;
+    border-bottom: 0;
   }
   .tl li::before {
-    left: auto;
-    right: -1.2rem;
+    font-size: 4.2rem;
   }
-  .tl li:nth-child(even)::before {
-    right: auto;
-    left: -1.2rem;
+  /* the rule the steps stand on, with a green mark at each step */
+  .tl li::after {
+    content: "";
+    position: absolute;
+    top: 5.1rem;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--rule-strong, #c9d1d8);
   }
-  .tl li:nth-child(odd) .tl-card {
-    text-align: right;
+  .tl-card {
+    position: relative;
+    padding-top: 1.6rem;
+  }
+  .tl-card::before {
+    content: "";
+    position: absolute;
+    top: -0.3rem;
+    left: 0;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 4px #fff;
   }
 }
 
@@ -262,144 +255,6 @@
   font-size: 1rem;
   line-height: 1.6;
   color: var(--fg-soft);
-}
-
-/* ---------- before and after ---------- */
-.transform {
-  max-width: 62rem;
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: #fff;
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-}
-.tf-head,
-.transform li {
-  display: grid;
-  grid-template-columns: 1fr 3rem 1fr;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1.05rem clamp(1.1rem, 3vw, 2rem);
-}
-.tf-head {
-  background: var(--mist);
-  font-size: 0.75rem;
-  font-weight: 650;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--navy);
-}
-.tf-head span:last-child {
-  color: var(--green-ink);
-}
-.transform ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.transform li {
-  border-top: 1px solid var(--line);
-  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
-  letter-spacing: -0.02em;
-}
-.tf-before {
-  color: var(--fg-soft);
-  text-decoration: line-through;
-  text-decoration-color: rgba(75, 82, 98, 0.45);
-}
-.tf-arrow {
-  display: grid;
-  place-items: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 50%;
-  background: var(--green);
-}
-.tf-arrow svg {
-  width: 1.1rem;
-  height: 1.1rem;
-  stroke: var(--ink);
-}
-.tf-after {
-  font-weight: 650;
-  color: var(--ink);
-}
-
-/* ---------- results from our own projects ---------- */
-.results-band {
-  overflow: hidden;
-}
-.results-band::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(40% 70% at 12% 100%, rgba(115, 201, 74, 0.16) 0%, rgba(115, 201, 74, 0) 70%), radial-gradient(46% 70% at 92% 0%, rgba(111, 178, 255, 0.2) 0%, rgba(111, 178, 255, 0) 70%);
-}
-.results-band .wrap {
-  position: relative;
-}
-.results {
-  display: grid;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-.results li {
-  display: grid;
-  gap: 0.5rem;
-  align-content: start;
-  padding: 1.75rem 0 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-.results b {
-  font-size: clamp(3rem, 6vw, 4.75rem);
-  font-weight: 700;
-  line-height: 0.95;
-  letter-spacing: -0.045em;
-  font-variant-numeric: tabular-nums;
-  color: #fff;
-}
-.results span {
-  max-width: 16rem;
-  font-size: 1.0625rem;
-  line-height: 1.4;
-  color: var(--fg-soft);
-}
-.results a {
-  margin-top: 0.4rem;
-  font-size: 0.8125rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--green);
-}
-.results a:hover {
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
-}
-@media (min-width: 40rem) {
-  .results {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 2.5rem;
-  }
-}
-@media (min-width: 64rem) {
-  .results {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  }
-  .results li {
-    padding: 2.25rem 1.5rem 2rem;
-    border-bottom: 0;
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
-  }
-  .results li:first-child {
-    padding-left: 0;
-    border-left: 0;
-  }
 }
 
 /* ---------- sectors ---------- */

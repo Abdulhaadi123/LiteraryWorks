@@ -15,7 +15,7 @@ const build: ModelBuilder = async (env, mini) => {
   const [lt, tt, pt] = await Promise.all([
     shots(["siqetra"], "laptop"),
     shots(["grace"], "tablet"),
-    shots(["phone-beanstalk"], "phone"),
+    shots(["phone-faith1"], "phone"),
   ]);
 
   const group = new THREE.Group();

@@ -1,3 +1,5 @@
+import { STILL_VERSION } from "@/lib/scenes";
+
 /**
  * The still pictures of the hero scene: the same model the 3D scene draws, rendered once from the scene itself
  * (scripts/make-posters.mjs), so phones, tablets, reduced motion and a browser without WebGL all show the real
@@ -10,8 +12,8 @@ export function SystemPoster() {
     // eslint-disable-next-line @next/next/no-img-element
     <img
       className="poster poster-ring"
-      src="/scene/system-ring.webp"
-      srcSet="/scene/system-ring-800.webp 800w, /scene/system-ring.webp 1200w"
+      src={`/scene/system-ring.webp?v=${STILL_VERSION}`}
+      srcSet={`/scene/system-ring-800.webp?v=${STILL_VERSION} 800w, /scene/system-ring.webp?v=${STILL_VERSION} 1200w`}
       sizes="(min-width: 64rem) 56vw, 92vw"
       width={1200}
       height={1149}
@@ -27,12 +29,12 @@ export function SystemDashPoster() {
     // eslint-disable-next-line @next/next/no-img-element
     <img
       className="poster poster-open"
-      src="/scene/system-dash.webp"
-      srcSet="/scene/system-dash-800.webp 800w, /scene/system-dash.webp 1200w"
+      src={`/scene/system-dash.webp?v=${STILL_VERSION}`}
+      srcSet={`/scene/system-dash-800.webp?v=${STILL_VERSION} 800w, /scene/system-dash.webp?v=${STILL_VERSION} 1200w`}
       sizes="(min-width: 64rem) 40vw, 92vw"
       width={1200}
       height={1149}
-      alt="A white product box with its lid lifted, and inside it a phone showing one of our apps."
+      alt="A white product box with its lid lifted, and inside it two phones showing our Beanstalk and DreamyBot apps."
       loading="lazy"
       decoding="async"
       fetchPriority="low"

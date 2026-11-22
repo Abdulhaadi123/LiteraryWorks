@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { auditOutputs, cases, industries, phases, problems, rhythm, techUsed, transformation, type Phase } from "@/lib/content";
+import { auditOutputs, industries, phases, problems, rhythm, techUsed, type Phase } from "@/lib/content";
 import { Icon, type IconName } from "./icons";
 import { Checks, SectionHead } from "./ui";
 
-/** The sections the pages are built from: the problem, the phases in full, the path of a service, before and after, results, sectors, the audit hour, how we work, the tools. */
+/** The sections the pages are built from: the problem, the phases in full, the path of a service, sectors, the audit hour, how we work, the tools. */
 
 /* ---- the four phases (the home page): four steps in a row, joined by a line ---- */
 
@@ -55,7 +55,7 @@ function PhaseArt({ n }: { n: string }) {
 
 export function Phases({ items = phases }: { items?: Phase[] }) {
   return (
-    <section className="section on-white process" id="method">
+    <section className="section on-mist process" id="method">
       <div className="wrap">
         <div className="process-head">
           <SectionHead
@@ -142,86 +142,6 @@ export function Problems({ items = problems }: { items?: { title: string; text: 
   );
 }
 
-/* ---- before and after ---- */
-
-export function Transformation({ pairs = transformation, tone = "mist" }: { pairs?: [string, string][]; tone?: "white" | "mist" }) {
-  return (
-    <section className={`section on-${tone}`}>
-      <div className="wrap">
-        <SectionHead
-          kicker="Transformation"
-          title={
-            <>
-              From manual work <em>to AI systems.</em>
-            </>
-          }
-          lead="What the same work looks like once it runs on a system built around it."
-        />
-        <div className="transform" data-stagger>
-          <div className="tf-head" aria-hidden="true">
-            <span>Before</span>
-            <span />
-            <span>After</span>
-          </div>
-          <ul>
-            {pairs.map(([before, after]) => (
-              <li key={before}>
-                <span className="tf-before">{before}</span>
-                <span className="tf-arrow" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h13M13 6l6 6-6 6" />
-                  </svg>
-                </span>
-                <span className="tf-after">{after}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---- results, from our own projects ---- */
-
-const results = [
-  ["ai-medical-scribe", 0],
-  ["ai-medical-scribe", 1],
-  ["ai-voice-system", 1],
-  ["ai-voice-system", 3],
-] as const;
-
-export function ResultsBand() {
-  return (
-    <section className="section on-navy results-band">
-      <div className="wrap">
-        <SectionHead
-          kicker="Results"
-          title={
-            <>
-              What changed once <em>it was running.</em>
-            </>
-          }
-          lead="Measured on the systems we have put into production."
-        />
-        <ul className="results" data-stagger>
-          {results.map(([slug, i]) => {
-            const c = cases.find((x) => x.slug === slug)!;
-            const r = c.results[i];
-            return (
-              <li key={slug + r.label}>
-                <b>{r.value}</b>
-                <span>{r.label}</span>
-                <Link href={`/work/${c.slug}`}>{c.client}</Link>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </section>
-  );
-}
-
 /* ---- sectors ---- */
 
 const industryIcon: Record<string, IconName> = {
@@ -268,6 +188,7 @@ export function AuditStrip({ tone = "mist" }: { tone?: "white" | "mist" }) {
   return (
     <section className={`section on-${tone} audit-strip`}>
       <div className="wrap">
+        <div className="audit-panel on-navy textured">
         <SectionHead
           kicker="The free audit"
           title={
@@ -291,6 +212,7 @@ export function AuditStrip({ tone = "mist" }: { tone?: "white" | "mist" }) {
           <Link className="btn btn-navy" href="/contact?topic=audit">
             Book the free audit
           </Link>
+        </div>
         </div>
       </div>
     </section>
@@ -332,7 +254,7 @@ export function Rhythm() {
 
 export function Stack({ children }: { children?: ReactNode }) {
   return (
-    <section className="section on-white">
+    <section className="section on-mist">
       <div className="wrap">
         <SectionHead
           kicker="Built with"

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { SceneHero } from "@/components/SceneHero";
-import { Transformation } from "@/components/Sections";
 import { Checks, Faq, Ladder, SectionHead } from "@/components/ui";
 import { plan, problems } from "@/lib/content";
 import { pageMeta } from "@/lib/seo";
@@ -99,7 +98,7 @@ export default function AiAuditPage() {
         </div>
       </section>
 
-      <section className="section on-mist">
+      <section className="section on-navy textured">
         <div className="wrap split">
           <div>
             <p className="kicker" data-reveal>
@@ -156,8 +155,6 @@ export default function AiAuditPage() {
           </ol>
         </div>
       </section>
-
-      <Transformation tone="white" />
 
       <section className="section on-mist" id="start">
         <div className="wrap">

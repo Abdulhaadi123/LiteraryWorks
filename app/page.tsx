@@ -4,7 +4,7 @@ import { CaseReel } from "@/components/CaseReel";
 import { Marquee } from "@/components/Marquee";
 import { d, Faq, Ladder, Quotes, SectionHead, Tiles } from "@/components/ui";
 import { ServicesGrid } from "@/components/ServicesGrid";
-import { AuditStrip, Industries, Phases, Problems, ResultsBand, Transformation } from "@/components/Sections";
+import { AuditStrip, Industries, Phases, Problems } from "@/components/Sections";
 import { Phase, Xp } from "@/components/Xp";
 import { cases, voices } from "@/lib/content";
 import { sceneAria, storyScene } from "@/lib/scenes";
@@ -92,7 +92,7 @@ export default function Home() {
 
       <Marquee />
 
-      <section className="section on-white statement" id="approach">
+      <section className="section on-navy statement textured" id="approach">
         <div className="wrap statement-grid">
           <div>
             <p className="kicker" data-reveal>
@@ -125,10 +125,6 @@ export default function Home() {
       <ServicesGrid />
 
       <Phases />
-
-      <Transformation tone="mist" />
-
-      <ResultsBand />
 
       <Industries tone="white" />
 
@@ -172,14 +168,14 @@ export default function Home() {
         }
       />
 
-      <section className="section on-mist">
+      <section className="section on-white">
         <div className="wrap">
           <SectionHead kicker="In their words" title={<>What clients <em>say.</em></>} />
           <Quotes items={voices} />
         </div>
       </section>
 
-      <section className="section on-white">
+      <section className="section on-mist">
         <div className="wrap two-col">
           <SectionHead kicker="Questions" title={<>Straight <em>answers.</em></>} lead="How the audit works, what it costs and who it is for." />
           <Faq />

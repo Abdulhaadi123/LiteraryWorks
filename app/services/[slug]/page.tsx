@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SceneHero } from "@/components/SceneHero";
 import { Timeline } from "@/components/Sections";
-import { CaseImage, Checks, SectionHead, ServiceCards } from "@/components/ui";
+import { CaseImage, SectionHead, ServiceCards } from "@/components/ui";
 import { caseBySlug, caseForService } from "@/lib/content";
 import { servicePages } from "@/lib/service-pages";
 import { serviceBySlug, services } from "@/lib/services";
@@ -71,19 +71,25 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
       />
 
       <section className="section on-white">
-        <div className="wrap split">
-          <div>
-            <p className="kicker" data-reveal>
-              What we build
-            </p>
-            <h2 className="h-lg" data-reveal>
-              The work, <em>in detail.</em>
-            </h2>
-            <div className="panel" data-reveal>
-              <Checks items={p.features} />
-            </div>
-          </div>
-          <div className="stack-lg">
+        <div className="wrap">
+          <SectionHead
+            kicker="What we build"
+            title={
+              <>
+                The work, <em>in detail.</em>
+              </>
+            }
+          />
+          <div className="detail-grid">
+          <ol className="feature-list" data-stagger>
+            {p.features.map((x, i) => (
+              <li key={x}>
+                <span>{String(i + 1).padStart(2, "0")}</span>
+                <p>{x}</p>
+              </li>
+            ))}
+          </ol>
+          <div className="detail-aside">
             <div data-reveal>
               <h3 className="h-md">Problems we solve</h3>
               <ul className="plain">
@@ -101,10 +107,11 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
               </ul>
             </div>
           </div>
+          </div>
         </div>
       </section>
 
-      <section className="section on-mist">
+      <section className="section on-navy textured">
         <div className="wrap">
           <SectionHead
             kicker="What changes"

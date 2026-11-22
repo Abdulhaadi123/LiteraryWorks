@@ -1,0 +1,730 @@
+/* ============ the finish: an editorial system over the components ============
+   Studied against Clay, Linear and Thoughtbot (and FAYD for rhythm): structure comes from type, alignment and thin
+   rules, not from boxes and glows. Headings are set at 600 with the emphasised words in a quieter second tone;
+   each page's sections are numbered; most cards give way to ruled rows, ruled columns and ruled grids; surfaces are
+   flat. Cards stay only where a card means something (prices, the service pictures). Loaded last: it refines the
+   component styles without rewriting them. */
+
+:root {
+  --rule: #e2e6e9;
+  --rule-strong: #c9d1d8;
+  --paper: #f5f6f4;
+  --muted-head: #7d8894;
+}
+
+/* ---- grounds: flat, with a hairline where two light bands meet ---- */
+.on-mist {
+  background: var(--paper);
+}
+.on-white + .on-white {
+  border-top: 1px solid var(--rule);
+}
+.textured {
+  position: relative;
+  overflow: hidden;
+}
+.on-navy.textured {
+  background: linear-gradient(180deg, #1d3a55 0%, #142b40 100%);
+}
+
+/* ---- type: 600, tight, and the emphasised words in a quieter second tone ---- */
+.h-hero,
+.h-xl,
+.h-lg {
+  font-weight: 600;
+  letter-spacing: -0.042em;
+}
+.h-lg {
+  font-size: clamp(2.1rem, 3.9vw, 3.4rem);
+  line-height: 1.04;
+}
+.h-md {
+  font-weight: 600;
+}
+.h-hero em,
+.h-xl em,
+.h-lg em,
+.h-md em,
+.big em,
+em .split-part {
+  color: var(--muted-head);
+  text-decoration: none;
+}
+.on-navy .h-lg em,
+.on-navy .h-md em,
+.on-navy .big em,
+.on-navy em .split-part {
+  color: rgba(255, 255, 255, 0.5);
+}
+.big {
+  font-weight: 600;
+}
+.lead {
+  color: #4f5866;
+}
+.on-navy .lead {
+  color: var(--fg-soft);
+}
+
+/* ---- section labels: numbered through each page (01 / Our approach) ---- */
+main {
+  counter-reset: sect;
+}
+.section .kicker {
+  gap: 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--fg-soft);
+}
+.section .kicker::before {
+  counter-increment: sect;
+  content: counter(sect, decimal-leading-zero) " /";
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  color: var(--green-ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+.on-navy .kicker::before {
+  color: var(--green);
+}
+/* (phones and tablets lay their sections out lazily, which keeps a counter from running across them: a short rule there) */
+@media (max-width: 63.99rem) {
+  .section .kicker::before {
+    content: "";
+    counter-increment: none;
+    width: 1.4rem;
+    height: 2px;
+    background: var(--green);
+  }
+}
+
+/* ---- ticks: a plain green tick, no disc ---- */
+.checks li::before {
+  top: 0.32rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%235db536' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 10.6l4.2 4.2 8.8-9.6'/%3E%3C/svg%3E") center / 100% no-repeat;
+}
+.checks li {
+  padding-left: 1.7rem;
+}
+
+/* ---- icon tiles: an outline, not a filled block ---- */
+.card-icon {
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 0.6rem;
+  background: #fff;
+  color: var(--navy);
+  box-shadow: none;
+}
+.on-navy .card-icon {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: transparent;
+  color: var(--green);
+}
+
+/* ---- cards in general: flat, hairline, a little less round ---- */
+.card,
+.panel,
+.svc-card,
+.ladder > li,
+.process-step {
+  border-color: var(--rule);
+  border-radius: 14px;
+  box-shadow: none;
+}
+.panel {
+  background: #fff;
+}
+.card:hover,
+.svc-card:hover,
+.svc-card:focus-visible {
+  border-color: var(--rule-strong);
+  box-shadow: 0 18px 40px -28px rgba(20, 43, 64, 0.35);
+}
+
+/* ---- the approach: three ruled rows instead of three boxes ---- */
+.tiles {
+  gap: 0;
+}
+.tiles .tile {
+  padding: 1.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.tiles .tile:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+.on-navy .tiles .tile {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.on-navy .tile h3 {
+  color: #fff;
+}
+.on-navy.statement .big {
+  color: #fff;
+}
+
+/* ---- sectors: a ruled grid, the cells open ---- */
+.sectors {
+  gap: 0;
+  border-top: 1px solid var(--rule);
+}
+.sectors li {
+  padding: 2rem 1.75rem 2.1rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.sectors li:hover {
+  translate: none;
+  box-shadow: none;
+}
+@media (min-width: 40rem) {
+  .sectors li {
+    padding-left: 1.75rem;
+    border-left: 1px solid var(--rule);
+  }
+  .sectors li:nth-child(2n + 1) {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+@media (min-width: 64rem) {
+  .sectors li:nth-child(2n + 1) {
+    padding-left: 1.75rem;
+    border-left: 1px solid var(--rule);
+  }
+  .sectors li:nth-child(3n + 1) {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+/* ---- the four phases: ruled columns, the number set as type ---- */
+.process-steps {
+  gap: 0;
+  border-top: 1px solid var(--rule);
+}
+.process-steps::before {
+  display: none;
+}
+.process-step {
+  padding: 1.75rem 1.5rem 1.75rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  background: none;
+}
+.process-step:hover {
+  translate: none;
+  box-shadow: none;
+}
+.process-n {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--green-ink);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+}
+@media (min-width: 48rem) {
+  .process-step {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--rule);
+  }
+  .process-step:nth-child(2n + 1) {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+@media (min-width: 64rem) {
+  .process-step {
+    border-bottom: 0;
+  }
+  .process-step:nth-child(2n + 1) {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--rule);
+  }
+  .process-step:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+/* ---- what clients say: open columns, the quote set larger ---- */
+.quote {
+  padding: 1.75rem 0 0;
+  border: 0;
+  border-top: 2px solid var(--ink);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.quote::before {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235db536'%3E%3Cpath d='M9.6 6C6.5 7.3 4.5 10 4.5 13.6V18h5.7v-5.2H7.6c.2-2 1.2-3.5 3-4.4zm9 0c-3.1 1.3-5.1 4-5.1 7.6V18h5.7v-5.2h-2.6c.2-2 1.2-3.5 3-4.4z'/%3E%3C/svg%3E") left center / contain no-repeat;
+}
+.quote blockquote {
+  font-size: 1.15rem;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+}
+
+/* ---- questions: ruled rows ---- */
+.faq {
+  gap: 0;
+  border-top: 1px solid var(--rule);
+}
+.faq details,
+.faq details[open] {
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.faq summary {
+  padding-left: 0;
+}
+.faq details p {
+  padding-left: 0;
+}
+
+/* ---- what changes (service pages) and the tools: rows and quiet chips ---- */
+.outcomes {
+  gap: 0;
+  border-top: 1px solid var(--rule);
+}
+.outcomes li {
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.stack-chips li {
+  border-color: var(--rule-strong);
+  background: transparent;
+  box-shadow: none;
+  font-weight: 500;
+}
+
+/* ---- dark bands: the same rows and chips, in light rules ---- */
+.on-navy .outcomes,
+.on-navy .outcomes li,
+.on-navy .sectors,
+.on-navy .faq {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.on-navy .outcomes li {
+  color: #fff;
+}
+.on-navy .outcomes li::before {
+  background: rgba(115, 201, 74, 0.16);
+  color: var(--green);
+}
+.on-navy .card,
+.on-navy .panel {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+}
+.on-navy .card .h-md,
+.on-navy .panel .checks li {
+  color: #fff;
+}
+.on-navy .card p {
+  color: var(--fg-soft);
+}
+.on-navy .card-num {
+  -webkit-text-stroke-color: var(--green);
+}
+
+/* ---- the free audit: a flat dark panel, its four outputs in ruled columns ---- */
+.audit-panel {
+  padding: clamp(2rem, 5vw, 4.5rem);
+  border-radius: 22px;
+}
+.audit-panel .audit-steps li {
+  padding: 1.4rem 0 0;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0;
+  background: none;
+}
+.audit-panel .audit-n {
+  color: var(--green);
+}
+.audit-panel .audit-steps h3 {
+  color: #fff;
+}
+
+/* ---- the services grid: a numbered tag on each picture ---- */
+.svc-pic {
+  position: relative;
+}
+.svc-num {
+  position: absolute;
+  z-index: 1;
+  top: 0.85rem;
+  left: 0.85rem;
+  padding: 0.36rem 0.65rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--navy);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ---- the featured way to start stands forward ---- */
+.ladder > li.is-featured {
+  box-shadow: 0 34px 80px -40px rgba(15, 34, 51, 0.7);
+}
+
+/* ---- inner pages' heads: flat, closed by a hairline ---- */
+.page-hero {
+  background: #fff;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* ---- the closing band: fact chips under the headline, and the wordmark at the foot ---- */
+.site-footer .cta-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 2rem 0 0;
+  padding: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  list-style: none;
+}
+.cta-facts li {
+  display: grid;
+  gap: 0.2rem;
+  padding: 1rem 2rem 0 0;
+  margin-right: 2rem;
+}
+.cta-facts li + li {
+  padding-left: 2rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.16);
+}
+.cta-facts b {
+  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.cta-facts span {
+  color: var(--fg-soft);
+  font-size: 0.85rem;
+}
+@media (max-width: 39.99rem) {
+  .cta-facts li,
+  .cta-facts li + li {
+    width: 100%;
+    margin-right: 0;
+    padding: 0.9rem 0;
+    border-left: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+}
+.footer-mark {
+  margin: clamp(1.5rem, 4vw, 3rem) 0 0;
+  overflow: hidden;
+  color: transparent;
+  font-size: clamp(3.4rem, 14.5vw, 15rem);
+  font-weight: 700;
+  line-height: 0.82;
+  letter-spacing: -0.055em;
+  text-align: center;
+  white-space: nowrap;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.12);
+  user-select: none;
+}
+
+/* ============ layouts (round 2): asymmetric heads, a service index, numbered features, a bigger case ============ */
+
+/* ---- section heads: the numbered label in its own narrow column, the heading and lead beside it ---- */
+@media (min-width: 64rem) {
+  .wrap:not(.two-col):not(.split) > .section-head:not(.is-center) {
+    max-width: none;
+    grid-template-columns: 14rem minmax(0, 1fr);
+    column-gap: 3rem;
+    align-items: start;
+  }
+  .wrap:not(.two-col):not(.split) > .section-head:not(.is-center) > .kicker {
+    grid-row: 1 / span 3;
+    padding-top: 0.85rem;
+  }
+  .wrap:not(.two-col):not(.split) > .section-head:not(.is-center) > :not(.kicker) {
+    grid-column: 2;
+    max-width: 54rem;
+  }
+}
+
+/* ---- the service index: one large ruled row per service ---- */
+.svc-index {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 2px solid var(--ink);
+}
+.svc-row {
+  display: grid;
+  grid-template-columns: 2.6rem minmax(0, 1fr) auto;
+  gap: 0.35rem 1rem;
+  align-items: center;
+  padding: 1.4rem 0;
+  border-bottom: 1px solid var(--rule);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    background-color 0.35s var(--ease-out),
+    color 0.35s var(--ease-out);
+}
+.svc-row-n {
+  align-self: start;
+  padding-top: 0.55rem;
+  color: var(--green-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+.svc-row-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--ink);
+  font-size: clamp(1.4rem, 2.5vw, 2.15rem);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  transition: color 0.35s;
+}
+.svc-row-icon {
+  display: none;
+}
+.svc-row-short {
+  grid-column: 2;
+  color: var(--fg-soft);
+  font-size: 0.98rem;
+  line-height: 1.5;
+  transition: color 0.35s;
+}
+.svc-row-group {
+  display: none;
+}
+.svc-row-arrow {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  width: 2.9rem;
+  height: 2.9rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 50%;
+  color: var(--navy);
+  transition:
+    background-color 0.35s,
+    border-color 0.35s,
+    color 0.35s;
+}
+.svc-row:hover,
+.svc-row:focus-visible {
+  background: var(--navy);
+}
+.svc-row:hover .svc-row-name,
+.svc-row:focus-visible .svc-row-name {
+  color: #fff;
+}
+.svc-row:hover .svc-row-short,
+.svc-row:focus-visible .svc-row-short,
+.svc-row:hover .svc-row-group,
+.svc-row:focus-visible .svc-row-group {
+  color: rgba(255, 255, 255, 0.72);
+}
+.svc-row:hover .svc-row-arrow,
+.svc-row:focus-visible .svc-row-arrow {
+  border-color: var(--green);
+  background: var(--green);
+  color: #10202f;
+}
+@media (min-width: 64rem) {
+  .svc-row {
+    grid-template-columns: 4rem minmax(0, 1.15fr) minmax(0, 1fr) 8rem 3rem;
+    gap: 2rem;
+    padding: 1.9rem 1.25rem;
+  }
+  .svc-row-n {
+    padding-top: 0;
+    align-self: center;
+  }
+  .svc-row-short {
+    grid-column: auto;
+  }
+  .svc-row-group {
+    display: block;
+    color: var(--fg-faint);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .svc-row-arrow {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
+/* ---- a service's work in detail: numbered features in two columns, the problems and uses beside them ---- */
+.detail-grid {
+  display: grid;
+  gap: 3rem;
+}
+.feature-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+}
+.feature-list li {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr);
+  gap: 0.9rem;
+  padding: 1.4rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.feature-list span {
+  padding-top: 0.2rem;
+  color: var(--green-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+.feature-list p {
+  color: var(--ink);
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+}
+.detail-aside {
+  display: grid;
+  align-content: start;
+  gap: 2.25rem;
+}
+.detail-aside > div {
+  display: grid;
+  gap: 1rem;
+  padding-top: 1.4rem;
+  border-top: 2px solid var(--ink);
+}
+@media (min-width: 48rem) {
+  .feature-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 2.5rem;
+  }
+}
+@media (min-width: 64rem) {
+  .detail-grid {
+    grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+    gap: 4.5rem;
+  }
+}
+
+/* ---- the case that shows a service at work: a large picture and its numbers set big ---- */
+.in-practice-img img {
+  border-radius: 16px;
+}
+.in-practice .metrics dt {
+  color: var(--navy);
+  font-size: clamp(1.6rem, 2.3vw, 2.2rem);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+}
+@media (min-width: 64rem) {
+  .in-practice {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 4rem;
+    align-items: center;
+  }
+}
+
+/* ---- how we work with you (about): three ruled columns, not three boxes ---- */
+.rhythm .panel {
+  padding: 1.6rem 0 0;
+  border: 0;
+  border-top: 2px solid var(--ink);
+  border-radius: 0;
+  background: none;
+}
+
+/* ---- the heads of pages without a scene: a large editorial headline ---- */
+.page-hero {
+  padding-bottom: clamp(4rem, 8vw, 7rem);
+}
+.page-hero .h-xl {
+  max-width: 15ch;
+  font-size: clamp(2.8rem, 6.6vw, 6rem);
+  line-height: 0.98;
+  letter-spacing: -0.052em;
+}
+.page-hero .lead {
+  max-width: 40rem;
+  font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+}
+.in-practice {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.in-practice-img {
+  border-radius: 16px;
+  overflow: hidden;
+}
+.in-practice-text {
+  padding: 0;
+}
+
+/* ---- a case study's results: large open numbers on a rule, not boxes ---- */
+.metrics-lg {
+  gap: 0;
+  border-top: 2px solid var(--ink);
+}
+.metrics-lg > div {
+  padding: 1.4rem 1.5rem 0 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.metrics-lg dt {
+  color: var(--navy);
+  font-size: clamp(2.4rem, 4.6vw, 4.2rem);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}

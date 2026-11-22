@@ -521,14 +521,6 @@ export const phases: Phase[] = [
   },
 ];
 
-/** Before and after, for the page that says what changes once the work runs on a system. */
-export const transformation: [string, string][] = [
-  ["Manual follow-ups", "Automated follow-ups"],
-  ["Delayed responses", "Instant handling"],
-  ["Scattered data", "One central system"],
-  ["Guess-based decisions", "Structured insight"],
-];
-
 /** What you leave the free hour with. */
 export const auditOutputs = [
   { title: "Workflow review", text: "A walk through how your work really runs, step by step." },

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { serviceStillAlt } from "@/lib/scenes";
+import { serviceStillAlt, STILL_VERSION } from "@/lib/scenes";
 import { services } from "@/lib/services";
 import { SectionHead } from "./ui";
 
@@ -10,7 +10,7 @@ import { SectionHead } from "./ui";
  */
 export function ServicesGrid({ id = "services" }: { id?: string }) {
   return (
-    <section className="section on-mist" id={id}>
+    <section className="section on-white" id={id}>
       <div className="wrap">
         <div className="svc-head">
           <SectionHead
@@ -27,11 +27,14 @@ export function ServicesGrid({ id = "services" }: { id?: string }) {
           </Link>
         </div>
         <ul className="svc-grid" data-stagger>
-          {services.map((s) => (
+          {services.map((s, i) => (
             <li key={s.slug}>
               <Link className="svc-card" href={`/services/${s.slug}`}>
                 <div className="svc-pic">
-                  <img src={`/scene/services/${s.slug}.webp`} width={720} height={540} loading="lazy" decoding="async" alt={serviceStillAlt(s.slug)} />
+                  <span className="svc-num">
+                    {String(i + 1).padStart(2, "0")} · {s.group}
+                  </span>
+                  <img src={`/scene/services/${s.slug}.webp?v=${STILL_VERSION}`} width={720} height={540} loading="lazy" decoding="async" alt={serviceStillAlt(s.slug)} />
                 </div>
                 <div className="svc-body">
                   <span className="svc-tags">

@@ -4,7 +4,7 @@ import { Logo } from "./Logo";
 
 export function Footer() {
   return (
-    <footer className="site-footer on-navy">
+    <footer className="site-footer on-navy textured">
       <div className="brand-band" aria-hidden="true" />
       <div className="wrap footer-cta">
         <div>
@@ -12,6 +12,20 @@ export function Footer() {
           <h2 className="h-lg">
             Know exactly what to automate, <em>before you pay to build it.</em>
           </h2>
+          <ul className="cta-facts">
+            <li>
+              <b>60 min</b>
+              <span>Free audit session</span>
+            </li>
+            <li>
+              <b>14 days</b>
+              <span>Structured audit</span>
+            </li>
+            <li>
+              <b>One team</b>
+              <span>Plan, build and handover</span>
+            </li>
+          </ul>
         </div>
         <div className="cta-row">
           <Link className="btn btn-white" href="/contact?topic=audit">
@@ -68,6 +82,9 @@ export function Footer() {
       <div className="wrap footer-base">
         <p>© {new Date().getFullYear()} LiteraryWorks. All rights reserved.</p>
       </div>
+      <p className="footer-mark" aria-hidden="true">
+        LiteraryWorks
+      </p>
     </footer>
   );
 }

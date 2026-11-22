@@ -101,7 +101,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="section on-mist">
+      <section className="section on-navy textured">
         <div className="wrap">
           <SectionHead
             kicker="Principles"

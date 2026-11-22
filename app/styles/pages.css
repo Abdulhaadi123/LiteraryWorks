@@ -698,53 +698,64 @@ a.case:hover .case-img img,
   color: var(--ink);
 }
 
-/* ---------- the 14-day plan: a timeline ---------- */
+/* ---------- the 14-day plan: a schedule, one ruled row for each stretch of days ---------- */
 .plan {
-  position: relative;
   display: grid;
-  gap: 1.25rem;
   margin: 0;
   padding: 0;
   list-style: none;
+  border-top: 2px solid var(--ink);
 }
 .plan > li {
-  position: relative;
   display: grid;
-  align-content: start;
   gap: 0.6rem;
-  padding: 1.75rem;
-  border: 1px solid #e4e8eb;
-  border-radius: var(--r-lg);
-  background: #fff;
-  box-shadow: var(--shadow-sm);
+  padding: 1.75rem 0;
+  border-bottom: 1px solid var(--rule, #e2e6e9);
 }
 .plan .days {
   justify-self: start;
-  padding: 0.35rem 0.85rem;
-  border-radius: 999px;
-  background: var(--navy);
-  font-size: 0.78rem;
+  color: var(--green-ink);
+  font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #fff;
 }
 .gets {
-  margin-top: 0.6rem;
-  padding-top: 1.1rem;
-  border-top: 1px solid var(--line);
+  margin-top: 0.4rem;
 }
 .gets-label {
-  margin-bottom: 0.8rem;
-  font-size: 0.75rem;
-  font-weight: 650;
-  letter-spacing: 0.12em;
+  margin-bottom: 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--fg-faint);
 }
 @media (min-width: 64rem) {
-  .plan {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .plan > li {
+    grid-template-columns: 11rem minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    gap: 0.5rem 3rem;
+    padding: 2.25rem 0;
+  }
+  .plan .days {
+    grid-row: 1 / 3;
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    text-transform: none;
+    color: var(--navy);
+  }
+  .plan .h-md {
+    grid-column: 2;
+  }
+  .plan .soft {
+    grid-column: 2;
+  }
+  .plan .gets {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    margin-top: 0;
   }
 }
 

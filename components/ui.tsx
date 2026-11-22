@@ -91,29 +91,32 @@ export function Tiles({ items }: { items: { icon: IconName; title: string; text:
   );
 }
 
-/** The services as cards: an icon, the name, one line and the group. */
+/** The services as an index: one large ruled row each (number, name, one line, group), filling navy on hover. */
 export function ServiceCards({ items = services }: { items?: ServiceIndexItem[] }) {
   return (
-    <ul className="cards" data-stagger>
-      {items.map((s) => (
+    <ol className="svc-index" data-stagger>
+      {items.map((s, i) => (
         <li key={s.slug}>
-          <Link href={`/services/${s.slug}`} className="card">
-            <span className="card-top">
-              <span className="card-icon">
+          <Link href={`/services/${s.slug}`} className="svc-row">
+            <span className="svc-row-n">{String(i + 1).padStart(2, "0")}</span>
+            <span className="svc-row-name">
+              <span className="svc-row-icon">
                 <Icon name={serviceIcon[s.slug] ?? "sparkles"} />
               </span>
-              <span className="pill">{s.group}</span>
+              {s.name}
               {s.isNew ? <span className="pill pill-new">New</span> : null}
             </span>
-            <h3 className="h-md">{s.name}</h3>
-            <p>{s.short}</p>
-            <span className="card-link">
-              <span>Learn more</span>
+            <span className="svc-row-short">{s.short}</span>
+            <span className="svc-row-group">{s.group}</span>
+            <span className="svc-row-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
             </span>
           </Link>
         </li>
       ))}
-    </ul>
+    </ol>
   );
 }
 
