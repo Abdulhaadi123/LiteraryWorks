@@ -1,7 +1,7 @@
 import { createAutoplay, type Autoplay } from "./autoplay";
 import { getGL, type GL } from "./gl";
 import { gsap, runwayStart, SCRUB } from "./gsap";
-import { BEAT_MS } from "./timing";
+import { BEAT_MS, FIRST_BEAT_MS } from "./timing";
 import type { LabelSpec, SceneData, SceneFactory, SceneHandle, SceneLayout, SceneName } from "./types";
 
 /**
@@ -342,6 +342,7 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
           };
         } else {
           const beat = Number(query.get("beat"));
+          const beatMs = beat >= 600 && beat <= 60000 ? beat : BEAT_MS;
           autoplay = createAutoplay({
             section,
             at: phases.map((ph) => ph.from),
@@ -353,7 +354,8 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
             ready: (k) => handle?.ready?.(k) ?? true,
             visible: () => visible && onScreen,
             busy: () => tilting,
-            beatMs: beat >= 600 && beat <= 30000 ? beat : BEAT_MS,
+            beatMs,
+            firstMs: (FIRST_BEAT_MS / BEAT_MS) * beatMs,
           });
           autoplay.start();
         }

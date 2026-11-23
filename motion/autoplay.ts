@@ -34,6 +34,8 @@ export interface AutoplayOptions {
   busy?(): boolean;
   /** How long a beat lasts (default BEAT_MS). */
   beatMs?: number;
+  /** How long the first beat lasts (default: as long as the others). */
+  firstMs?: number;
 }
 
 export interface Autoplay {
@@ -85,6 +87,10 @@ export function createAutoplay(o: AutoplayOptions): Autoplay {
     return { k, frac: clamp01((u - sw[k]) / (end - sw[k])) };
   };
   const inMove = (q: number) => moves.some((m) => Math.abs(q - m) < PAN + MOVE_MARGIN);
+  // the first beat may be shorter: the time it saves comes out of its still part, never out of a camera move
+  const glide = 2 * (PAN + MOVE_MARGIN);
+  const firstRate = o.firstMs ? Math.max(rate, (at[1] - glide) / Math.max(1, o.firstMs - glide / rate)) : rate;
+  const rateAt = (q: number) => (inMove(q) ? rate : (q >= 1 ? q - 1 : q) < at[1] ? firstRate : rate);
 
   /** The camera may only start towards an object once it is built; otherwise the progress waits where the move begins. */
   const limit = (from: number, to: number): number => {
@@ -176,7 +182,7 @@ export function createAutoplay(o: AutoplayOptions): Autoplay {
       if (dir > 0) next = limit(p, next);
       arrived = next === target;
     } else if (playing()) {
-      next = limit(p, p + rate * dt);
+      next = limit(p, p + rateAt(p) * dt);
     }
     // the story has come round: start over from the same picture
     if (next >= 1 + LOOP_TAIL) {
