@@ -4,10 +4,10 @@
  */
 
 /** How long each beat of the story lasts, from its object arriving to the next one taking over. `?beat=<ms>` changes it (a developer switch). */
-export const BEAT_MS = 6500;
+export const BEAT_MS = 4500;
 
 /** The first beat (the devices, which only stand there) is shorter: the story gets to the objects that move sooner. */
-export const FIRST_BEAT_MS = 1500;
+export const FIRST_BEAT_MS = 3000;
 
 /** The camera takes 2 x PAN of the story's progress to move from one object to the next (scenes/deck.ts). */
 export const PAN = 0.022;
