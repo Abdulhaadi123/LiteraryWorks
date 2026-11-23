@@ -10,7 +10,7 @@ import { SectionHead } from "./ui";
  */
 export function ServicesGrid({ id = "services" }: { id?: string }) {
   return (
-    <section className="section on-white" id={id}>
+    <section className="section on-mist svc-scenes" id={id}>
       <div className="wrap">
         <div className="svc-head">
           <SectionHead
@@ -27,13 +27,10 @@ export function ServicesGrid({ id = "services" }: { id?: string }) {
           </Link>
         </div>
         <ul className="svc-grid" data-stagger>
-          {services.map((s, i) => (
+          {services.map((s) => (
             <li key={s.slug}>
               <Link className="svc-card" href={`/services/${s.slug}`}>
                 <div className="svc-pic">
-                  <span className="svc-num">
-                    {String(i + 1).padStart(2, "0")} · {s.group}
-                  </span>
                   <img src={`/scene/services/${s.slug}.webp?v=${STILL_VERSION}`} width={720} height={540} loading="lazy" decoding="async" alt={serviceStillAlt(s.slug)} />
                 </div>
                 <div className="svc-body">

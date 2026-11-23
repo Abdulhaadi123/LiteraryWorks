@@ -87,7 +87,16 @@ Honest limits: the numbers come from one laptop and a software renderer for the 
 
 ## Inquiry form
 
-`/contact` posts to `/api/inquiry`, which validates the fields and sends a plain-text email with Resend. It reports success only when Resend accepts the message. It also limits one address to 8 requests in ten minutes (in memory: a real limit on a long-running server; on a serverless host each instance counts for itself, so add the platform's rate limiting too). Copy `.env.example` to `.env.local` and set `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` and `NEXT_PUBLIC_SITE_URL`. Without them the API answers 503 and says the inbox is not configured. Set real keys on the hosting platform, not on a shared or untrusted machine.
+`/contact` posts to `/api/inquiry`, which validates the fields and sends two emails through SendGrid's Mail Send API (no SDK, one `fetch`):
+
+- **To the team** (`CONTACT_TO_EMAIL`, a comma-separated list is fine): the interest, name, email, company, time received (San Antonio time) and the message, with a Reply button. Its reply-to is the visitor, so replying answers them directly. The form reports success only once SendGrid has accepted this email (202).
+- **To the visitor**: a short confirmation with what happens next. It repeats nothing they typed except their first name, so the form cannot be used to send a stranger a message of someone else's choosing. If it fails, the visitor still sees success, since their message has reached us. Turn it off with `CONTACT_SEND_CONFIRMATION=false`.
+
+The templates are in `lib/mail/inquiry-email.ts`: table layout with inline styles (what email clients render reliably), an HTML and a plain-text part each, every visitor field escaped, and no images, remote fonts or tracking (click and open tracking are switched off in the request).
+
+Setup in SendGrid: create an API key with only the **Mail Send** permission, and verify the sending address (Single Sender Verification) or, better, authenticate the domain (Settings → Sender Authentication, the DNS records SendGrid gives you) so the emails pass SPF and DKIM. Then copy `.env.example` to `.env.local` (or set the variables on the hosting platform) and fill in `SENDGRID_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` (the verified address) and `NEXT_PUBLIC_SITE_URL`; `CONTACT_FROM_NAME`, `CONTACT_REPLY_EMAIL` and `SENDGRID_API_BASE` (`https://api.eu.sendgrid.com` for an EU account) are optional. Without the required ones the API answers 503 and says the inbox is not configured. A refusal from SendGrid is logged on the server with its reason (never the key or the message).
+
+The API also limits one address to 8 requests in ten minutes (in memory: a real limit on a long-running server; on a serverless host each instance counts for itself, so add the platform's rate limiting too). Set real keys on the hosting platform, not on a shared or untrusted machine.
 
 ## Verify a build
 
@@ -101,7 +110,7 @@ The scripts need only Node 22 and Chrome (set `CHROME_PATH` if it is not found; 
 
 ## Before launch
 
-- [ ] Set the real domain (`NEXT_PUBLIC_SITE_URL`) and the Resend variables.
+- [ ] Set the real domain (`NEXT_PUBLIC_SITE_URL`) and the SendGrid variables, authenticate the sending domain in SendGrid, and send one test message from the live form.
 - [ ] Confirm the claims: the prices and the money-back guarantee on `/ai-audit` and the home page, the case-study figures, and the client names and quotes (they come from the Sparkix and FAYD work). Replace or remove anything that LiteraryWorks may not show under its own name.
 - [ ] Check the pictures in `public/shots/` and `public/cases/`: they are our own projects, but some show the Sparkix mark and one a FAYD logo.
 - [ ] Add the business's legal name, contact details and a reviewed privacy notice (`app/privacy/page.tsx` is a short draft).

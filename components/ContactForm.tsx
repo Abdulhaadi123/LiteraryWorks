@@ -6,8 +6,8 @@ import { topics } from "@/lib/topics";
 type Status = "idle" | "sending" | "sent" | "error";
 
 /**
- * The inquiry form. It posts to /api/inquiry, which validates the fields and sends the message with Resend. It only
- * reports success once the email provider has accepted the message. The "website" field is a honeypot for bots.
+ * The inquiry form. It posts to /api/inquiry, which validates the fields and sends the message through SendGrid. It
+ * only reports success once SendGrid has accepted the message. The "website" field is a honeypot for bots.
  */
 export function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { topics } from "@/lib/topics";
-
-type Inquiry = { name: string; email: string; company: string; interest: string; message: string };
+import { confirmationEmail, oneLine, teamEmail, type Inquiry } from "@/lib/mail/inquiry-email";
 
 const allowedInterests = new Set<string>(topics.map((t) => t.value));
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -64,29 +63,82 @@ export async function POST(request: Request) {
     return fail("Please complete all required fields with valid information.", 400);
   }
 
-  const { RESEND_API_KEY, CONTACT_TO_EMAIL, CONTACT_FROM_EMAIL } = process.env;
-  if (!RESEND_API_KEY || !CONTACT_TO_EMAIL || !CONTACT_FROM_EMAIL) {
+  const { SENDGRID_API_KEY, CONTACT_TO_EMAIL, CONTACT_FROM_EMAIL } = process.env;
+  if (!SENDGRID_API_KEY || !CONTACT_TO_EMAIL || !CONTACT_FROM_EMAIL) {
     return fail("Our inquiry inbox is not configured yet. Please try again later.", 503);
   }
+  const fromName = process.env.CONTACT_FROM_NAME || "LiteraryWorks";
+  const team = CONTACT_TO_EMAIL.split(",").map((e) => e.trim()).filter(Boolean);
 
-  // untrusted text goes into a plain-text email, never into HTML
-  const text = `New LiteraryWorks inquiry\n\nName: ${inquiry.name}\nEmail: ${inquiry.email}\nCompany: ${inquiry.company || "Not provided"}\nInterest: ${inquiry.interest}\n\nMessage:\n${inquiry.message}`;
+  // the notice to the team decides the answer: the message only counts as sent once SendGrid has accepted it
+  const notice = teamEmail(inquiry);
+  const sent = await sendMail(SENDGRID_API_KEY, {
+    to: team,
+    from: { email: CONTACT_FROM_EMAIL, name: `${fromName} website` },
+    replyTo: { email: inquiry.email, name: oneLine(inquiry.name) },
+    ...notice,
+    category: "inquiry",
+  });
+  if (sent === "unreachable") return fail("We could not reach our email service. Please try again later.", 502);
+  if (sent !== "ok") return fail("We could not deliver your message. Please try again later.", 502);
+
+  // the confirmation to the visitor is a courtesy: if it fails, their message has still reached us
+  if (process.env.CONTACT_SEND_CONFIRMATION !== "false") {
+    const reply = confirmationEmail(inquiry, process.env.CONTACT_REPLY_EMAIL || team[0]);
+    await sendMail(SENDGRID_API_KEY, {
+      to: [inquiry.email],
+      from: { email: CONTACT_FROM_EMAIL, name: fromName },
+      replyTo: { email: process.env.CONTACT_REPLY_EMAIL || team[0], name: fromName },
+      ...reply,
+      category: "inquiry-confirmation",
+    });
+  }
+  return NextResponse.json({ message: "Message sent." }, { status: 200 });
+}
+
+type Mail = {
+  to: string[];
+  from: { email: string; name: string };
+  replyTo: { email: string; name: string };
+  subject: string;
+  html: string;
+  text: string;
+  category: string;
+};
+
+/**
+ * One email through SendGrid's v3 Mail Send API (https://www.twilio.com/docs/sendgrid/api-reference/mail-send).
+ * SENDGRID_API_BASE switches the region (https://api.eu.sendgrid.com for EU data residency). Click and open tracking
+ * are off: links stay as written and no tracking pixel is added. Success is 202 Accepted.
+ */
+async function sendMail(key: string, m: Mail): Promise<"ok" | "refused" | "unreachable"> {
+  const base = (process.env.SENDGRID_API_BASE || "https://api.sendgrid.com").replace(/\/+$/, "");
   try {
-    const response = await fetch("https://api.resend.com/emails", {
+    const response = await fetch(`${base}/v3/mail/send`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: CONTACT_FROM_EMAIL,
-        to: [CONTACT_TO_EMAIL],
-        subject: `LiteraryWorks inquiry: ${inquiry.interest}`,
-        text,
-        reply_to: inquiry.email,
+        personalizations: [{ to: m.to.map((email) => ({ email })) }],
+        from: m.from,
+        reply_to: m.replyTo,
+        subject: m.subject,
+        content: [
+          { type: "text/plain", value: m.text },
+          { type: "text/html", value: m.html },
+        ],
+        categories: [m.category],
+        tracking_settings: { click_tracking: { enable: false, enable_text: false }, open_tracking: { enable: false } },
       }),
       cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
     });
-    if (!response.ok) return fail("We could not deliver your message. Please try again later.", 502);
-    return NextResponse.json({ message: "Message sent." }, { status: 200 });
-  } catch {
-    return fail("We could not reach our email service. Please try again later.", 502);
+    if (response.ok) return "ok";
+    // SendGrid explains a refusal in its body; log the reason (never the key or the visitor's message)
+    const detail = await response.text().catch(() => "");
+    console.error(`SendGrid refused the ${m.category} email: ${response.status} ${detail.slice(0, 500)}`);
+    return "refused";
+  } catch (error) {
+    console.error(`SendGrid could not be reached for the ${m.category} email:`, error instanceof Error ? error.message : error);
+    return "unreachable";
   }
 }
