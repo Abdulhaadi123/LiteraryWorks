@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { auditOutputs, industries, phases, problems, rhythm, techUsed, type Phase } from "@/lib/content";
 import { Icon, type IconName } from "./icons";
-import { Checks, SectionHead } from "./ui";
+import { CaseImage, Checks, SectionHead } from "./ui";
 
 /** The sections the pages are built from: the problem, the phases in full, the path of a service, sectors, the audit hour, how we work, the tools. */
 
@@ -173,13 +173,27 @@ export function Industries({ tone = "white" }: { tone?: "white" | "mist" }) {
           lead="AI is most useful when it understands the detail of your work. These are the places we spend most of our time."
         />
         <ul className="sectors" data-stagger>
-          {industries.map((i) => (
+          {industries.map((i, k) => (
             <li key={i.name}>
+              {/* the large first tile shows the work itself: the AI medical scribe we built for a healthcare client */}
+              {k === 0 ? (
+                <figure className="sector-shot">
+                  <CaseImage slug="ai-medical-scribe" sizes="(min-width: 64rem) 560px, 92vw" />
+                </figure>
+              ) : null}
               <span className="card-icon">
                 <Icon name={industryIcon[i.name] ?? "sparkles"} />
               </span>
               <h3>{i.name}</h3>
               <p>{i.text}</p>
+              {k === 0 ? (
+                <Link className="sector-link" href="/work/ai-medical-scribe">
+                  See the AI medical scribe case study
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </Link>
+              ) : null}
             </li>
           ))}
         </ul>
