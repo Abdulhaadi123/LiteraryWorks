@@ -12,7 +12,7 @@ import type { LabelSpec, SceneData, SceneName } from "@/motion/types";
  *
  * With `auto` (the home page's hero) the scene is not tied to the scroll: it is one screen tall, plays its beats by
  * itself (the camera moves from object to object on a timer and the words change with it, over and over), and has a
- * pause button and a bar for each beat to jump to it (`steps` names them). Scrolling then goes straight on to the next
+ * a bar for each beat to jump to it (`steps` names them). Scrolling then goes straight on to the next
  * section. Where the scene does not run, `auto` changes nothing: the same static block as any other scene.
  */
 export function Xp({
@@ -67,20 +67,14 @@ export function Xp({
         <div className="xp-copy">
           <div className="wrap xp-phases">{children}</div>
         </div>
-        <div className="xp-hint" aria-hidden="true">
-          <span className="xp-mouse" />
-          Scroll to explore
-        </div>
+        {auto ? null : (
+          <div className="xp-hint" aria-hidden="true">
+            <span className="xp-mouse" />
+            Scroll to explore
+          </div>
+        )}
         {auto ? (
           <div className="xp-controls" role="group" aria-label="Story controls">
-            <button type="button" className="xp-toggle" data-auto-toggle aria-label="Pause the animation" title="Pause">
-              <svg className="xp-i-pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M7 5h3.4v14H7zM13.6 5H17v14h-3.4z" />
-              </svg>
-              <svg className="xp-i-play" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M8 5.2v13.6L19.2 12z" />
-              </svg>
-            </button>
             <ol className="xp-steps">
               {(steps ?? []).map((label, i, all) => (
                 <li key={label}>

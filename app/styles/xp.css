@@ -452,7 +452,7 @@ html.motion .xp.xp-auto:not(.xp-failed) .xp-phase.is-on > * {
   pointer-events: auto;
 }
 
-/* the controls: a pause button and a bar for each beat, which fills as the beat plays and jumps to it when pressed */
+/* the controls: a bar for each beat, which fills as the beat plays and jumps to it when pressed */
 .xp-controls {
   display: none;
 }
@@ -476,41 +476,6 @@ html.motion .xp.xp-auto.xp-live:not(.xp-failed) .xp-controls {
   transition:
     opacity 0.6s ease 0.5s,
     visibility 0s;
-}
-.xp-toggle {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 2.5rem;
-  height: 2.5rem;
-  padding: 0;
-  border: 1px solid rgba(34, 66, 95, 0.26);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--navy);
-  cursor: pointer;
-  transition:
-    background-color 0.2s,
-    border-color 0.2s,
-    color 0.2s;
-}
-.xp-toggle:hover {
-  border-color: var(--navy);
-  background: var(--navy);
-  color: #fff;
-}
-.xp-toggle svg {
-  grid-area: 1 / 1;
-  width: 1rem;
-  height: 1rem;
-  fill: currentColor;
-}
-.xp-toggle .xp-i-play,
-.xp-auto[data-playing="false"] .xp-toggle .xp-i-pause {
-  display: none;
-}
-.xp-auto[data-playing="false"] .xp-toggle .xp-i-play {
-  display: block;
 }
 .xp-steps {
   display: flex;
@@ -553,17 +518,8 @@ html.motion .xp.xp-auto.xp-live:not(.xp-failed) .xp-controls {
   background: var(--navy);
   transform: scaleX(1);
 }
-.xp-toggle:focus-visible,
 .xp-step:focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
   border-radius: 6px;
-}
-.xp-toggle:focus-visible {
-  border-radius: 50%;
-}
-/* "Scroll to explore" now means "scroll on": it stays, in the middle of the bottom edge */
-html.motion .xp.xp-auto:not(.xp-failed) .xp-hint {
-  left: 50%;
-  transform: translateX(-50%);
 }

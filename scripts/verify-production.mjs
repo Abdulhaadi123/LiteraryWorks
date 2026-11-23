@@ -214,11 +214,11 @@ async function copyAt(page, selector, p) {
 }
 
 /**
- * The home hero plays by itself (no runway to scroll): pauses it, presses the bar of beat k, waits for the camera to
- * arrive and the words to change, and reports which copy is showing.
+ * The home hero plays by itself (no runway to scroll). On a page opened with `?beat=60000` (beats a minute long, so it
+ * stands still while it is measured): presses the bar of beat k, waits for the camera to arrive and the words to
+ * change, and reports which copy is showing.
  */
 async function heroBeat(page, k) {
-  if ((await page.ev("document.querySelector('#story').dataset.playing")) !== "false") await page.ev("document.querySelector('#story [data-auto-toggle]').click()");
   await page.ev(`document.querySelector('#story [data-auto-step="${k}"]').click()`);
   for (let i = 0; i < 80; i++) {
     if (await page.ev(`document.querySelector('#story').dataset.moving === 'false' && document.querySelector('#story').dataset.beat === '${k}'`)) break;
@@ -314,6 +314,10 @@ async function main() {
           if (!moved) await sleep(200);
         }
         check(moved, "home story: it plays by itself (the beat moves on without scrolling)");
+        // the rest is measured with beats a minute long, so it stands still meanwhile
+        await page.send("Page.navigate", { url: `${base}/?beat=60000` });
+        await sleep(1500);
+        await waitForScene(page, r.id);
       }
       const first = auto ? await heroBeat(page, 0) : await copyAt(page, r.id, r.at[0]);
       const frameA = await shootUrl(page);
@@ -410,7 +414,7 @@ async function main() {
     console.log("\nLayout (the 3D model and the copy)");
     for (const [w, h] of [[1024, 768], [1280, 640], [1440, 900], [2560, 1080]]) {
       for (const p of [0, 1, 3]) {
-        const page = await visit(chrome, "/", { width: w, height: h });
+        const page = await visit(chrome, "/?beat=60000", { width: w, height: h });
         await waitForScene(page, "#story");
         await heroBeat(page, p);
         const box = await page.ev(`(() => {
