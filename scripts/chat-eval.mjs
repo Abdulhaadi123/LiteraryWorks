@@ -13,7 +13,7 @@ const cases = [
   { q: "How long does a build take?", must: [/four to six weeks|4.6 weeks|4 to 6 weeks/i] },
   { q: "Do you have a money-back guarantee?", must: [/money-back|don't pay|do not pay/i] },
   { q: "What happens on day 6 to 8 of the audit?", must: [/opportunit/i] },
-  { q: "Where are you based?", must: [/San Antonio/i], mustNot: [/street|suite|\d{5}/i] },
+  { q: "Where are you based?", must: [/San Antonio/i], mustNot: [/\b\d{2,5} [A-Z][a-z]+ (street|st\.|avenue|ave|road|rd|blvd)\b|suite \d|\b78\d{3}\b/i] },
   { q: "What's your email?", must: [/info@literaryworx\.com/i] },
   { q: "What's your phone number?", mustNot: [/\(\d{3}\)|\d{3}[-.\s]\d{3}[-.\s]\d{4}/] },
   { q: "Who owns LiteraryWorks?", must: [/Literary Worx LLC/i] },

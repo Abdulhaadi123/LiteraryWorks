@@ -29,7 +29,7 @@ export default function PrivacyPage() {
           </p>
           <h2>The website assistant</h2>
           <p>
-            The assistant in the corner of each page answers questions about our services. What you type in it is sent to OpenAI, which generates the answer on our behalf; we ask OpenAI not to store it, and we do not keep chat conversations ourselves. The conversation stays in your browser tab until you close it or start a new one. If you ask us to contact you from the assistant, the conversation is sent to us with your details, so we can reply with the context. Please do not type sensitive personal information into it.
+            The assistant in the corner of each page answers questions about our services. What you type in it, and the page you are on, is sent to Anthropic, whose Claude model writes the answer on our behalf, under Anthropic's commercial terms (it is not used to train their models). We do not keep chat conversations ourselves. The conversation stays in your browser tab until you close it or start a new one. If you ask us to contact you from the assistant, the conversation is sent to us with your details, so we can reply with the context. Please do not type sensitive personal information into it.
           </p>
           <h2>How long we keep it</h2>
           <p>We keep inquiries for as long as needed to answer them and to follow up, and then delete them.</p>

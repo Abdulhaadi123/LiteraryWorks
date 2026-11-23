@@ -37,7 +37,7 @@ function loadMessages(): Msg[] {
 }
 
 /** The website assistant: a conversation that streams in, follow-up suggestions, and a way to reach the team. */
-export function ChatPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolean; onClose: () => void; ask?: string | null; onAsked?: () => void }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -111,7 +111,7 @@ export function ChatPanel({ open, onClose }: { open: boolean; onClose: () => voi
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: base.map(({ role, content }) => ({ role, content })) }),
+          body: JSON.stringify({ messages: base.map(({ role, content }) => ({ role, content })), page: window.location.pathname }),
           signal: controller.signal,
         });
         if (!res.ok || !res.body) {
@@ -166,6 +166,13 @@ export function ChatPanel({ open, onClose }: { open: boolean; onClose: () => voi
     },
     [busy],
   );
+
+  // a question handed over by the button's bubble: asked once, as soon as the panel is open and ready
+  useEffect(() => {
+    if (!open || !asked || busy || !loaded.current) return;
+    onAsked?.();
+    void ask(asked, messages);
+  }, [open, asked, busy, ask, messages, onAsked]);
 
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
