@@ -111,7 +111,7 @@ async function openPage(port) {
 
 /** Hides everything except the stage (its ground and the canvas), so the picture is the scene as it stands on the page. */
 const STILL_CSS = `
-  .site-header, .mobile-cta, .xp-copy, .xp-lines, .xp-labels, .xp-hint, .xp-poster, .xp-rail, .xp-controls { display: none !important; }
+  .site-header, .mobile-cta, .xp-copy, .xp-lines, .xp-labels, .xp-hint, .xp-poster, .xp-rail, .xp-controls, .chat-teaser, .chat-launcher, .chat-panel { display: none !important; }
   .xp-stage::before { display: none !important; }
 `;
 

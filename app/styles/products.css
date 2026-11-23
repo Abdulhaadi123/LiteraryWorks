@@ -684,3 +684,24 @@
     font-size: 0.875rem;
   }
 }
+
+/* ---- the healthcare tile: the dashboard is shown whole, never cut ----
+   It used to be enlarged to fill the tile, which cut the picture off on every side. Now the whole screen is seen
+   (on the tile's navy, centred at the top), in whatever room the tile has. */
+.sectors li .sector-shot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 12rem;
+  padding: 0.6rem 0.6rem 0;
+}
+.sectors li .sector-shot img {
+  position: static;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center top;
+  border-radius: 8px 8px 0 0;
+}

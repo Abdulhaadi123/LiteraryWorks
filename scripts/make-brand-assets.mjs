@@ -42,7 +42,7 @@ const pages = {
     img { position: absolute; right: 46px; top: 50%; width: 548px; transform: translateY(-50%); border-radius: 26px; border: 1px solid rgba(34,66,95,.14); box-shadow: 0 40px 80px -30px rgba(34,66,95,.45); }
   </style><div class="grid"></div>
   <div class="logo"><i>${mark("#22425f", "#73c94a")}</i><span><b>Literary</b><b>Works</b></span></div>
-  <h1>AI and software, <em>working as one system.</em></h1>
+  <h1>AI and software, <em>working as one system</em></h1>
   <p>AI, software and cloud engineering for U.S. businesses.</p>
   <img src="/poster.webp" alt="">`,
   "/tile.html": (size, rounded) => `<!doctype html><meta charset="utf-8"><style>html,body{margin:0;background:transparent}img{display:block;width:${size}px;height:${size}px}</style><img src="/icon.svg" alt="">`,

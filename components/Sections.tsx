@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { auditOutputs, cases, industries, phases, problems, rhythm, techUsed, type Phase } from "@/lib/content";
 import { Icon, type IconName } from "./icons";
-import { CaseImage, Checks, SectionHead } from "./ui";
+import { Checks, SectionHead } from "./ui";
 
 /** The sections the pages are built from: the problem, the phases in full, the path of a service, sectors, the audit hour, how we work, the tools. */
 
@@ -189,8 +189,10 @@ export function Industries({ tone = "white" }: { tone?: "white" | "mist" }) {
                       <path d="M5 12h14M13 6l6 6-6 6" />
                     </svg>
                   </Link>
+                  {/* the product's own dashboard, shown whole (never cut): the first picture of the case study's gallery */}
                   <figure className="sector-shot">
-                    <CaseImage slug="ai-medical-scribe" sizes="(min-width: 64rem) 560px, 92vw" />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/cases/ai-medical-scribe/1.webp" width={1280} height={660} alt="" loading="lazy" decoding="async" />
                   </figure>
                 </>
               ) : null}
