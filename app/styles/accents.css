@@ -317,7 +317,7 @@
     }
   }
   .footer-mark {
-    margin: clamp(1.5rem, 4vw, 3rem) 0 0;
+    margin: clamp(2rem, 5vw, 4rem) 0 clamp(1.25rem, 3vw, 2.25rem);
     overflow: hidden;
     color: transparent;
     font-size: clamp(3.4rem, 14.5vw, 15rem);
@@ -599,135 +599,178 @@
     letter-spacing: -0.05em;
   }
 
-  /* ============ four phases: a navy band, a sticky intro with the phase index, four large cards ============ */
-  .process {
-    background: linear-gradient(180deg, #17324b 0%, #10243a 100%);
+  /* ============ four phases: large step circles joined by a soft wave, the words open beneath (after FAYD) ============ */
+  .journey {
+    --ring: 6.25rem;
   }
-  .process-layout {
+  .journey .section-head .kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+  .journey .section-head .kicker::before,
+  .journey .section-head .kicker::after {
+    content: "";
+    width: 2.5rem;
+    height: 1px;
+    border-radius: 0;
+    background: currentColor;
+    opacity: 0.55;
+  }
+  .journey .section-head {
+    margin-bottom: clamp(2.5rem, 5vw, 4.5rem);
+  }
+  .journey-body {
+    position: relative;
+  }
+  .journey-wave {
+    display: none;
+  }
+  .journey-track {
+    position: relative;
     display: grid;
-    gap: 3rem;
-  }
-  .process-intro .section-head {
-    margin-bottom: 2rem;
-  }
-  .process-index {
-    display: grid;
-    margin: 0 0 2.25rem;
-    padding: 0;
-    list-style: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.14);
-  }
-  .process-index a {
-    display: flex;
-    align-items: baseline;
-    gap: 1rem;
-    padding: 0.95rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-    color: #fff;
-    font-size: 1.15rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    text-decoration: none;
-    transition: color 0.3s, padding 0.3s;
-  }
-  .process-index a span {
-    color: var(--green);
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-  }
-  .process-index a:hover {
-    padding-left: 0.4rem;
-    color: var(--green);
-  }
-  .process-steps {
-    display: grid;
-    gap: 1.25rem;
+    gap: 2.25rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
-  .process-step {
+  .journey-step {
+    position: relative;
     display: grid;
-    gap: 1.75rem;
-    padding: clamp(1.75rem, 3vw, 2.75rem);
-    border-radius: 24px;
+    grid-template-columns: var(--ring) minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+    align-content: start;
+  }
+  /* phones: a dotted line from each circle down to the next */
+  .journey-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: calc(var(--ring) + 0.6rem);
+    bottom: -1.65rem;
+    left: calc(var(--ring) / 2 - 1px);
+    border-left: 2px dotted rgba(34, 66, 95, 0.35);
+  }
+  .journey-node {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: var(--ring);
+    height: var(--ring);
+    border: 1.5px dotted rgba(115, 201, 74, 0.75);
+    border-radius: 50%;
     background: #fff;
-    color: var(--ink);
-    box-shadow: 0 40px 80px -48px rgba(0, 0, 0, 0.6);
-    --fg-soft: #4f5866;
-    --head: var(--ink);
+    box-shadow: 0 0 0 8px #fff, 0 18px 50px -12px rgba(115, 201, 74, 0.45);
   }
-  .process-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1.25rem;
+  .journey-ring {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 0.3rem;
+    width: calc(100% - 12px);
+    height: calc(100% - 12px);
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 6px 22px -8px rgba(15, 34, 51, 0.28);
+    transition: background-color 0.3s;
   }
-  .process-n {
-    color: transparent;
-    font-size: clamp(3.6rem, 6vw, 5.4rem);
-    font-weight: 600;
-    line-height: 0.85;
-    letter-spacing: -0.06em;
-    -webkit-text-stroke: 1.5px var(--green);
-  }
-  .process-step .phase-art {
-    width: clamp(4.5rem, 7vw, 6.5rem);
+  .journey-ring .phase-art {
+    width: 46%;
     height: auto;
     stroke: var(--navy);
-    stroke-width: 2.4;
+    stroke-width: 3.6;
+    transition: stroke 0.3s;
   }
-  .process-step .phase-art .art-acc {
+  .journey-ring .phase-art .art-acc {
     stroke: var(--green);
   }
-  .process-step h3 {
+  .journey-n {
+    color: var(--navy);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+  .journey-step:hover .journey-ring {
+    background: var(--navy);
+  }
+  .journey-step:hover .journey-ring .phase-art,
+  .journey-step:hover .journey-n {
+    stroke: #fff;
+    color: #fff;
+  }
+  .journey-step:hover .journey-ring .phase-art .art-acc {
+    stroke: var(--green);
+  }
+  .journey-text {
+    padding-top: 0.4rem;
+  }
+  .journey-text h3 {
     margin: 0;
     color: var(--ink);
-    font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+    font-size: clamp(1.35rem, 1.8vw, 1.6rem);
     font-weight: 600;
-    letter-spacing: -0.035em;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
   }
-  .process-goal {
-    margin: 0.5rem 0 0;
-    color: #4f5866;
-    font-size: 1.08rem;
-    line-height: 1.5;
+  .journey-goal {
+    max-width: 17rem;
+    margin: 0.6rem 0 0;
+    color: var(--body);
+    font-size: 1.02rem;
+    line-height: 1.6;
   }
-  .process-gets {
-    align-self: end;
-    padding: 1.4rem 1.5rem;
-    border-radius: 16px;
-    background: #f3f6f8;
+  .journey-cta {
+    display: flex;
+    justify-content: center;
+    margin-top: clamp(2.5rem, 5vw, 4rem);
   }
-  .process-gets h4 {
-    margin: 0 0 0.85rem;
-    color: var(--navy);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
-  .process-gets .checks li {
-    color: var(--ink);
-    font-size: 0.97rem;
-  }
-  @media (min-width: 48rem) {
-    .process-step {
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-      align-items: stretch;
-    }
-  }
+  /* wide screens: four columns, the circles on one soft wave */
   @media (min-width: 64rem) {
-    .process-layout {
-      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr);
-      gap: 4.5rem;
-      align-items: start;
+    .journey {
+      --ring: 9rem;
     }
-    .process-intro {
-      position: sticky;
-      top: calc(var(--header, 5rem) + 2.5rem);
+    .journey-wave {
+      display: block;
+      position: absolute;
+      top: calc(var(--ring) / 2 - 20px);
+      left: calc(var(--ring) / 2);
+      /* from the first circle's centre to the last's: three column steps */
+      width: calc((100% + 2.5rem) * 0.75);
+      height: 40px;
+      overflow: visible;
+    }
+    .journey-wave path {
+      fill: none;
+      stroke: rgba(115, 201, 74, 0.55);
+      stroke-width: 2;
+      vector-effect: non-scaling-stroke;
+    }
+    .journey-track {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 2.5rem;
+    }
+    .journey-step {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2rem;
+    }
+    .journey-step:not(:last-child)::after {
+      content: none;
+    }
+    .journey-n {
+      font-size: 0.7rem;
+    }
+    .journey-text {
+      padding: 0 0.5rem 0 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .journey-ring,
+    .journey-ring .phase-art,
+    .journey-n {
+      transition: none;
     }
   }
 

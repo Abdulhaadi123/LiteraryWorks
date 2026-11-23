@@ -86,14 +86,14 @@ export function Footer() {
         </nav>
       </div>
 
+      <p className="footer-mark" aria-hidden="true">
+        LiteraryWorks
+      </p>
       <div className="wrap footer-base">
         <p>
           © {new Date().getFullYear()} {company.legalName}. LiteraryWorks is a brand of {company.legalName}. All rights reserved.
         </p>
       </div>
-      <p className="footer-mark" aria-hidden="true">
-        LiteraryWorks
-      </p>
     </footer>
   );
 }
