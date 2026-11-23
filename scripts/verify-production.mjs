@@ -9,7 +9,7 @@
 //
 // What it checks, following the scroll-driven 3D storytelling skill's "fallbacks and checks":
 //   1. every page in the sitemap answers 200 with a title and exactly one <h1>
-//   2. desktop: motion starts and every pinned 3D scene on the site (the home story, the services and work decks, a
+//   2. desktop: motion starts and every 3D scene on the site (the home story, which plays by itself, the services and work decks, a
 //      service page, the audit and about pages) builds without an error, changes the copy as the
 //      page scrolls, draws a picture that moves with the scroll, moves on to its next object with the copy, and keeps ONE shared canvas that
 //      moves from scene to scene; the model stays clear of the copy and of the header on small and wide windows
@@ -213,6 +213,21 @@ async function copyAt(page, selector, p) {
   return page.ev(`[...document.querySelectorAll('${selector} [data-phase]')].map(e => ({ t: (e.querySelector('h1,h2')?.textContent || '').trim(), o: Number(getComputedStyle(e).opacity) })).filter(x => x.o > 0.6).map(x => x.t)`);
 }
 
+/**
+ * The home hero plays by itself (no runway to scroll): pauses it, presses the bar of beat k, waits for the camera to
+ * arrive and the words to change, and reports which copy is showing.
+ */
+async function heroBeat(page, k) {
+  if ((await page.ev("document.querySelector('#story').dataset.playing")) !== "false") await page.ev("document.querySelector('#story [data-auto-toggle]').click()");
+  await page.ev(`document.querySelector('#story [data-auto-step="${k}"]').click()`);
+  for (let i = 0; i < 80; i++) {
+    if (await page.ev(`document.querySelector('#story').dataset.moving === 'false' && document.querySelector('#story').dataset.beat === '${k}'`)) break;
+    await sleep(150);
+  }
+  await sleep(1500);
+  return page.ev(`[...document.querySelectorAll('#story [data-phase]')].map(e => ({ t: (e.querySelector('h1,h2')?.textContent || '').trim(), o: Number(getComputedStyle(e).opacity) })).filter(x => x.o > 0.6).map(x => x.t)`);
+}
+
 /** Scrolls a scene that starts further down the page into reach (they only start when near) and waits until it is live. */
 async function reach(page, id) {
   await copyAt(page, id, 0.02);
@@ -288,10 +303,22 @@ async function main() {
       const s = r.id === "#story" || r.id === "#top" ? await waitForScene(page, r.id) : await reach(page, r.id);
       check(s.motion && s.ready, `${r.name}: motion starts`);
       check(s.live && !s.failed, `${r.name}: the 3D scene is live`, s.failed ? "it fell back to the static section" : "");
-      const first = await copyAt(page, r.id, r.at[0]);
+      const auto = r.id === "#story";
+      if (auto) {
+        // the hero plays by itself: one screen tall, the next section right under it, and the beat moves on with no scrolling
+        const geo = await page.ev("(() => { const s = document.querySelector('#story'); return { h: s.offsetHeight, vh: innerHeight, next: Math.round(s.nextElementSibling.getBoundingClientRect().top) }; })()");
+        check(geo.h === geo.vh && geo.next === geo.vh, "home story: one screen tall, the next section right under it", JSON.stringify(geo));
+        let moved = false;
+        for (let i = 0; i < 100 && !moved; i++) {
+          moved = (await page.ev("document.querySelector('#story').dataset.beat")) !== "0";
+          if (!moved) await sleep(200);
+        }
+        check(moved, "home story: it plays by itself (the beat moves on without scrolling)");
+      }
+      const first = auto ? await heroBeat(page, 0) : await copyAt(page, r.id, r.at[0]);
       const frameA = await shootUrl(page);
-      const later = await copyAt(page, r.id, r.at[2]);
-      check(first.length === 1 && later.length === 1 && first[0] !== later[0], `${r.name}: the copy changes as you scroll`, `${first} -> ${later}`);
+      const later = auto ? await heroBeat(page, 3) : await copyAt(page, r.id, r.at[2]);
+      check(first.length === 1 && later.length === 1 && first[0] !== later[0], `${r.name}: the copy changes ${auto ? "with the beat" : "as you scroll"}`, `${first} -> ${later}`);
       const home = await canvasHome(page);
       check(home.n === 1 && `#${home.id}` === r.id, `${r.name}: one 3D canvas, in this scene`, JSON.stringify(home));
       if (r.tags) {
@@ -299,13 +326,14 @@ async function main() {
         const shown = await page.ev("[...document.querySelectorAll('.xp-labels li')].filter(e => Number(getComputedStyle(e).opacity) > 0.9).length");
         check(shown === r.tags, `${r.name}: all ${r.tags} tags show once the scene is connected`, `${shown} shown`);
       }
-      // the picture is there and it moves with the scroll
-      await copyAt(page, r.id, r.at[1]);
+      // the picture is there and it moves with the scroll (the hero: with the beat)
+      if (auto) await heroBeat(page, 1);
+      else await copyAt(page, r.id, r.at[1]);
       const share = await coverage(page);
       check(share > 0.02, `${r.name}: the 3D picture is drawn`, `${(share * 100).toFixed(1)}% of the window`);
       const frameB = await shootUrl(page);
       const moved = await compare(page, frameA, frameB);
-      check(moved.mean > 1.5, `${r.name}: the picture changes as you scroll`, `mean difference ${moved.mean.toFixed(2)} of 255`);
+      check(moved.mean > 1.5, `${r.name}: the picture changes ${auto ? "with the beat" : "as you scroll"}`, `mean difference ${moved.mean.toFixed(2)} of 255`);
       await shot(page, `${r.name.replace(/\W+/g, "-")}-desktop.png`);
       check(page.errors.length === 0, `${r.name}: no console errors`, page.errors[0]?.slice(0, 120));
       check(page.failed.length === 0, `${r.name}: no request fails`, page.failed[0]);
@@ -381,10 +409,10 @@ async function main() {
     // 2b. the model never runs over the copy, on a small laptop or an ultra-wide screen (the canvas is drawn with and without; only the copy's area is compared)
     console.log("\nLayout (the 3D model and the copy)");
     for (const [w, h] of [[1024, 768], [1280, 640], [1440, 900], [2560, 1080]]) {
-      for (const p of [0, 0.4, 0.8]) {
+      for (const p of [0, 1, 3]) {
         const page = await visit(chrome, "/", { width: w, height: h });
         await waitForScene(page, "#story");
-        await copyAt(page, "#story", p);
+        await heroBeat(page, p);
         const box = await page.ev(`(() => {
           const phase = [...document.querySelectorAll('.xp-phase')].sort((a, b) => Number(getComputedStyle(b).opacity) - Number(getComputedStyle(a).opacity))[0];
           const parts = [...phase.querySelectorAll('.kicker, h1, h2, .lead, .btn')].map((e) => e.getBoundingClientRect());
@@ -398,11 +426,11 @@ async function main() {
         await sleep(300);
         const without = await shoot();
         const { strong } = await compare(page, withModel, without);
-        check(strong < 0.002, `${w}x${h}, p=${p}: the model stays clear of the copy`, `${(strong * 100).toFixed(2)}% of the copy's area is covered`);
+        check(strong < 0.002, `${w}x${h}, beat ${p + 1}: the model stays clear of the copy`, `${(strong * 100).toFixed(2)}% of the copy's area is covered`);
         // and clear of the floating header
         await page.ev("document.querySelector('.xp-canvas').style.visibility = ''");
         const headerShare = await page.ev("(() => { const b = document.querySelector('.site-header-bar').getBoundingClientRect(); return b.bottom; })()");
-        check(headerShare < 100, `${w}x${h}, p=${p}: the header leaves room (its bottom edge is at ${Math.round(headerShare)} px)`);
+        check(headerShare < 100, `${w}x${h}, beat ${p + 1}: the header leaves room (its bottom edge is at ${Math.round(headerShare)} px)`);
         page.close();
       }
     }

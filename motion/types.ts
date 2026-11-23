@@ -19,6 +19,11 @@ export interface SceneData {
   items?: { id: string; title: string; note?: string; tags?: string[]; stats?: { value: string; label: string }[] }[];
   /** For a deck: where in the scroll each item takes over (the first is 0); by default after a short intro, evenly. */
   at?: number[];
+  /**
+   * For a deck that plays by itself: after the last item the camera comes round to the first again, over the end of the
+   * range (progress 1 to 1 + LOOP_TAIL in motion/timing.ts), so the story can start over without a cut.
+   */
+  loop?: boolean;
 }
 
 /** A tag that follows a panel of the model. */
@@ -74,6 +79,8 @@ export interface SceneHandle {
   render(): void;
   /** Where the labels point, one per key, after the latest `setProgress`. */
   anchors(): SceneAnchor[];
+  /** Is the object for this place in the sequence built and its shaders compiled, so the camera may travel to it? (Absent: always.) */
+  ready?(place: number): boolean;
   /** Steps the drawing resolution down (for a graphics card that cannot keep up). False when it cannot go lower. */
   lowerQuality(): boolean;
   /** What the last frame cost (draw calls, triangles, memory): for the `?stats` check. */

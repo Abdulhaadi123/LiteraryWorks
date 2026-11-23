@@ -4,6 +4,7 @@ import { createEnv, loadModel } from "../models/env";
 import { fitFrame } from "../models/fit";
 import { dressStage, type Dressing } from "../stage";
 import type { Frame, Model } from "../models/types";
+import { LOOP_TAIL, PAN } from "../timing";
 import type { SceneAnchor, SceneCtx, SceneHandle, SceneLayout } from "../types";
 
 /**
@@ -18,8 +19,6 @@ const FOV = 28;
 /** With no `at` given: the first part of the scroll is the intro copy, over the first object (INTRO in components/ServicesDeck.tsx). */
 const INTRO = 0.09;
 const SPACE = 13;
-/** The camera takes 2 x PAN of the page's scroll to move from one object to the next. */
-const PAN = 0.022;
 
 interface Item {
   holder: THREE.Group;
@@ -41,6 +40,10 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   const ids = ctx.data?.items?.map((i) => i.id) ?? ["devices", "report", "scanner"];
   const N = Math.max(2, ids.length);
   const at = ctx.data?.at;
+  // a story that plays by itself comes round to its first object again: a place N after the last, where the first object
+  // (the same model, moved there while the camera is there) stands once more
+  const loop = !!ctx.data?.loop;
+  const M = loop ? N + 1 : N;
   const env = createEnv(renderer, ctx.data?.variant ?? "deck");
   const textures = env.textures;
   const dress: Dressing = dressStage(gl, scene, camera, textures);
@@ -48,6 +51,8 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   const root = new THREE.Group();
   scene.add(root);
   const items: (Item | null)[] = Array.from({ length: N }, () => null);
+  // which objects are built and their shaders compiled (the first is, when the first frame is drawn)
+  const built: boolean[] = Array.from({ length: N }, () => false);
   let disposed = false;
   const make = async (i: number) => {
     // (the lighter version: several objects are on the stage at once)
@@ -62,6 +67,7 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
     items[i] = { holder, model, frame: { ...model.frame() }, hint: model.camera ?? { az: [-0.3, 0.2], elev: [0.26, 0.2] } };
   };
   await make(0);
+  built[0] = true;
   // the rest, one by one, without holding up the first frame
   void (async () => {
     for (let i = 1; i < N && !disposed; i++) {
@@ -71,18 +77,37 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
       const it = items[i];
       if (it && !disposed) await compileReady(gl, it.holder, camera, scene, () => !disposed);
       if (disposed) return;
+      warmDraw(i);
+      built[i] = true;
       ctx.invalidate?.();
     }
   })();
 
   /* ---- progress ---- */
-  const start = (i: number) => (at && at[i] !== undefined ? at[i] : INTRO + (i / N) * (1 - INTRO));
+  let progress = 0; // where the scene stands now (the last `setProgress`)
+  const start = (i: number) => (i >= N ? 1 : at && at[i] !== undefined ? at[i] : INTRO + (i / N) * (1 - INTRO));
   let lay: SceneLayout | null = null;
   let px = 0;
   let py = 0;
   const target = new THREE.Vector3();
   const t2 = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
-  const ready = (i: number): Item => items[i] ?? (items.find(Boolean) as Item);
+  /** The object that stands in place k of the sequence (place N, after the last, is the first object coming round again). */
+  const at_ = (k: number) => items[k >= N ? 0 : k];
+  const ready = (k: number): Item => at_(k) ?? (items.find(Boolean) as Item);
+
+  /**
+   * A story that plays by itself draws each object once, out of sight, as soon as it is built: the first time an object
+   * is drawn the graphics card is handed its geometry and textures, which costs up to a few frames, and that must not
+   * happen in the middle of the camera's move to it. The picture that is shown is the one drawn last (the next
+   * `invalidate`), not this one.
+   */
+  function warmDraw(i: number) {
+    if (!loop || disposed) return;
+    const keep = progress;
+    handle.setProgress(start(i) + LOOP_TAIL);
+    st.render();
+    handle.setProgress(keep);
+  }
 
   const handle: SceneHandle = {
     resize: (w, h) => {
@@ -97,6 +122,7 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
       py = y;
     },
     warm: () => st.warm(),
+    ready: (k) => built[k >= N ? 0 : k] === true,
     render: () => st.render(),
     lowerQuality() {
       const before = gl.ratio;
@@ -111,9 +137,14 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
       return { drawCalls: i.render.calls, triangles: i.render.triangles, geometries: i.memory.geometries, textures: i.memory.textures, shaderPrograms: i.programs?.length ?? 0, pixelRatio: gl.ratio };
     },
     setProgress(p) {
+      progress = p;
       // which object is in front, as a number of places: it moves on at each point where the next takes over
       let f = 0;
-      for (let k = 1; k < N; k++) f += quint(win(p, start(k) - PAN, start(k) + PAN));
+      for (let k = 1; k < M; k++) f += quint(win(p, start(k) - PAN, start(k) + PAN));
+      // (a loop: while the camera is on its way back round to the first object, that object stands at the end of the column)
+      const home = loop && f > N - 1 ? N : 0;
+      const first = items[0];
+      if (first) first.holder.position.y = -home * SPACE;
 
       const w = gl.size.w;
       const h = gl.size.h;
@@ -128,19 +159,20 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
       items.forEach((it, i) => {
         if (!it) return;
         // (only the object in front, and during the move the one leaving and the one arriving)
-        const d = Math.abs(i - f);
+        const d = Math.abs((i === 0 ? home : i) - f);
         it.holder.visible = d < 0.995;
         if (!it.holder.visible) return;
         // each object works through its own beat of the copy: 0 as its beat begins, 1 as the next one takes over
-        const end = i < N - 1 ? start(i + 1) : 1;
-        const s0 = i === 0 ? 0 : start(i);
+        // (the first object coming round again begins its beat once more where the story ends, at 1)
+        const s0 = i === 0 ? (home ? 1 : 0) : start(i);
+        const end = i === 0 && home ? 1 + start(1) : i < N - 1 ? start(i + 1) : 1;
         it.model.set(1, clamp01(1 - d) ** 0.7, clamp01((p - s0) / Math.max(0.001, end - s0)));
       });
       // the camera frames the object in front and glides to the next
-      const i0 = Math.min(N - 2, Math.floor(f));
+      const i0 = Math.min(M - 2, Math.floor(f));
       const t = f - i0;
       const A = ready(i0);
-      const B = items[i0 + 1] ?? A;
+      const B = at_(i0 + 1) ?? A;
       const qA = clamp01((f - (i0 - 1)) / 2);
       const qB = clamp01((f - i0) / 2);
       const cx = lerp(A.frame.cx, B.frame.cx, t);
@@ -163,7 +195,7 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
       camera.updateMatrixWorld();
 
       // the floor under the object in front: it glides with the camera and fades while two share the picture
-      const flo = (k: number) => (items[k]?.model.floorY ?? 0) - k * SPACE;
+      const flo = (k: number) => (at_(k)?.model.floorY ?? 0) - k * SPACE;
       dress.update({ floorY: lerp(flo(i0), flo(i0 + 1), t), cx, hw, k: 1 - 0.9 * Math.sin(Math.PI * t) ** 0.6 });
       scene.updateMatrixWorld();
     },

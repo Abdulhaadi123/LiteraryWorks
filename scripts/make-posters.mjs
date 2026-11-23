@@ -111,7 +111,7 @@ async function openPage(port) {
 
 /** Hides everything except the stage (its ground and the canvas), so the picture is the scene as it stands on the page. */
 const STILL_CSS = `
-  .site-header, .mobile-cta, .xp-copy, .xp-lines, .xp-labels, .xp-hint, .xp-poster, .xp-rail { display: none !important; }
+  .site-header, .mobile-cta, .xp-copy, .xp-lines, .xp-labels, .xp-hint, .xp-poster, .xp-rail, .xp-controls { display: none !important; }
   .xp-stage::before { display: none !important; }
 `;
 
@@ -141,10 +141,10 @@ async function main() {
     })()`);
     await page.ev(`(() => { const s = document.createElement('style'); s.textContent = ${JSON.stringify(STILL_CSS)}; document.head.appendChild(s); })()`);
 
+    // (the home hero plays by itself and is not tied to the scroll: with ?still it offers a way to draw the scene at an exact progress)
     const scrollTo = async (p) => {
-      const y = await page.ev(`(() => { const s = document.querySelector('#story'); const top = s.getBoundingClientRect().top + scrollY; const stp = parseFloat(getComputedStyle(s.querySelector('.xp-stage')).top); const st = Number.isFinite(stp) ? stp : 0; const start = Math.max(0, top - st); const end = top + s.offsetHeight - innerHeight; return start + ${p} * (end - start); })()`);
-      await page.ev(`window.scrollTo(0, ${y})`);
-      await sleep(4500); // the scrub catches up, then the frame is drawn
+      await page.ev(`window.__lwSeek(${p})`);
+      await sleep(1500); // the frame is drawn
     };
 
     /** `cap` is the widest the full-size file needs to be: a phone shows it about 360 px wide, so 1200 px is plenty even at 3x. */

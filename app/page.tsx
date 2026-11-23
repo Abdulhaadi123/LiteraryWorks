@@ -39,13 +39,14 @@ export default function Home() {
       <Xp
         id="story"
         scene="deck"
-        vh={300}
+        auto
+        steps={["Overview", "Discover", "Connect", "Build"]}
         aria={sceneAria("story")}
         labels={[]}
         data={storyScene()}
         poster={<SystemPoster />}
       >
-        <Phase from={0} to={0.25}>
+        <Phase from={0} to={0.25} on>
           <p className="kicker rise" style={d(0)}>
             AI, software and cloud engineering
           </p>

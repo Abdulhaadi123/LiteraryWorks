@@ -56,7 +56,8 @@ const sequence = (ids: string[], at: number[]): SceneData => ({ variant: ids[0],
 /** The home page's story: one object for each of its four beats. */
 // (only the home page shows these four: no other page repeats them)
 const STORY = ["devices", "report", "hub", "product"];
-export const storyScene = (): SceneData => sequence(STORY, [0, 0.25, 0.5, 0.75]);
+// (it plays by itself and comes round to its first object again: see `loop` in motion/types.ts)
+export const storyScene = (): SceneData => ({ ...sequence(STORY, [0, 0.25, 0.5, 0.75]), loop: true });
 
 /** An inner page's scene (components/SceneHero.tsx: the headline, two chapters and a closing call to action). */
 export function pageScene(variant: string): SceneData {

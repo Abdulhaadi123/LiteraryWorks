@@ -415,3 +415,155 @@ html:not(.motion) .xp-compact,
     radial-gradient(40% 60% at 4% 4%, rgba(170, 205, 255, 0.4) 0%, rgba(170, 205, 255, 0) 70%),
     linear-gradient(180deg, #ffffff 0%, #f4f6f7 100%);
 }
+
+/* ============ a story that plays by itself (the home page's hero: `auto` in components/Xp.tsx) ============
+   The same stage and the same four beats as a pinned scene, but nothing is tied to the scroll: the camera moves from
+   object to object on a timer (motion/autoplay.ts), the words change with it, and the section is one screen tall, so
+   scrolling goes straight on to the next section. Where the scene does not run (phones, reduced motion, no WebGL) none
+   of this applies and the section is the same static block as any other scene. */
+
+html.motion .xp.xp-auto:not(.xp-failed) {
+  height: 100svh;
+}
+
+/* the words: the beat that is showing (.is-on) fades and rises in just after the one before has gone; the one leaving
+   (.is-leaving, for a moment) drifts up as it fades */
+html.motion .xp.xp-auto:not(.xp-failed) .xp-phase:not(.is-on) {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, 1.1rem, 0);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+html.motion .xp.xp-auto:not(.xp-failed) .xp-phase.is-leaving {
+  transform: translate3d(0, -0.9rem, 0);
+}
+html.motion .xp.xp-auto:not(.xp-failed) .xp-phase.is-on {
+  opacity: 1;
+  transform: none;
+  /* (the column itself catches no pointer: only the words and buttons in it do, so the pointer over the empty part of it still tilts the picture) */
+  pointer-events: none;
+  transition:
+    opacity 0.6s ease 0.28s,
+    transform 0.75s var(--ease-out) 0.28s;
+}
+html.motion .xp.xp-auto:not(.xp-failed) .xp-phase.is-on > * {
+  pointer-events: auto;
+}
+
+/* the controls: a pause button and a bar for each beat, which fills as the beat plays and jumps to it when pressed */
+.xp-controls {
+  display: none;
+}
+html.motion .xp.xp-auto:not(.xp-failed) .xp-controls {
+  position: absolute;
+  z-index: 5;
+  left: max(var(--gutter), calc((100% - 78rem) / 2));
+  bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.4s ease,
+    visibility 0s linear 0.4s;
+}
+html.motion .xp.xp-auto.xp-live:not(.xp-failed) .xp-controls {
+  visibility: visible;
+  opacity: 1;
+  transition:
+    opacity 0.6s ease 0.5s,
+    visibility 0s;
+}
+.xp-toggle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid rgba(34, 66, 95, 0.26);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--navy);
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+.xp-toggle:hover {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: #fff;
+}
+.xp-toggle svg {
+  grid-area: 1 / 1;
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+}
+.xp-toggle .xp-i-play,
+.xp-auto[data-playing="false"] .xp-toggle .xp-i-pause {
+  display: none;
+}
+.xp-auto[data-playing="false"] .xp-toggle .xp-i-play {
+  display: block;
+}
+.xp-steps {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.xp-step {
+  display: block;
+  margin: 0;
+  /* the bar is thin; the button around it is big enough to hit */
+  padding: 0.9rem 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.xp-step-bar {
+  position: relative;
+  display: block;
+  width: 3.5rem;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba(34, 66, 95, 0.2);
+  transition: background-color 0.2s;
+}
+.xp-step:hover .xp-step-bar {
+  background: rgba(34, 66, 95, 0.36);
+}
+.xp-step-bar i {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  background: var(--green);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+.xp-step.is-done .xp-step-bar i {
+  background: var(--navy);
+  transform: scaleX(1);
+}
+.xp-toggle:focus-visible,
+.xp-step:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.xp-toggle:focus-visible {
+  border-radius: 50%;
+}
+/* "Scroll to explore" now means "scroll on": it stays, in the middle of the bottom edge */
+html.motion .xp.xp-auto:not(.xp-failed) .xp-hint {
+  left: 50%;
+  transform: translateX(-50%);
+}

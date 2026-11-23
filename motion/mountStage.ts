@@ -1,5 +1,7 @@
+import { createAutoplay, type Autoplay } from "./autoplay";
 import { getGL, type GL } from "./gl";
 import { gsap, runwayStart, SCRUB } from "./gsap";
+import { BEAT_MS } from "./timing";
 import type { LabelSpec, SceneData, SceneFactory, SceneHandle, SceneLayout, SceneName } from "./types";
 
 /**
@@ -32,6 +34,8 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
   if (!stageEl) return () => {};
 
   const query = new URLSearchParams(window.location.search);
+  // a story that plays by itself (the home page's hero) is driven by a clock, not by the scroll
+  const auto = section.hasAttribute("data-auto");
   const items = Array.from(host.querySelectorAll<HTMLElement>("[data-xp-label]"));
   const lines = Array.from(host.querySelectorAll<SVGPolylineElement>("[data-xp-line]"));
   const dots = Array.from(host.querySelectorAll<SVGCircleElement>("[data-xp-dot]"));
@@ -56,6 +60,13 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
   let idleId = 0;
   let resizer: ResizeObserver | null = null;
   let pointerOff: (() => void) | undefined;
+  let autoplay: Autoplay | null = null;
+  // a story that plays by itself plays only while the hero is really on screen (the scene itself is drawn a little before
+  // it comes into view, see `seen` below, but a story that runs while no one can see it is wasted work)
+  let onScreen = true;
+  let onScreenObserver: IntersectionObserver | null = null;
+  // the pointer is tilting the camera (its own frame loop below runs)
+  let tilting = false;
 
   const FADE = 0.04;
 
@@ -211,18 +222,23 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
   };
 
   // the scroll drives `state.p`; the playhead follows it with a lag (SCRUB), so a flick still plays out
-  const tween = gsap.to(state, {
-    p: 1,
-    ease: "none",
-    onUpdate: onProgress,
-    scrollTrigger: { trigger: section, start: runwayStart(section, top), end: "bottom bottom", scrub: SCRUB, invalidateOnRefresh: true },
-  });
-  paintCopy(0);
+  // (a story that plays by itself has no runway to scroll through: motion/autoplay.ts drives it instead)
+  const tween = auto
+    ? null
+    : gsap.to(state, {
+        p: 1,
+        ease: "none",
+        onUpdate: onProgress,
+        scrollTrigger: { trigger: section, start: runwayStart(section, top), end: "bottom bottom", scrub: SCRUB, invalidateOnRefresh: true },
+      });
+  if (!auto) paintCopy(0);
 
   /** No WebGL, or the scene would not load: step aside, the plain static section takes over. */
   const fail = () => {
-    tween.scrollTrigger?.kill();
-    tween.kill();
+    tween?.scrollTrigger?.kill();
+    tween?.kill();
+    autoplay?.dispose();
+    autoplay = null;
     for (const { el } of phases) {
       el.style.opacity = "";
       el.style.transform = "";
@@ -246,19 +262,23 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
       cy += (ty - cy) * 0.14;
       if (handle && visible) {
         handle.setPointer(cx, cy);
-        draw();
+        // (a story that is playing draws a frame anyway, with the new tilt)
+        if (!autoplay?.running()) draw();
       }
       if (Math.abs(tx - cx) + Math.abs(ty - cy) > 0.003) raf = requestAnimationFrame(step);
+      else tilting = false;
     };
     const move = (e: PointerEvent) => {
       const r = stageEl.getBoundingClientRect();
       tx = ((e.clientX - r.left) / r.width) * 2 - 1;
       ty = ((e.clientY - r.top) / r.height) * 2 - 1;
+      tilting = true;
       if (!raf) raf = requestAnimationFrame(step);
     };
     const leave = () => {
       tx = 0;
       ty = 0;
+      tilting = true;
       if (!raf) raf = requestAnimationFrame(step);
     };
     stageEl.addEventListener("pointermove", move, { passive: true });
@@ -313,6 +333,31 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
       if (query.has("stats")) (window as unknown as { __lw3d?: () => Record<string, number> | undefined }).__lw3d = () => handle?.stats();
       if (visible) attach(true);
       section.classList.add("xp-live");
+      if (auto) {
+        if (query.has("still")) {
+          // (a developer switch: the stills are made at an exact progress, see scripts/make-posters.mjs)
+          (window as unknown as { __lwSeek?: (p: number) => void }).__lwSeek = (p) => {
+            state.p = p;
+            draw();
+          };
+        } else {
+          const beat = Number(query.get("beat"));
+          autoplay = createAutoplay({
+            section,
+            at: phases.map((ph) => ph.from),
+            show: (p) => {
+              state.p = p;
+              adapt();
+              draw();
+            },
+            ready: (k) => handle?.ready?.(k) ?? true,
+            visible: () => visible && onScreen,
+            busy: () => tilting,
+            beatMs: beat >= 600 && beat <= 30000 ? beat : BEAT_MS,
+          });
+          autoplay.start();
+        }
+      }
     } catch {
       if (!disposed) fail();
     }
@@ -338,19 +383,35 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
     (entries) => {
       visible = entries.some((e) => e.isIntersecting);
       attach(visible);
+      autoplay?.wake();
     },
     { rootMargin: "8% 0px" },
   );
   seen.observe(section);
+  if (auto) {
+    onScreenObserver = new IntersectionObserver(
+      (entries) => {
+        // (a section whose edge only touches the window's counts as off screen: at least 2% of it must show)
+        onScreen = entries.some((e) => e.intersectionRatio >= 0.02);
+        autoplay?.wake();
+      },
+      { threshold: [0, 0.02] },
+    );
+    onScreenObserver.observe(section);
+  }
 
   return () => {
     disposed = true;
     near.disconnect();
     seen.disconnect();
+    onScreenObserver?.disconnect();
     cic(idleId);
     resizer?.disconnect();
-    tween.scrollTrigger?.kill();
-    tween.kill();
+    tween?.scrollTrigger?.kill();
+    tween?.kill();
+    autoplay?.dispose();
+    autoplay = null;
+    delete (window as unknown as { __lwSeek?: unknown }).__lwSeek;
     pointerOff?.();
     gl?.detach(host);
     handle?.dispose();
