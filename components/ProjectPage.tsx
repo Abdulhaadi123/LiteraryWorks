@@ -59,7 +59,8 @@ export function ProjectPage({ p }: { p: Project }) {
 
       {cover ? (
         <div className="case-cover">
-          <div className="wrap">
+          {/* the picture keeps its own shape (never cropped); it may be as wide as keeps it under 36rem tall */}
+          <div className="wrap" style={{ aspectRatio: `${cover[0]} / ${cover[1]}`, maxWidth: `${((36 * cover[0]) / cover[1]).toFixed(1)}rem` }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`/projects/${p.slug}/1.webp`} width={cover[0]} height={cover[1]} alt={alt(p, 1, pics.length)} fetchPriority="high" decoding="async" />
           </div>
@@ -88,7 +89,7 @@ export function ProjectPage({ p }: { p: Project }) {
 
       <section className="section on-mist">
         <div className="wrap two-col">
-          <SectionHead kicker="Overview" title={<>About this <em>project.</em></>} />
+          <SectionHead kicker="Overview" title={<>About this <em>project</em></>} />
           <div className="project-prose" data-reveal>
             {p.overview.map((t) => (
               <p className="lead" key={t}>
@@ -114,7 +115,7 @@ export function ProjectPage({ p }: { p: Project }) {
             {p.challenge ? (
               <div data-reveal>
                 <p className="kicker">The challenge</p>
-                <h2 className="h-lg">What it had to solve.</h2>
+                <h2 className="h-lg">What it had to solve</h2>
                 {p.challenge.map((t) => (
                   <p className="lead" key={t}>
                     {t}
@@ -125,7 +126,7 @@ export function ProjectPage({ p }: { p: Project }) {
             {p.solution ? (
               <div data-reveal>
                 <p className="kicker">The solution</p>
-                <h2 className="h-lg">How we approached it.</h2>
+                <h2 className="h-lg">How we approached it</h2>
                 {p.solution.map((t) => (
                   <p className="lead" key={t}>
                     {t}
@@ -153,7 +154,7 @@ export function ProjectPage({ p }: { p: Project }) {
       {rest.length ? (
         <section className={`section ${p.sections ? (p.sections.length % 2 === 0 ? "on-mist" : "on-white") : p.challenge || p.solution ? "on-mist" : "on-white"}`}>
           <div className="wrap">
-            <SectionHead kicker="Gallery" title={<>Inside the <em>build.</em></>} />
+            <SectionHead kicker="Gallery" title={<>Inside the <em>build</em></>} />
             {wide.length ? <ul className="project-gallery">{wide.map(picture)}</ul> : null}
             {tall.length ? <ul className="project-gallery is-tall">{tall.map(picture)}</ul> : null}
           </div>
@@ -176,7 +177,7 @@ export function ProjectPage({ p }: { p: Project }) {
 
       <section className="section on-white">
         <div className="wrap">
-          <SectionHead kicker="More we have built" title={<>Other <em>projects.</em></>} />
+          <SectionHead kicker="More we have built" title={<>Other <em>projects</em></>} />
           <Portfolio items={more} />
         </div>
       </section>

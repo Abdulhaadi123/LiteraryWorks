@@ -16,7 +16,7 @@ export default function ContactPage() {
         kicker="Contact"
         title={
           <>
-            Book your free <em>AI audit.</em>
+            Book your free <em>AI audit</em>
           </>
         }
         lead="Tell us a little about your business and what you would like to improve. We will reply by email to agree a time for a working session."
@@ -51,7 +51,7 @@ export default function ContactPage() {
               kicker="Where we are"
               title={
                 <>
-                  Based in <em>{location.label}.</em>
+                  Based in <em>{location.label}</em>
                 </>
               }
               lead="We work with businesses across the U.S. from San Antonio. Most of the work happens remotely, in working sessions on your own tools."
@@ -86,7 +86,7 @@ export default function ContactPage() {
 
       <section className="section on-mist">
         <div className="wrap two-col">
-          <SectionHead kicker="Questions" title={<>Before you <em>write.</em></>} lead="How the audit works, what it costs and who it is for." />
+          <SectionHead kicker="Questions" title={<>Before you <em>write</em></>} lead="How the audit works, what it costs and who it is for." />
           <Faq items={faqs} />
         </div>
       </section>

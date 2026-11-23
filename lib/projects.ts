@@ -96,7 +96,7 @@ export const projects: Project[] = [
     sections: [
       {
         kicker: "Inside SIQETRA",
-        title: "Ask your business anything. Approve what happens next.",
+        title: "Ask your business anything. Approve what happens next",
         lead: "Your company at a glance, an AI you can question, and every follow-up with an owner. The screens on this page show the product layout with sample data.",
         blocks: [
           {
@@ -173,7 +173,7 @@ export const projects: Project[] = [
       },
     ],
     closing: {
-      title: "See SIQETRA running on your data.",
+      title: "See SIQETRA running on your data",
       text: "We start with a working session on your own records and databases, then configure a pilot workspace for one team. You see real answers on real data before committing to a full rollout.",
     },
     shot: "siqetra",

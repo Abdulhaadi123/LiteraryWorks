@@ -29,6 +29,14 @@ export function CaseReel({ id, items, head }: { id: string; items: CaseStudy[]; 
                   <span className="reel-result">
                     {c.results[0].value} {c.results[0].label}
                   </span>
+                  {/* the whole card is the link; this is the button the eye looks for (it opens the case study's page) */}
+                  <span className="reel-explore">
+                    Explore
+                    <span className="sr-only"> the {c.title} case study</span>
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M3 8h10M9 4l4 4-4 4" />
+                    </svg>
+                  </span>
                 </span>
               </Link>
             </li>

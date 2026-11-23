@@ -51,7 +51,7 @@ export default function Home() {
             AI, software and cloud engineering
           </p>
           <h1 className="h-hero rise" style={d(1)}>
-            AI and software, <em>working as one system.</em>
+            AI and software, <em>working as one system</em>
           </h1>
           <p className="lead rise" style={d(2)}>
             LiteraryWorks designs and builds AI systems, web and mobile apps and cloud platforms for U.S. businesses. We start with a free audit of where your time and money are going.
@@ -67,21 +67,21 @@ export default function Home() {
         </Phase>
         <Phase from={0.25} to={0.5}>
           <p className="kicker">01 / Discover</p>
-          <h2 className="h-lg">Start with how the work really runs.</h2>
+          <h2 className="h-lg">Start with how the work really runs</h2>
           <p className="lead">
             Most businesses run on a dozen tools that do not talk to each other. A free audit maps them, finds the handoffs that waste time, and shows what is worth automating before anything is built.
           </p>
         </Phase>
         <Phase from={0.5} to={0.75}>
           <p className="kicker">02 / Connect</p>
-          <h2 className="h-lg">Wire the pieces into one system.</h2>
+          <h2 className="h-lg">Wire the pieces into one system</h2>
           <p className="lead">
             AI assistants, voice agents and workflows connected to the apps and data you already use, so work moves between them on its own, with people reviewing the steps that matter.
           </p>
         </Phase>
         <Phase from={0.75} to={1}>
           <p className="kicker">03 / Build</p>
-          <h2 className="h-lg">Build it as one product.</h2>
+          <h2 className="h-lg">Build it as one product</h2>
           <p className="lead">
             Web and mobile apps designed around the people who use them, on cloud infrastructure that is secure, monitored and ready to grow. One team, one plan, one system.
           </p>
@@ -106,7 +106,7 @@ export default function Home() {
               Our approach
             </p>
             <h2 className="big" data-split="words">
-              Great software is not one feature. It is hundreds of decisions, <em>brought into perfect alignment.</em>
+              Great software is not one feature. It is hundreds of decisions, <em>brought into perfect alignment</em>
             </h2>
             <div className="statement-foot">
               <p data-reveal>
@@ -143,7 +143,7 @@ export default function Home() {
             kicker="Three ways to start"
             title={
               <>
-                Start free. <em>Go deeper when it makes sense.</em>
+                Start free. <em>Go deeper when it makes sense</em>
               </>
             }
             lead="Every engagement begins with understanding the work. You choose how far to take it, and you keep what we learn either way."
@@ -161,7 +161,7 @@ export default function Home() {
               Case studies
             </p>
             <h2 className="h-lg" data-split="words">
-              Systems that run <em>in production.</em>
+              Systems that run <em>in production</em>
             </h2>
             <p className="lead" data-reveal>
               A few of the things we have built, and what changed once they were running.
@@ -179,14 +179,14 @@ export default function Home() {
 
       <section className="section on-white">
         <div className="wrap">
-          <SectionHead kicker="In their words" title={<>What clients <em>say.</em></>} />
+          <SectionHead kicker="In their words" title={<>What clients <em>say</em></>} />
           <QuoteSwitcher items={voices} />
         </div>
       </section>
 
       <section className="section on-mist">
         <div className="wrap two-col">
-          <SectionHead kicker="Questions" title={<>Straight <em>answers.</em></>} lead="How the audit works, what it costs and who it is for." />
+          <SectionHead kicker="Questions" title={<>Straight <em>answers</em></>} lead="How the audit works, what it costs and who it is for." />
           <Faq />
         </div>
       </section>

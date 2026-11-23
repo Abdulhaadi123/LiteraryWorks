@@ -138,7 +138,7 @@ const servicesPage: Pen = (g, w) => {
   g.fillStyle = INK;
   g.font = "700 30px Inter, system-ui, sans-serif";
   g.fillText("Nine services,", 40, 128);
-  g.fillText("one system.", 40, 164);
+  g.fillText("one system", 40, 164);
   const icons = ["spark", "wave", "layers", "grid", "browser", "phone", "pen", "cloud", "board"];
   services.forEach((s, i) => {
     const cx = 40 + (i % 3) * ((w - 80) / 3);
@@ -161,7 +161,7 @@ const introPage: Pen = (g, w) => {
   g.font = "700 34px Inter, system-ui, sans-serif";
   g.fillText("Systems that run", 40, 134);
   g.fillStyle = NAVY;
-  g.fillText("in production.", 40, 176);
+  g.fillText("in production", 40, 176);
   fillRR(g, 40, 196, 150, 5, 2.5, GREEN);
   g.font = "500 17px Inter, system-ui, sans-serif";
   cases.forEach((c, i) => {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { auditOutputs, industries, phases, problems, rhythm, techUsed, type Phase } from "@/lib/content";
+import { auditOutputs, cases, industries, phases, problems, rhythm, techUsed, type Phase } from "@/lib/content";
 import { Icon, type IconName } from "./icons";
 import { CaseImage, Checks, SectionHead } from "./ui";
 
@@ -62,7 +62,7 @@ export function Phases({ items = phases }: { items?: Phase[] }) {
           kicker="How we build"
           title={
             <>
-              Four phases, <em>one team.</em>
+              Four phases, <em>one team</em>
             </>
           }
           lead="A structured path built for clarity, speed and a result that lasts. Each phase ends with something you can hold, and you decide whether to go on."
@@ -125,7 +125,7 @@ export function Problems({ items = problems }: { items?: { title: string; text: 
           kicker="The problem"
           title={
             <>
-              Most businesses do not need more tools. <em>They need clarity on what to fix first.</em>
+              Most businesses do not need more tools. <em>They need clarity on what to fix first</em>
             </>
           }
           lead="Before anything is built, we look for the three things that quietly cost the most."
@@ -167,7 +167,7 @@ export function Industries({ tone = "white" }: { tone?: "white" | "mist" }) {
           kicker="Industries"
           title={
             <>
-              Shaped by <em>your sector.</em>
+              Shaped by <em>your sector</em>
             </>
           }
           lead="AI is most useful when it understands the detail of your work. These are the places we spend most of our time."
@@ -213,7 +213,7 @@ export function AuditStrip({ tone = "mist" }: { tone?: "white" | "mist" }) {
           kicker="The free audit"
           title={
             <>
-              One hour. <em>Four things you leave with.</em>
+              One hour. <em>Four things you leave with</em>
             </>
           }
           lead="A working session, not a sales call, and useful even if you do not go further."
@@ -249,7 +249,7 @@ export function Rhythm() {
           kicker="Working together"
           title={
             <>
-              How we <em>work with you.</em>
+              How we <em>work with you</em>
             </>
           }
           lead="Projects go well when both sides know what is expected. This is ours."
@@ -280,15 +280,26 @@ export function Stack({ children }: { children?: ReactNode }) {
           kicker="Built with"
           title={
             <>
-              The tools behind <em>the work.</em>
+              The tools behind <em>the work</em>
             </>
           }
           lead="What our case studies were built with: chosen for the job, never for the label."
         />
         <ul className="stack-chips" data-stagger>
-          {techUsed.map((t) => (
-            <li key={t}>{t}</li>
-          ))}
+          {techUsed.map((t, i) => {
+            // hovering (or focusing) a tool names the case studies it was used in
+            const where = cases.filter((c) => c.tech.includes(t));
+            const shown = where.slice(0, 3).map((c) => c.title);
+            const tip = `Used in ${shown.join("; ")}${where.length > shown.length ? `; and ${where.length - shown.length} more` : ""}`;
+            return (
+              <li key={t} className="stack-chip" tabIndex={0} aria-describedby={`tool-tip-${i}`}>
+                {t}
+                <span className="chip-tip" role="tooltip" id={`tool-tip-${i}`}>
+                  {tip}
+                </span>
+              </li>
+            );
+          })}
         </ul>
         {children}
       </div>

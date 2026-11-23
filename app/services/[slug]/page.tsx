@@ -51,11 +51,11 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
           </>
         }
         chapters={[
-          { kicker: "What we build", title: <>The work, <em>in detail.</em></>, items: p.features.slice(0, 4) },
-          { kicker: "What changes", title: <>The result, <em>in practice.</em></>, items: p.outcomes.slice(0, 4) },
+          { kicker: "What we build", title: <>The work, <em>in detail</em></>, items: p.features.slice(0, 4) },
+          { kicker: "What changes", title: <>The result, <em>in practice</em></>, items: p.outcomes.slice(0, 4) },
         ]}
         closing={{
-          title: <>Let us look at <em>your version.</em></>,
+          title: <>Let us look at <em>your version</em></>,
           lead: "A free one-hour working session is enough to see where this fits in your business.",
           actions: (
             <>
@@ -76,7 +76,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
             kicker="What we build"
             title={
               <>
-                The work, <em>in detail.</em>
+                The work, <em>in detail</em>
               </>
             }
           />
@@ -117,7 +117,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
             kicker="What changes"
             title={
               <>
-                The result, <em>in practice.</em>
+                The result, <em>in practice</em>
               </>
             }
           />
@@ -135,7 +135,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
             kicker="How it works"
             title={
               <>
-                Five steps, <em>no surprises.</em>
+                Five steps, <em>no surprises</em>
               </>
             }
           />
@@ -146,7 +146,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
       {practice ? (
         <section className="section on-mist">
           <div className="wrap">
-            <SectionHead kicker="In practice" title={<>See it <em>at work.</em></>} lead="One of our case studies that shows this service in a real business." />
+            <SectionHead kicker="In practice" title={<>See it <em>at work</em></>} lead="One of our case studies that shows this service in a real business." />
             <article className="in-practice" data-reveal>
               <Link href={`/work/${practice.slug}`} className="in-practice-img" tabIndex={-1} aria-hidden="true">
                 <CaseImage slug={practice.slug} sizes="(min-width: 64rem) 560px, 92vw" />
@@ -176,7 +176,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
 
       <section className="section on-white">
         <div className="wrap">
-          <SectionHead kicker="Related" title={<>More ways we <em>can help.</em></>} />
+          <SectionHead kicker="Related" title={<>More ways we <em>can help</em></>} />
           <ServiceCards items={related} />
         </div>
       </section>

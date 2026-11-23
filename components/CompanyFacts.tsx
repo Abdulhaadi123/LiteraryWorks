@@ -44,7 +44,7 @@ export function CompanyFacts({ tone = "white" }: { tone?: "white" | "mist" }) {
             kicker="Company"
             title={
               <span id="company-title">
-                The company <em>behind the work.</em>
+                The company <em>behind the work</em>
               </span>
             }
             lead={`LiteraryWorks is a brand of ${company.legalName}, a technology company based in ${location.label}. We design, build and run AI, software and cloud systems for U.S. businesses.`}

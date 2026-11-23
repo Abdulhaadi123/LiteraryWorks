@@ -21,7 +21,7 @@ export default function WorkPage() {
           <>
             <p className="kicker">Case studies</p>
             <h2 className="h-hero">
-              Real systems. <em>Real outcomes.</em>
+              Real systems. <em>Real outcomes</em>
             </h2>
             <p className="lead">
               How we have taken organizations from manual, fragmented operations to AI systems that run reliably every day, and the numbers that followed. Keep scrolling to turn through them.
@@ -40,7 +40,7 @@ export default function WorkPage() {
               kicker="Case studies"
               title={
                 <>
-                  Real systems. <em>Real outcomes.</em>
+                  Real systems. <em>Real outcomes</em>
                 </>
               }
               lead="How we have taken organizations from manual, fragmented operations to AI systems that run reliably every day, and the numbers that followed."
@@ -65,7 +65,7 @@ export default function WorkPage() {
             kicker="More we have built"
             title={
               <>
-                A wider <em>portfolio.</em>
+                A wider <em>portfolio</em>
               </>
             }
             lead="Platforms and apps across healthcare, sales, recruiting, legal, finance and travel. Open any of them for what it does, how it was built and its screens."

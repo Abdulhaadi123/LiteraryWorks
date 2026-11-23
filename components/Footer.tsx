@@ -11,7 +11,7 @@ export function Footer() {
         <div>
           <p className="kicker">Start with clarity</p>
           <h2 className="h-lg">
-            Know exactly what to automate, <em>before you pay to build it.</em>
+            Know exactly what to automate, <em>before you pay to build it</em>
           </h2>
           <ul className="cta-facts">
             <li>
@@ -40,7 +40,9 @@ export function Footer() {
 
       <div className="wrap footer-grid">
         <div className="footer-brand">
-          <Logo tone="light" />
+          <Link href="/" className="brand" aria-label="LiteraryWorks, home" prefetch={false}>
+            <Logo tone="light" />
+          </Link>
           <p>AI, software and cloud systems for U.S. businesses. Written plainly, built carefully, handed over documented.</p>
           <p className="footer-loc">
             <a href={location.mapLink} target="_blank" rel="noopener noreferrer">
@@ -86,8 +88,11 @@ export function Footer() {
         </nav>
       </div>
 
-      <p className="footer-mark" aria-hidden="true">
-        LiteraryWorks
+      {/* the large wordmark is a second way home (not a second stop for the keyboard) */}
+      <p className="footer-mark">
+        <Link href="/" tabIndex={-1} aria-hidden="true" prefetch={false}>
+          LiteraryWorks
+        </Link>
       </p>
       <div className="wrap footer-base">
         <p>

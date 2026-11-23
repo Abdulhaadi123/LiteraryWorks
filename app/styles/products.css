@@ -428,3 +428,259 @@
 .portfolio-more::after {
   content: " \2192";
 }
+
+/* ============ QA round: category tags, the Balosys link in the bar, the Explore button, and the tools that name their case studies ============ */
+
+/* ---- a category as a tag (the service groups: AI, Software, Cloud, Construction) ---- */
+.tag {
+  --tag-ink: var(--navy);
+  --tag-bg: rgba(34, 66, 95, 0.07);
+  --tag-line: rgba(34, 66, 95, 0.22);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.7rem 0.3rem 0.6rem;
+  border: 1px solid var(--tag-line);
+  border-radius: 999px;
+  background: var(--tag-bg);
+  color: var(--tag-ink);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tag::before {
+  content: "";
+  flex: none;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+.tag[data-group="AI"] {
+  --tag-ink: var(--green-ink);
+  --tag-bg: rgba(115, 201, 74, 0.14);
+  --tag-line: rgba(115, 201, 74, 0.5);
+}
+.tag[data-group="Cloud"] {
+  --tag-bg: transparent;
+  --tag-line: rgba(34, 66, 95, 0.4);
+}
+.tag[data-group="Construction"] {
+  --tag-ink: var(--fg-soft);
+  --tag-bg: rgba(25, 23, 22, 0.05);
+  --tag-line: rgba(25, 23, 22, 0.2);
+}
+.svc-tags .tag {
+  letter-spacing: 0.09em;
+}
+/* in the services list: shown from the wide layout up, and light on the navy row you point at */
+.svc-row .tag {
+  justify-self: start;
+}
+@media (min-width: 64rem) {
+  .svc-row .tag {
+    display: inline-flex;
+    font-size: 0.7rem;
+    letter-spacing: 0.09em;
+  }
+}
+.svc-row:hover .tag,
+.svc-row:focus-visible .tag {
+  --tag-bg: rgba(255, 255, 255, 0.1);
+  --tag-line: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+/* ---- the Visit Balosys link in the bar: it leaves the site, so it says so ---- */
+.site-nav a.nav-ext {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--navy);
+  font-weight: 600;
+}
+.nav-ext svg {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.25s var(--ease-out);
+}
+.nav-ext:hover svg,
+.nav-ext:focus-visible svg {
+  transform: translate(2px, -2px);
+}
+.mobile-nav a.nav-ext {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ---- the home page's case studies: an Explore button on each card ---- */
+.reel-explore {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-self: start;
+  margin-top: 0.65rem;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--navy);
+  border-radius: 999px;
+  color: var(--navy);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition:
+    background-color 0.3s,
+    color 0.3s,
+    gap 0.3s var(--ease-out);
+}
+.reel-link:hover .reel-explore,
+.reel-link:focus-visible .reel-explore {
+  gap: 0.8rem;
+  background: var(--navy);
+  color: #fff;
+}
+.reel-link:focus-visible {
+  outline: 3px solid var(--navy);
+  outline-offset: 4px;
+  border-radius: var(--r);
+}
+
+/* ---- "The tools behind the work": a tool lifts and names the case studies that used it ---- */
+.stack-chips li.stack-chip {
+  position: relative;
+  cursor: default;
+  transition:
+    transform 0.25s var(--ease-out),
+    border-color 0.25s,
+    background-color 0.25s,
+    color 0.25s,
+    box-shadow 0.25s;
+}
+.stack-chips li.stack-chip:hover,
+.stack-chips li.stack-chip:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--green);
+  background: var(--navy);
+  color: #fff;
+  box-shadow: 0 14px 28px -16px rgba(20, 43, 64, 0.55);
+  outline: none;
+}
+.stack-chips li.stack-chip:focus-visible {
+  outline: 3px solid var(--green);
+  outline-offset: 3px;
+}
+.chip-tip {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: calc(100% + 0.6rem);
+  width: max-content;
+  max-width: min(17rem, 80vw);
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 4px);
+  transition:
+    opacity 0.2s,
+    transform 0.2s var(--ease-out),
+    visibility 0s 0.2s;
+}
+.chip-tip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 0.6rem;
+  height: 0.6rem;
+  background: var(--ink);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.stack-chip:hover .chip-tip,
+.stack-chip:focus-visible .chip-tip {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  transition-delay: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stack-chips li.stack-chip,
+  .chip-tip,
+  .nav-ext svg,
+  .reel-explore {
+    transition: none;
+  }
+  .stack-chips li.stack-chip:hover {
+    transform: none;
+  }
+}
+
+/* ---- the home page's case studies: the whole picture stays in view ----
+   The outline numeral used to sit over the top-left of each picture and cover its title; it is a small tag now, and
+   the dark wash that helped it read is gone. In the sideways gallery a card is as wide as the height of the screen
+   allows, so on a laptop screen the picture and the words under it are never cut off by the bottom edge. */
+.reel-img::after {
+  content: none;
+}
+.reel-num {
+  top: 0.8rem;
+  left: 0.8rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--navy);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  -webkit-text-stroke: 0;
+  filter: none;
+}
+.reel.is-live .reel-card {
+  width: min(34rem, 44vw, max(21rem, calc((100svh - 28rem) * 16 / 9)));
+}
+
+/* ---- case study and project pictures are shown whole, never cropped ----
+   The cover under a page's headline used to be cut to a wide strip, and the picture beside each row on the case
+   studies page to the height of its words. Each now keeps the picture's own shape; the page sets how wide it may be. */
+.case-cover .wrap {
+  max-height: none;
+}
+@media (min-width: 64rem) {
+  .case-row {
+    align-items: center;
+  }
+  .case-row-img {
+    aspect-ratio: 16 / 9;
+    min-height: 0;
+  }
+}
+
+/* ---- the bar holds six links now: they stay on one line, a little closer together on narrower desktops ---- */
+.site-nav {
+  width: max-content;
+}
+.site-nav a {
+  white-space: nowrap;
+}
+@media (min-width: 64rem) and (max-width: 79.99rem) {
+  .site-nav a {
+    padding-inline: 0.65rem;
+    font-size: 0.875rem;
+  }
+}

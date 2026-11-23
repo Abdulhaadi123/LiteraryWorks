@@ -21,7 +21,7 @@ export default function AboutPage() {
         kicker="About"
         title={
           <>
-            We build the systems <em>behind the work.</em>
+            We build the systems <em>behind the work</em>
           </>
         }
         lead="LiteraryWorks designs and builds AI automation, software and cloud systems for U.S. businesses. We start with how your work actually runs, and we write everything down so you can keep going without us."
@@ -40,7 +40,7 @@ export default function AboutPage() {
             kicker: "How we start",
             title: (
               <>
-                Clarity <em>before code.</em>
+                Clarity <em>before code</em>
               </>
             ),
             items: ["A written plan before any build", "Plain language in proposals and invoices", "Honest scope: if it is not worth building yet, we say so"],
@@ -49,7 +49,7 @@ export default function AboutPage() {
             kicker: "How we build",
             title: (
               <>
-                Small releases, <em>documented handover.</em>
+                Small releases, <em>documented handover</em>
               </>
             ),
             items: ["Small releases you can see and judge", "Systems your team can own", "Documentation any team can pick up"],
@@ -58,7 +58,7 @@ export default function AboutPage() {
         closing={{
           title: (
             <>
-              Tell us about <em>the work.</em>
+              Tell us about <em>the work</em>
             </>
           ),
           lead: "A free one-hour session is a good way to find out whether we are the right team.",
@@ -82,7 +82,7 @@ export default function AboutPage() {
               The name
             </p>
             <h2 className="h-lg" data-reveal>
-              Written in chapters. <em>Built to read clearly.</em>
+              Written in chapters. <em>Built to read clearly</em>
             </h2>
             <p className="lead" data-reveal>
               A good piece of writing is planned, drafted, edited until it reads clearly, and finished when nothing is left to explain. We try to build software the same way: a plan first, small chapters that ship, and a handover your team can read.
@@ -108,7 +108,7 @@ export default function AboutPage() {
             kicker="Principles"
             title={
               <>
-                How we <em>think about the work.</em>
+                How we <em>think about the work</em>
               </>
             }
           />

@@ -13,7 +13,8 @@ export function ReelDriver() {
 
   useEffect(() => {
     const section = mark.current?.closest<HTMLElement>("[data-reel]");
-    if (!section || !motionOn()) return;
+    // a screen under 640px high cannot hold the heading, a picture and the words at once: there the cards stack
+    if (!section || !motionOn() || window.innerHeight < 640) return;
     const track = section.querySelector<HTMLElement>("[data-reel-track]");
     const bar = section.querySelector<HTMLElement>("[data-reel-bar]");
     if (!track) return;

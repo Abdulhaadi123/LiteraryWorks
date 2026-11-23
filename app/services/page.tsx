@@ -20,7 +20,7 @@ export default function ServicesPage() {
           <>
             <p className="kicker">Services</p>
             <h2 className="h-hero">
-              Nine services. <em>One method.</em>
+              Nine services. <em>One method</em>
             </h2>
             <p className="lead">
               We help businesses find, build and scale the systems that take work off their teams: strategy first, then automation, software and cloud. Keep scrolling to turn through them.
@@ -42,7 +42,7 @@ export default function ServicesPage() {
               kicker="Services"
               title={
                 <>
-                  Nine services. <em>One method.</em>
+                  Nine services. <em>One method</em>
                 </>
               }
               lead="We help businesses find, build and scale the systems that take work off their teams: strategy first, then automation, software and cloud."

@@ -48,11 +48,21 @@ export function Header() {
           <Logo />
         </Link>
         <nav className="site-nav" aria-label="Primary">
-          {nav.map((n) => (
-            <Link key={n.href} href={n.href} aria-current={current(n.href) ? "page" : undefined}>
-              {n.label}
-            </Link>
-          ))}
+          {nav.map((n) =>
+            n.external ? (
+              <a key={n.href} href={n.href} className="nav-ext" target="_blank" rel="noopener noreferrer">
+                {n.label}
+                <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
+                  <path d="M7 17L17 7M9 7h8v8" />
+                </svg>
+                <span className="sr-only"> (opens in a new tab)</span>
+              </a>
+            ) : (
+              <Link key={n.href} href={n.href} aria-current={current(n.href) ? "page" : undefined}>
+                {n.label}
+              </Link>
+            ),
+          )}
         </nav>
         <div className="site-cta">
           <Link href="/contact?topic=audit" className="btn btn-navy btn-sm">

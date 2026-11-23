@@ -19,7 +19,7 @@ export default function AiAuditPage() {
         kicker="AI audit"
         title={
           <>
-            Know what to automate. <em>Before you pay to build it.</em>
+            Know what to automate. <em>Before you pay to build it</em>
           </>
         }
         lead="Most businesses do not have an AI problem. They have a workflow problem. We look at how your business really runs, find where time and money are being lost, and design the systems that fix it, in plain language, with a clear scope."
@@ -38,7 +38,7 @@ export default function AiAuditPage() {
             kicker: "The free audit",
             title: (
               <>
-                One hour. <em>Useful even if you do not go further.</em>
+                One hour. <em>Useful even if you do not go further</em>
               </>
             ),
             items: ["A review of your current workflows", "The bottlenecks, named", "Two or three high-impact AI opportunities", "A clear direction on what to automate first"],
@@ -47,7 +47,7 @@ export default function AiAuditPage() {
             kicker: "The 14-day audit",
             title: (
               <>
-                Clarity in 14 days. <em>Not another slide deck.</em>
+                Clarity in 14 days. <em>Not another slide deck</em>
               </>
             ),
             items: ["A full workflow breakdown", "An AI system architecture", "A ranked list of opportunities", "A roadmap you can execute"],
@@ -56,7 +56,7 @@ export default function AiAuditPage() {
         closing={{
           title: (
             <>
-              Start free. <em>Go deeper when it makes sense.</em>
+              Start free. <em>Go deeper when it makes sense</em>
             </>
           ),
           lead: "If the audit does not give you clarity on what to automate next, you do not pay.",
@@ -79,7 +79,7 @@ export default function AiAuditPage() {
             kicker="The problem"
             title={
               <>
-                Most businesses do not need more tools. <em>They need clarity.</em>
+                Most businesses do not need more tools. <em>They need clarity</em>
               </>
             }
             lead="Without clarity, AI only makes the chaos faster."
@@ -105,7 +105,7 @@ export default function AiAuditPage() {
               The free audit
             </p>
             <h2 className="h-lg" data-reveal>
-              One hour. <em>Useful even if you do not go further.</em>
+              One hour. <em>Useful even if you do not go further</em>
             </h2>
             <p className="lead" data-reveal>
               A working session, not a sales call. You leave with a clearer picture of your own operations.
@@ -135,7 +135,7 @@ export default function AiAuditPage() {
             kicker="The 14-day audit"
             title={
               <>
-                Clarity in 14 days. <em>Not another slide deck.</em>
+                Clarity in 14 days. <em>Not another slide deck</em>
               </>
             }
             lead="Clear decisions, ranked priorities and a roadmap you can actually execute."
@@ -162,7 +162,7 @@ export default function AiAuditPage() {
             kicker="Ways to engage"
             title={
               <>
-                Clear scope. <em>No surprises.</em>
+                Clear scope. <em>No surprises</em>
               </>
             }
             lead="Three ways to engage: start free, get clarity in 14 days, or build and run the systems with us."
@@ -173,7 +173,7 @@ export default function AiAuditPage() {
 
       <section className="section on-white">
         <div className="wrap two-col">
-          <SectionHead kicker="Questions" title={<>Before you <em>book.</em></>} lead="How the audit works, what it costs and who it is for." />
+          <SectionHead kicker="Questions" title={<>Before you <em>book</em></>} lead="How the audit works, what it costs and who it is for." />
           <Faq />
         </div>
       </section>

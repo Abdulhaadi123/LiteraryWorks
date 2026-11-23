@@ -107,7 +107,9 @@ export function ServiceCards({ items = services }: { items?: ServiceIndexItem[] 
               {s.isNew ? <span className="pill pill-new">New</span> : null}
             </span>
             <span className="svc-row-short">{s.short}</span>
-            <span className="svc-row-group">{s.group}</span>
+            <span className="tag svc-row-group" data-group={s.group}>
+              {s.group}
+            </span>
             <span className="svc-row-arrow" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M13 6l6 6-6 6" />

@@ -17,7 +17,7 @@ export function ServicesGrid({ id = "services" }: { id?: string }) {
             kicker="What we build"
             title={
               <>
-                AI, software and cloud, <em>built as one system.</em>
+                AI, software and cloud, <em>built as one system</em>
               </>
             }
             lead="Nine services, one method: map the work, design the system, build it into the tools you already use, then measure it."
@@ -35,7 +35,9 @@ export function ServicesGrid({ id = "services" }: { id?: string }) {
                 </div>
                 <div className="svc-body">
                   <span className="svc-tags">
-                    <span className="svc-group">{s.group}</span>
+                    <span className="tag svc-group" data-group={s.group}>
+                      {s.group}
+                    </span>
                     {s.isNew ? <span className="pill pill-new">New</span> : null}
                   </span>
                   <h3 className="svc-name">{s.name}</h3>

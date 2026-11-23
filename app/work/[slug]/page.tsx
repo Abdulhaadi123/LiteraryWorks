@@ -44,7 +44,8 @@ export default async function CasePage({ params }: { params: Promise<{ slug: str
       </PageHero>
 
       <div className="case-cover">
-        <div className="wrap">
+        {/* the cover is 16:9 and is shown whole: as wide as keeps it under 36rem tall */}
+        <div className="wrap" style={{ maxWidth: "64rem" }}>
           <CaseImage slug={c.slug} sizes="(min-width: 80rem) 1200px, 92vw" priority />
         </div>
       </div>
@@ -71,7 +72,7 @@ export default async function CasePage({ params }: { params: Promise<{ slug: str
         <div className="wrap split">
           <div data-reveal>
             <p className="kicker">The problem</p>
-            <h2 className="h-lg">What was broken.</h2>
+            <h2 className="h-lg">What was broken</h2>
             {c.problem.map((t) => (
               <p className="lead" key={t}>
                 {t}
@@ -93,7 +94,7 @@ export default async function CasePage({ params }: { params: Promise<{ slug: str
         <div className="wrap split">
           <div data-reveal>
             <p className="kicker">The solution</p>
-            <h2 className="h-lg">How we approached it.</h2>
+            <h2 className="h-lg">How we approached it</h2>
             {c.solution.map((t) => (
               <p className="lead" key={t}>
                 {t}
@@ -134,7 +135,7 @@ export default async function CasePage({ params }: { params: Promise<{ slug: str
       {gallery.length ? (
         <section className="section on-white">
           <div className="wrap">
-            <SectionHead kicker="Gallery" title={<>Inside the <em>build.</em></>} />
+            <SectionHead kicker="Gallery" title={<>Inside the <em>build</em></>} />
             <ul className="project-gallery">
               {gallery.map((s, i) => (
                 <li key={i}>

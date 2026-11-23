@@ -7,7 +7,7 @@ export default function NotFound() {
       kicker="404"
       title={
         <>
-          This page is <em>not here.</em>
+          This page is <em>not here</em>
         </>
       }
       lead="The address may be wrong, or the page may have moved. These will get you back on track."

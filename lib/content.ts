@@ -1,3 +1,5 @@
+import { balosys } from "./site";
+
 /* The words of the site, in one place. Written for LiteraryWorks from the services and work of the Sparkix and FAYD teams. */
 
 export interface Metric {
@@ -608,6 +610,6 @@ export const products: Product[] = [
       { value: "$79", label: "Starting per month" },
     ],
     status: "Launching 2026",
-    url: "https://balosys.com/",
+    url: balosys.url,
   },
 ];

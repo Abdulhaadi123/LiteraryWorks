@@ -10,7 +10,7 @@ export function Products() {
           kicker="Our products"
           title={
             <>
-              Products we <em>build and run.</em>
+              Products we <em>build and run</em>
             </>
           }
           lead="Alongside client work, we design and ship AI products of our own. The first, Balosys, launches in 2026. More are in the pipeline."
