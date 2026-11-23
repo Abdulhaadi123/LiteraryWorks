@@ -283,9 +283,10 @@ export const cases: CaseStudy[] = [
 
 export const caseBySlug = (slug: string) => cases.find((c) => c.slug === slug);
 
-/** Short quotes for the home page: they do not name any one project. */
+/** What clients say on the home page: every quote from the case studies, the named clients first. */
 export const voices: Quote[] = [
   cases[5].quote!,
+  cases[0].quote!,
   cases[4].quote!,
   cases[3].quote!,
 ];
@@ -576,3 +577,19 @@ export const caseForService: Record<string, string> = {
 
 /** Everything the case studies were built with, once each. */
 export const techUsed: string[] = [...new Set(cases.flatMap((c) => c.tech))];
+
+/** The company behind the brand, and where it is (as the literaryworx.com site gives it: a city, no street address). */
+export const company = {
+  legalName: "Literary Worx LLC",
+  email: "info@literaryworx.com",
+};
+
+export const location = {
+  city: "San Antonio",
+  region: "Texas",
+  regionCode: "TX",
+  country: "US",
+  label: "San Antonio, Texas",
+  mapEmbed: "https://www.google.com/maps?q=San+Antonio%2C+Texas&z=11&output=embed",
+  mapLink: "https://www.google.com/maps/search/?api=1&query=San+Antonio%2C+Texas",
+};

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { company, location } from "@/lib/content";
 import { services } from "@/lib/services";
 import { Logo } from "./Logo";
 
@@ -41,6 +42,12 @@ export function Footer() {
         <div className="footer-brand">
           <Logo tone="light" />
           <p>AI, software and cloud systems for U.S. businesses. Written plainly, built carefully, handed over documented.</p>
+          <p className="footer-loc">
+            <a href={location.mapLink} target="_blank" rel="noopener noreferrer">
+              {location.label}
+            </a>
+            <a href={`mailto:${company.email}`}>{company.email}</a>
+          </p>
         </div>
         <nav aria-label="Services">
           <h3 className="footer-h">Services</h3>
@@ -80,7 +87,9 @@ export function Footer() {
       </div>
 
       <div className="wrap footer-base">
-        <p>© {new Date().getFullYear()} LiteraryWorks. All rights reserved.</p>
+        <p>
+          © {new Date().getFullYear()} {company.legalName}. LiteraryWorks is a brand of {company.legalName}. All rights reserved.
+        </p>
       </div>
       <p className="footer-mark" aria-hidden="true">
         LiteraryWorks

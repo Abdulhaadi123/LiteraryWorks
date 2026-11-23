@@ -31,6 +31,11 @@ export default function PrivacyPage() {
           <p>We keep inquiries for as long as needed to answer them and to follow up, and then delete them.</p>
           <h2>Cookies</h2>
           <p>This website does not set advertising or tracking cookies of its own.</p>
+          <h2>The map</h2>
+          <p>
+            The contact page shows our location on an embedded Google Map. It loads only when you scroll to it; when it does, Google receives your
+            browser&apos;s request (including your IP address) and may set its own cookies, under Google&apos;s privacy policy.
+          </p>
           <h2>Your choices</h2>
           <p>
             You can ask us to tell you what we hold about you, to correct it, or to delete it. Send a message through the contact form and mention that it is a privacy request.

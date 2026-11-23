@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
-import { cases, faqs as allFaqs, guarantee, ladder, type CaseStudy, type Quote } from "@/lib/content";
+import { cases, faqs as allFaqs, guarantee, ladder, type CaseStudy } from "@/lib/content";
 import { services, type ServiceIndexItem } from "@/lib/services";
 import { Icon, serviceIcon, type IconName } from "./icons";
 
@@ -269,36 +269,6 @@ export function Portfolio({ items }: { items: { name: string; text: string }[] }
             <figcaption>
               <h3>{m.name}</h3>
               <p>{m.text}</p>
-            </figcaption>
-          </figure>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-const initials = (name: string) =>
-  name
-    .replace(/[.,]/g, "")
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("");
-
-export function Quotes({ items }: { items: Quote[] }) {
-  return (
-    <ul className="cards cards-3 quote-grid" data-stagger>
-      {items.map((q) => (
-        <li key={q.name + q.role}>
-          <figure className="quote">
-            <blockquote>{q.text}</blockquote>
-            <figcaption>
-              <span className="avatar" aria-hidden="true">
-                {initials(q.name)}
-              </span>
-              <b>{q.name}</b>
-              <span>{q.role}</span>
             </figcaption>
           </figure>
         </li>

@@ -1,6 +1,6 @@
 import { ContactForm } from "@/components/ContactForm";
 import { Faq, PageHero, SectionHead } from "@/components/ui";
-import { faqs } from "@/lib/content";
+import { company, faqs, location } from "@/lib/content";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
@@ -41,6 +41,46 @@ export default function ContactPage() {
             </ol>
           </div>
           <ContactForm />
+        </div>
+      </section>
+
+      <section className="section on-white location" id="location">
+        <div className="wrap location-grid">
+          <div>
+            <SectionHead
+              kicker="Where we are"
+              title={
+                <>
+                  Based in <em>{location.label}.</em>
+                </>
+              }
+              lead="We work with businesses across the U.S. from San Antonio. Most of the work happens remotely, in working sessions on your own tools."
+            />
+            <a className="btn btn-line" href={location.mapLink} target="_blank" rel="noopener noreferrer">
+              Open in Google Maps
+            </a>
+            <dl className="location-facts">
+              <div>
+                <dt>Company</dt>
+                <dd>{company.legalName}</dd>
+              </div>
+              <div>
+                <dt>Email</dt>
+                <dd>
+                  <a href={`mailto:${company.email}`}>{company.email}</a>
+                </dd>
+              </div>
+            </dl>
+          </div>
+          <div className="map-frame">
+            <iframe
+              title={`Map: ${location.label}`}
+              src={location.mapEmbed}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
         </div>
       </section>
 
