@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SystemDashPoster, SystemPoster } from "@/components/Posters";
 import { CaseReel } from "@/components/CaseReel";
+import { CompanyFacts } from "@/components/CompanyFacts";
 import { Marquee } from "@/components/Marquee";
 import { Products } from "@/components/Products";
 import { d, Faq, Ladder, SectionHead, Tiles } from "@/components/ui";
@@ -188,6 +189,8 @@ export default function Home() {
           <Faq />
         </div>
       </section>
+
+      <CompanyFacts />
     </>
   );
 }

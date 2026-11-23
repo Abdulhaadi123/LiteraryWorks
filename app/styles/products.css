@@ -185,3 +185,72 @@
   text-align: center;
   color: rgba(255, 255, 255, 0.7);
 }
+
+/* ============ the company behind the brand: an intro and a ruled fact sheet ============ */
+.company-grid {
+  display: grid;
+  gap: clamp(2rem, 4vw, 3rem);
+}
+@media (min-width: 62rem) {
+  .company-grid {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: clamp(3rem, 6vw, 6rem);
+    align-items: start;
+  }
+}
+.company-intro .section-head {
+  margin-bottom: 1.75rem;
+}
+.company-sheet {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--white);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(25, 23, 22, 0.04), 0 24px 48px -36px rgba(25, 23, 22, 0.35);
+}
+.on-white .company-sheet {
+  background: var(--mist);
+}
+.company-sheet > div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem clamp(1.25rem, 3vw, 1.75rem);
+  border-top: 1px solid var(--line);
+}
+/* a green rule across the top of the sheet */
+.company-sheet > div:first-child {
+  border-top: 3px solid var(--green);
+}
+@media (min-width: 36rem) {
+  .company-sheet > div {
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: baseline;
+  }
+}
+.company-sheet dt {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.company-sheet dd {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.company-sheet a {
+  color: var(--navy);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--green);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.company-sheet a:hover {
+  color: var(--blue-3);
+}

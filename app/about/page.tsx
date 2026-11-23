@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SceneHero } from "@/components/SceneHero";
 import { Rhythm } from "@/components/Sections";
+import { CompanyFacts } from "@/components/CompanyFacts";
 import { Checks, SectionHead } from "@/components/ui";
 import { principles } from "@/lib/content";
 import { pageMeta } from "@/lib/seo";
@@ -143,6 +144,8 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      <CompanyFacts />
     </>
   );
 }
