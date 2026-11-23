@@ -214,6 +214,11 @@ function relay(
         if (!first.done) take(first.value);
         for (let r = await events.next(); !r.done; r = await events.next()) take(r.value);
         const message = await stream.finalMessage();
+        // (opt in with CHAT_LOG_USAGE=1: what each answer cost, and whether the cached block was read; never the text)
+        if (process.env.CHAT_LOG_USAGE === "1") {
+          const u = message.usage;
+          console.info(`[chat] ${message.model} in=${u.input_tokens} cache_read=${u.cache_read_input_tokens ?? 0} cache_write=${u.cache_creation_input_tokens ?? 0} out=${u.output_tokens} stop=${message.stop_reason}`);
+        }
         if (message.stop_reason === "refusal") {
           send({ t: "e", m: "I can only help with questions about LiteraryWorks and our work. Please try another question, or contact the team." });
           return;

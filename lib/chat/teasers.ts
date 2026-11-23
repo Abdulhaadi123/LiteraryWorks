@@ -1,3 +1,4 @@
+import { projectIndex } from "@/lib/project-index";
 import { services } from "@/lib/services";
 
 /**
@@ -12,6 +13,8 @@ export function teaserFor(path: string): { text: string; ask: string } | null {
     const name = services.find((s) => s.slug === b)?.name;
     if (name) return { text: `Questions about ${name}? I can walk you through it.`, ask: `How would ${name} work for a business like mine?` };
   }
+  const project = a === "work" && b ? projectIndex.find((x) => x.slug === b) : undefined;
+  if (project) return { text: `Curious what ${project.name} does? Ask me.`, ask: `What is ${project.name}, and what does it do?` };
   if (a === "work" && b) return { text: "Want to know how this was built, and what changed?", ask: "How was this project built, and what changed for the client?" };
   switch (a) {
     case "":

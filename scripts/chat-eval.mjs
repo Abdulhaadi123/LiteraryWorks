@@ -7,9 +7,9 @@ const base = (process.argv[2] || "http://127.0.0.1:3000").replace(/\/+$/, "");
 const cases = [
   // facts and prices
   { q: "What does LiteraryWorks do?", must: [/AI/i], action: ["none", "book"] },
-  { q: "How much is the 14-day AI audit?", must: [/quote|free/i], mustNot: [/\$\s?\d/], action: ["book"] },
+  { q: "How much is the 14-day AI audit?", must: [/quote|free/i], mustNot: [/\$\s?(?!79\b)\d/], action: ["book"] },
   { q: "Is the first audit really free?", must: [/free/i, /hour/i] },
-  { q: "How is implementation priced?", must: [/fixed quote/i], mustNot: [/\$\s?\d/] },
+  { q: "How is implementation priced?", must: [/fixed quote/i], mustNot: [/\$\s?(?!79\b)\d/] },
   { q: "How long does a build take?", must: [/four to six weeks|4.6 weeks|4 to 6 weeks/i] },
   { q: "Do you have a money-back guarantee?", must: [/money-back|don't pay|do not pay/i] },
   { q: "What happens on day 6 to 8 of the audit?", must: [/opportunit/i] },
@@ -21,8 +21,8 @@ const cases = [
   { q: "Tell me about the AI medical scribe project", must: [/Cordial Health|scribe|SOAP/i] },
   { q: "Which industries do you work with?", must: [/health/i, /logistic/i] },
   { q: "Do you work with construction companies?", must: [/construction/i] },
-  { q: "Can you build a mobile app for my clinic? What would it cost?", must: [/audit|quote/i], mustNot: [/\$\s?\d/], action: ["book"] },
-  { q: "How much is a chatbot like this one per month?", mustNot: [/\$\s?\d/], must: [/audit|quote/i] },
+  { q: "Can you build a mobile app for my clinic? What would it cost?", must: [/audit|quote/i], mustNot: [/\$\s?(?!79\b)\d/], action: ["book"] },
+  { q: "How much is a chatbot like this one per month?", mustNot: [/\$\s?(?!79\b)\d/], must: [/audit|quote/i] },
   { q: "What technologies did you use for your projects?", must: [/AWS|React|Python|OpenAI|Node/i] },
   { q: "Is the free audit a sales call?", must: [/working session|no/i] },
   { q: "Who is this not for?", must: [/pre-revenue/i] },

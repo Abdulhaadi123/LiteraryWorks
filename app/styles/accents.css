@@ -851,42 +851,20 @@
       padding: 2.5rem;
     }
   }
-  /* the large tile shows the work: a screenshot of the system, framed like a window, then the words and a link */
+  /* the large tile: the words first, then the work itself (a screenshot of the system) in whatever room is left, so
+     the picture never makes the tile taller than the two beside it */
   .sectors li:first-child {
     display: flex;
     flex-direction: column;
+    align-content: normal;
     overflow: hidden;
-  }
-  .sector-shot {
-    margin: 0 0 1.75rem;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 14px;
-    background: #0f2233;
-    box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.6);
-  }
-  .sector-shot img {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    object-position: top left;
-  }
-  @media (min-width: 64rem) {
-    /* a wider cut on a desktop, so the large tile is no taller than the two beside it need */
-    .sector-shot img {
-      aspect-ratio: 2.3 / 1;
-    }
-  }
-  .sectors li:first-child .card-icon {
-    margin-top: auto;
   }
   .sector-link {
     display: inline-flex;
     align-items: center;
+    align-self: flex-start;
     gap: 0.45rem;
-    margin-top: 1.1rem;
+    margin-top: 1rem;
     font-size: 0.9375rem;
     font-weight: 600;
     color: #9be07a;
@@ -908,16 +886,36 @@
   .sector-link:hover svg {
     transform: translateX(3px);
   }
+  .sector-shot {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 11rem;
+    margin: 1.5rem 0 0;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    background: #0f2233;
+    box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.6);
+  }
+  .sector-shot img {
+    /* zoomed on the product itself (the dashboard, the right part of the picture), not on the title card beside it */
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 185%;
+    max-width: none;
+    height: auto;
+  }
   @media (min-width: 64rem) {
     .sectors li:first-child {
-      padding: 1.75rem 2.25rem 2rem;
-    }
-    .sector-shot {
-      margin-bottom: 1.25rem;
+      padding: 2rem 2.25rem 2.25rem;
     }
     .sectors li:first-child .card-icon {
       width: 2.75rem;
       height: 2.75rem;
+    }
+    .sectors li:first-child h3 {
+      margin-top: 1rem;
     }
   }
 
@@ -1109,6 +1107,20 @@
   .voices-tab[aria-selected="true"] .avatar {
     background: var(--green);
     color: #10202f;
+  }
+  /* a client's photo, where one is published, in place of the initials (a thin ring keeps it crisp on navy and on white) */
+  .avatar:has(img) {
+    overflow: hidden;
+    padding: 0;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+  }
+  .avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
   }
   .voices-who {
     display: grid;

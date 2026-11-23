@@ -2,11 +2,29 @@
  * What the assistant knows: the site's own words, gathered from the same data the pages render. Nothing here is
  * written separately, so the assistant can never say something the site does not.
  */
-import { auditOutputs, cases, company, engagement, faqs, guarantee, industries, ladder, location, moreBuilt, phases, plan, principles, products } from "@/lib/content";
+import { auditOutputs, cases, company, engagement, faqs, guarantee, industries, ladder, location, phases, plan, principles, products } from "@/lib/content";
+import { projects, projectPictures, type Project } from "@/lib/projects";
 import { servicePages } from "@/lib/service-pages";
 import { services } from "@/lib/services";
 
 const list = (items: string[]) => items.map((i) => `- ${i}`).join("\n");
+
+/** One project, in full, as its page says it (and nothing the page does not say). */
+function projectText(p: Project) {
+  const out = [`## ${p.name}: ${p.kind} (page: /work/${p.slug}; ${projectPictures(p.slug).length} screens on the page)`, `Tags: ${p.tags.join(", ")}.`, `Overview: ${p.overview.join(" ")}`];
+  if (p.glance) out.push(`At a glance: ${p.glance.map((g) => `${g.value} ${g.label.toLowerCase()}`).join("; ")}.`);
+  if (p.features) out.push(`Features:\n${p.features.map((f) => `- ${f.title}: ${f.text}`).join("\n")}`);
+  if (p.challenge) out.push(`Challenge: ${p.challenge.join(" ")}`);
+  if (p.solution) out.push(`Solution: ${p.solution.join(" ")}`);
+  for (const s of p.sections ?? []) {
+    out.push(`${s.kicker}: ${s.title}.${s.lead ? ` ${s.lead}` : ""}`);
+    for (const b of s.blocks) {
+      out.push(`- ${b.label ? `${b.label}: ` : ""}${b.title}.${b.text ? ` ${b.text}` : ""}${b.points ? ` Key capabilities: ${b.points.join("; ")}.` : ""}${b.callout ? ` ${b.callout.title}: ${b.callout.text}` : ""}`);
+    }
+  }
+  if (p.closing) out.push(`${p.closing.title} ${p.closing.text}`);
+  return out.join("\n");
+}
 
 function build() {
   const parts: string[] = [];
@@ -58,8 +76,10 @@ ${p.text}
 Covers ${p.domains.join(", ")} and ${p.moreDomains} more regulatory domains. ${p.facts.map((f) => `${f.value} ${f.label.toLowerCase()}`).join("; ")}.
 Website: ${p.url} (the one outside link you may give, written as plain text, not as a markdown link)`).join("\n")}`);
 
-  parts.push(`# Other products the team has built (no pages of their own)
-${moreBuilt.map((m) => `- ${m.name}: ${m.text}`).join("\n")}`);
+  parts.push(`# Other products and platforms the team has built (each has its own page on this site, linked below)
+Everything the team has published about each one is written here, and nothing else is known about it: no technology stack, architecture, clients, prices, dates, user numbers or results beyond what is written. A part that is missing (a challenge, a solution, features) was not published. When you describe one, link to its page once.
+
+${projects.map(projectText).join("\n\n")}`);
 
   parts.push(`# How an engagement runs (four phases)
 ${phases.map((p) => `- ${p.title}: ${p.goal} You get: ${p.gets.join("; ")}.`).join("\n")}
@@ -77,7 +97,7 @@ ${faqs.map((f) => `Q: ${f.q}\nA: ${f.a}`).join("\n")}`);
   parts.push(`# Pages you may link to
 / (home), /services, /ai-audit, /work, /about, /contact, /contact?topic=audit (book the free AI audit), /privacy,
 ${services.map((s) => `/services/${s.slug}`).join(", ")},
-${cases.map((c) => `/work/${c.slug}`).join(", ")}`);
+${[...cases, ...projects].map((c) => `/work/${c.slug}`).join(", ")}`);
 
   return parts.join("\n\n");
 }
@@ -96,4 +116,5 @@ export const linkablePaths = new Set<string>([
   "/privacy",
   ...services.map((s) => `/services/${s.slug}`),
   ...cases.map((c) => `/work/${c.slug}`),
+  ...projects.map((p) => `/work/${p.slug}`),
 ]);

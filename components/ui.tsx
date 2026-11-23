@@ -256,7 +256,7 @@ const projectShot: Record<string, string> = {
 };
 
 /** The wider portfolio: a picture of each project we have built, with its name and one line. */
-export function Portfolio({ items }: { items: { name: string; text: string }[] }) {
+export function Portfolio({ items }: { items: { name: string; text: string; href?: string }[] }) {
   return (
     <ul className="portfolio" data-stagger>
       {items.map((m) => (
@@ -267,8 +267,13 @@ export function Portfolio({ items }: { items: { name: string; text: string }[] }
               <img src={`/shots/${projectShot[m.name]}.webp`} width={1024} height={576} alt="" loading="lazy" decoding="async" />
             ) : null}
             <figcaption>
-              <h3>{m.name}</h3>
+              <h3>{m.href ? <Link href={m.href}>{m.name}</Link> : m.name}</h3>
               <p>{m.text}</p>
+              {m.href ? (
+                <span className="portfolio-more" aria-hidden="true">
+                  View project
+                </span>
+              ) : null}
             </figcaption>
           </figure>
         </li>

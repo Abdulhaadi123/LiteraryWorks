@@ -175,24 +175,24 @@ export function Industries({ tone = "white" }: { tone?: "white" | "mist" }) {
         <ul className="sectors" data-stagger>
           {industries.map((i, k) => (
             <li key={i.name}>
-              {/* the large first tile shows the work itself: the AI medical scribe we built for a healthcare client */}
-              {k === 0 ? (
-                <figure className="sector-shot">
-                  <CaseImage slug="ai-medical-scribe" sizes="(min-width: 64rem) 560px, 92vw" />
-                </figure>
-              ) : null}
               <span className="card-icon">
                 <Icon name={industryIcon[i.name] ?? "sparkles"} />
               </span>
               <h3>{i.name}</h3>
               <p>{i.text}</p>
+              {/* the large first tile ends with the work itself: the AI medical scribe we built for a healthcare client */}
               {k === 0 ? (
-                <Link className="sector-link" href="/work/ai-medical-scribe">
-                  See the AI medical scribe case study
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M5 12h14M13 6l6 6-6 6" />
-                  </svg>
-                </Link>
+                <>
+                  <Link className="sector-link" href="/work/ai-medical-scribe">
+                    See the AI medical scribe case study
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                  </Link>
+                  <figure className="sector-shot">
+                    <CaseImage slug="ai-medical-scribe" sizes="(min-width: 64rem) 560px, 92vw" />
+                  </figure>
+                </>
               ) : null}
             </li>
           ))}

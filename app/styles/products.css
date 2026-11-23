@@ -254,3 +254,177 @@
 .company-sheet a:hover {
   color: var(--blue-3);
 }
+
+/* ============ a project's own page (/work/<slug>): overview, features, blocks, gallery ============ */
+.project-prose {
+  display: grid;
+  gap: 1rem;
+}
+/* long values ("Read-only", "EN + AR") stay on one line */
+.project-glance dt {
+  white-space: nowrap;
+  font-size: clamp(1.6rem, 2.6vw, 2.3rem);
+}
+.project-glance {
+  margin-bottom: 1.75rem;
+}
+.project-prose .lead {
+  max-width: none;
+}
+.project-items {
+  display: grid;
+  gap: 1rem;
+  margin: 2.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 48rem) {
+  .project-items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 64rem) {
+  .project-items {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.project-items > li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--white);
+  box-shadow: 0 24px 48px -40px rgba(15, 34, 51, 0.4);
+}
+.project-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--green-ink);
+}
+.project-items h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.project-items p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--fg-soft);
+}
+.project-items .checks {
+  margin-top: 0.4rem;
+}
+.project-callout {
+  margin-top: auto;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid var(--green);
+  border-radius: 0 12px 12px 0;
+  background: var(--mist);
+}
+.project-items li > .checks + .project-callout,
+.project-items li > p + .project-callout {
+  margin-top: 0.75rem;
+}
+.project-callout b {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+.project-callout p {
+  font-size: 0.875rem;
+}
+
+.project-gallery {
+  display: grid;
+  gap: 1rem;
+  margin: 2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 48rem) {
+  .project-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.project-gallery figure {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+.project-gallery img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--mist-2);
+}
+/* screens of a phone are tall and narrow: a row of them, four across on a desktop */
+.project-gallery.is-tall {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 64rem) {
+  .project-gallery.is-tall {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.project-closing {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  max-width: 44rem;
+}
+
+/* the work page's grid: each project is a link to its page (the whole card is the target) */
+.portfolio li {
+  position: relative;
+}
+.portfolio h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+.portfolio h3 a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r);
+}
+.portfolio h3 a:focus-visible {
+  outline: none;
+}
+.portfolio li:has(h3 a:focus-visible) figure {
+  outline: 3px solid var(--navy);
+  outline-offset: 3px;
+}
+.portfolio figure {
+  transition:
+    translate 0.4s var(--ease-out),
+    box-shadow 0.4s var(--ease-out),
+    border-color 0.3s;
+}
+.portfolio li:has(h3 a):hover figure {
+  translate: 0 -4px;
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow);
+}
+.portfolio-more {
+  display: inline-block;
+  margin-top: 0.7rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--navy);
+}
+.portfolio-more::after {
+  content: " \2192";
+}

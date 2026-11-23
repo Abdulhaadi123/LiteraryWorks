@@ -74,7 +74,7 @@ export function QuoteSwitcher({ items }: { items: Quote[] }) {
             onClick={() => go(i)}
           >
             <span className="avatar" aria-hidden="true">
-              {initials(q.name)}
+              {q.photo ? <img src={q.photo} alt="" width={96} height={96} loading="lazy" decoding="async" /> : initials(q.name)}
             </span>
             <span className="voices-who">
               <b>{q.name}</b>
@@ -101,7 +101,7 @@ export function QuoteSwitcher({ items }: { items: Quote[] }) {
               <blockquote>{q.text}</blockquote>
               <figcaption>
                 <span className="avatar" aria-hidden="true">
-                  {initials(q.name)}
+                  {q.photo ? <img src={q.photo} alt="" width={96} height={96} loading="lazy" decoding="async" /> : initials(q.name)}
                 </span>
                 <span className="voices-who">
                   <b>{q.name}</b>

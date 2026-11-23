@@ -9,6 +9,8 @@ export interface Quote {
   text: string;
   name: string;
   role: string;
+  /** A photo of the person, where one is published (public/clients/); initials stand in otherwise. */
+  photo?: string;
 }
 
 export interface CaseStudy {
@@ -276,6 +278,7 @@ export const cases: CaseStudy[] = [
     quote: {
       text: "We had a wonderful experience working this amazing company. Even though we're in the US but the remote collaboration was top-notch in automating our internal workflows with AI. They built an amazing platform to automate the process. Great AI company to work with.",
       name: "Kelsy L.",
+      photo: "/clients/kelsy-l.webp",
       role: "Director of Operational Excellence, RelaDyne LLC",
     },
   },
@@ -445,21 +448,6 @@ export const principles = [
   { title: "Systems your team can own", text: "We favor practical systems your people can run over impressive demos that need us to keep them alive." },
   { title: "Outcomes, not hours", text: "Every decision starts from a result: hours returned, delays removed, decisions made sooner." },
   { title: "Honest scope", text: "If something is not worth building yet, we say so. A good audit sometimes ends with a smaller plan than you expected." },
-];
-
-export const moreBuilt = [
-  { name: "Grace AI", text: "A voice-calling platform where businesses build, train and manage their own AI voice agents." },
-  { name: "SIQETRA", text: "An AI business operating system: ask the business a question, approve every action before it happens." },
-  { name: "Vyral AI", text: "Answers social media comments and direct messages in the brand's own voice." },
-  { name: "Dr Scribe", text: "Generates SOAP notes for clinics from the visit." },
-  { name: "Aztech AI", text: "An executive-search platform with AI-assisted sourcing, screening and evaluation." },
-  { name: "Alltrials AI", text: "Question answering over complex clinical trial documents." },
-  { name: "Vendibly", text: "Vendor, contract and procurement management in one place." },
-  { name: "Card Grading AI", text: "Grades trading cards from photos, with visual markup of centering, edges and corners." },
-  { name: "Civil Security", text: "A legal assistant trained on public legal data from all 50 U.S. states." },
-  { name: "AI Language Tutor", text: "A voice-to-voice language-learning platform." },
-  { name: "Monetiza", text: "A fintech app that recommends financial products and acts as a planning co-pilot." },
-  { name: "OTA-GPT", text: "Automates guest messaging and bookings for online travel agencies." },
 ];
 
 /** The four phases of an engagement in full: the goal, what we do and what you get. (The short form is `engagement`.) */

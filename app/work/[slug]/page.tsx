@@ -1,18 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ProjectPage } from "@/components/ProjectPage";
 import { CaseCards, CaseImage, Checks, PageHero, SectionHead } from "@/components/ui";
+import { caseImages } from "@/lib/case-images";
 import { caseBySlug, cases } from "@/lib/content";
+import { projectBySlug, projects } from "@/lib/projects";
 import { pageMeta } from "@/lib/seo";
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return cases.map((c) => ({ slug: c.slug }));
+  return [...cases.map((c) => ({ slug: c.slug })), ...projects.map((p) => ({ slug: p.slug }))];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  const project = projectBySlug(slug);
+  if (project) return pageMeta(`${project.name}: ${project.kind}`, project.summary.length > 158 ? `${project.summary.slice(0, 155)}...` : project.summary, `/work/${slug}`);
   const c = caseBySlug(slug);
   if (!c) return {};
   return pageMeta(c.title, c.summary.length > 158 ? `${c.summary.slice(0, 155)}...` : c.summary, `/work/${slug}`);
@@ -20,9 +25,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function CasePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const project = projectBySlug(slug);
+  if (project) return <ProjectPage p={project} />;
   const c = caseBySlug(slug);
   if (!c) notFound();
   const more = cases.filter((x) => x.slug !== slug).slice(0, 2);
+  const gallery = caseImages[slug] ?? [];
 
   return (
     <>
@@ -123,7 +131,25 @@ export default async function CasePage({ params }: { params: Promise<{ slug: str
         </div>
       </section>
 
-      <section className="section on-white">
+      {gallery.length ? (
+        <section className="section on-white">
+          <div className="wrap">
+            <SectionHead kicker="Gallery" title={<>Inside the <em>build.</em></>} />
+            <ul className="project-gallery">
+              {gallery.map((s, i) => (
+                <li key={i}>
+                  <figure>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={`/cases/${slug}/${i + 1}.webp`} width={s[0]} height={s[1]} alt={`${c.client}: screen ${i + 1} of ${gallery.length}`} loading="lazy" decoding="async" />
+                  </figure>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
+
+      <section className={`section ${gallery.length ? "on-mist" : "on-white"}`}>
         <div className="wrap">
           <SectionHead kicker="More work" title={<>Want results <em>like this?</em></>} />
           <CaseCards items={more} />

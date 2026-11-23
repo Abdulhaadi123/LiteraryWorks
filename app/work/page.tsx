@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CasesDeck } from "@/components/ServicesDeck";
 import { AuditStrip, Industries } from "@/components/Sections";
 import { CaseCards, PageHero, Portfolio, SectionHead } from "@/components/ui";
-import { moreBuilt } from "@/lib/content";
+import { projectList } from "@/lib/projects";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
@@ -68,9 +68,9 @@ export default function WorkPage() {
                 A wider <em>portfolio.</em>
               </>
             }
-            lead="Platforms and apps across healthcare, sales, recruiting, legal, finance and travel."
+            lead="Platforms and apps across healthcare, sales, recruiting, legal, finance and travel. Open any of them for what it does, how it was built and its screens."
           />
-          <Portfolio items={moreBuilt} />
+          <Portfolio items={projectList} />
         </div>
       </section>
 
