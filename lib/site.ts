@@ -4,6 +4,7 @@ export const site = {
 };
 
 export const nav = [
+  { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
   { href: "/ai-audit", label: "AI audit" },
   { href: "/work", label: "Case studies" },

@@ -27,6 +27,10 @@ export default function PrivacyPage() {
           <p>
             Messages are delivered to us by an email delivery provider (Twilio SendGrid), which also sends you a short confirmation that we received your message, and this website is delivered by a hosting provider. They process data on our behalf to provide those services, and the hosting provider may keep ordinary technical logs, such as IP addresses and pages requested, for security and reliability.
           </p>
+          <h2>The website assistant</h2>
+          <p>
+            The assistant in the corner of each page answers questions about our services. What you type in it is sent to OpenAI, which generates the answer on our behalf; we ask OpenAI not to store it, and we do not keep chat conversations ourselves. The conversation stays in your browser tab until you close it or start a new one. If you ask us to contact you from the assistant, the conversation is sent to us with your details, so we can reply with the context. Please do not type sensitive personal information into it.
+          </p>
           <h2>How long we keep it</h2>
           <p>We keep inquiries for as long as needed to answer them and to follow up, and then delete them.</p>
           <h2>Cookies</h2>

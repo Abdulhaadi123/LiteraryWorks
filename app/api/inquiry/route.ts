@@ -1,10 +1,20 @@
 import { NextResponse } from "next/server";
 import { topics } from "@/lib/topics";
-import { confirmationEmail, oneLine, teamEmail, type Inquiry } from "@/lib/mail/inquiry-email";
+import { confirmationEmail, oneLine, teamEmail, type ChatTurn, type Inquiry } from "@/lib/mail/inquiry-email";
 
 const allowedInterests = new Set<string>(topics.map((t) => t.value));
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const clean = (value: unknown, max: number) => (typeof value === "string" ? value.trim().slice(0, max + 1) : "");
+/** The website-assistant conversation sent with a chat inquiry: at most 20 turns, each kept short. */
+function readConversation(value: unknown): ChatTurn[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const turns = value
+    .slice(-20)
+    .filter((t): t is ChatTurn => !!t && typeof t === "object" && (t.role === "user" || t.role === "assistant") && typeof t.content === "string")
+    .map((t) => ({ role: t.role, content: t.content.trim().slice(0, 2400) }))
+    .filter((t) => t.content);
+  return turns.length ? turns : undefined;
+}
 const fail = (message: string, status: number, headers?: Record<string, string>) => NextResponse.json({ message }, { status, headers });
 
 /**
@@ -30,7 +40,7 @@ export async function POST(request: Request) {
 
   // a form message is small: refuse anything large before reading it
   const length = Number(request.headers.get("content-length") ?? 0);
-  if (length > 20_000) return fail("That message is too long.", 413);
+  if (length > 80_000) return fail("That message is too long.", 413);
 
   let input: Record<string, unknown>;
   try {
@@ -49,6 +59,7 @@ export async function POST(request: Request) {
     company: clean(input.company, 120),
     interest: clean(input.interest, 80),
     message: clean(input.message, 5000),
+    conversation: readConversation(input.conversation),
   };
   if (
     inquiry.name.length < 2 ||

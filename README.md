@@ -98,6 +98,12 @@ Setup in SendGrid: create an API key with only the **Mail Send** permission, and
 
 The API also limits one address to 8 requests in ten minutes (in memory: a real limit on a long-running server; on a serverless host each instance counts for itself, so add the platform's rate limiting too). Set real keys on the hosting platform, not on a shared or untrusted machine.
 
+## Website assistant
+
+The round button in the corner of every page opens the assistant (`components/chat/`). It answers questions about the services, case studies, prices and the AI audit from the site's own content (`lib/chat/knowledge.ts` builds it from `lib/content.ts`, `lib/services.ts` and `lib/service-pages.ts`, so a change to the site changes what it knows), streams the answer word by word, suggests follow-up questions, and offers "Book a free AI audit" or a short "Ask us to contact you" form, which sends an inquiry through `/api/inquiry` with the conversation attached. The panel's code loads only when a visitor reaches for the button, so pages are no heavier. The conversation is kept in the browser tab (sessionStorage) and nowhere else.
+
+`/api/chat` calls OpenAI's Responses API with `store: false`. The instructions and the knowledge form one fixed prefix that OpenAI caches (faster first word, lower cost). It keeps the last 12 messages, refuses messages over 800 characters and requests from other sites, and limits one address to 24 messages in ten minutes (in memory, like the inquiry form). Set `OPENAI_API_KEY` (a project key with a monthly budget set in the OpenAI dashboard); `OPENAI_MODEL` (default `gpt-4.1-mini`), `OPENAI_REASONING_EFFORT` (reasoning models only), `OPENAI_MAX_OUTPUT_TOKENS` (default 700) and `OPENAI_API_BASE` are optional. Without the key the assistant answers with a pointer to the contact form.
+
 ## Verify a build
 
 ```bash
@@ -111,9 +117,10 @@ The scripts need only Node 22 and Chrome (set `CHROME_PATH` if it is not found; 
 ## Before launch
 
 - [ ] Set the real domain (`NEXT_PUBLIC_SITE_URL`) and the SendGrid variables, authenticate the sending domain in SendGrid, and send one test message from the live form.
-- [ ] Confirm the claims: the prices and the money-back guarantee on `/ai-audit` and the home page, the case-study figures, and the client names and quotes (they come from the Sparkix and FAYD work). Replace or remove anything that LiteraryWorks may not show under its own name.
+- [ ] Confirm the claims: the money-back guarantee on `/ai-audit` and the home page (the only published price is the free audit; the 14-day audit and builds are quoted), the case-study figures, and the client names and quotes (they come from the Sparkix and FAYD work). Replace or remove anything that LiteraryWorks may not show under its own name.
 - [ ] Check the pictures in `public/shots/` and `public/cases/`: they are our own projects, but some show the Sparkix mark and one a FAYD logo.
 - [ ] Add the business's legal name, contact details and a reviewed privacy notice (`app/privacy/page.tsx` is a short draft).
 - [ ] Construction is one of nine services and the site describes software and technology services for it only. Do not present on-site contracting until licensing, insurance and partners are confirmed.
-- [ ] Add the hosting platform's rate limiting in front of `/api/inquiry`.
+- [ ] Add the hosting platform's rate limiting in front of `/api/inquiry` and `/api/chat`.
+- [ ] Set `OPENAI_API_KEY` with a monthly budget limit in the OpenAI dashboard, then ask the live assistant a few questions, including a price question and the "Ask us to contact you" form.
 - [ ] Test on a real phone and a real GPU: scroll feel, the pinned scenes, Back and Forward.

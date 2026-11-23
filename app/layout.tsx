@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
+import { ChatLauncher } from "@/components/chat/ChatLauncher";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { MobileCta } from "@/components/MobileCta";
@@ -60,6 +61,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <main id="main">{children}</main>
         <Footer />
         <MobileCta />
+        <ChatLauncher />
         <MotionRoot />
       </body>
     </html>

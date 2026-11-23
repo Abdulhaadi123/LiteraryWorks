@@ -6,7 +6,16 @@
  * No images, fonts or tracking pixels: the emails look the same with remote content blocked.
  */
 
-export type Inquiry = { name: string; email: string; company: string; interest: string; message: string };
+export type ChatTurn = { role: "user" | "assistant"; content: string };
+export type Inquiry = {
+  name: string;
+  email: string;
+  company: string;
+  interest: string;
+  message: string;
+  /** the website-assistant conversation, when the message was sent from the chat */
+  conversation?: ChatTurn[];
+};
 
 const NAVY = "#22425f";
 const GREEN = "#73c94a";
@@ -94,11 +103,29 @@ const button = (href: string, label: string) => `
     </tr>
   </table>`;
 
+/** The chat that led to the message, so the team starts with the context. */
+function conversationBlock(turns?: ChatTurn[]) {
+  if (!turns?.length) return "";
+  return `
+      <p style="margin:24px 0 8px;font-size:12px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;color:${FAINT};">Conversation with the website assistant</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-family:${FONT};">
+        ${turns
+          .map(
+            (t) => `
+        <tr>
+          <td valign="top" style="padding:8px 12px 8px 0;width:80px;font-size:12px;font-weight:600;color:${t.role === "user" ? NAVY : FAINT};">${t.role === "user" ? "Visitor" : "Assistant"}</td>
+          <td valign="top" style="padding:8px 0;border-bottom:1px solid ${RULE};font-size:14px;line-height:1.55;color:${t.role === "user" ? INK : BODY};">${para(t.content)}</td>
+        </tr>`,
+          )
+          .join("")}
+      </table>`;
+}
+
 /** The notice to our team. Replying goes straight to the visitor (the email's reply-to is theirs). */
 export function teamEmail(q: Inquiry, when = receivedAt()) {
   const subject = oneLine(`New inquiry: ${q.interest} from ${q.name}${q.company ? `, ${q.company}` : ""}`).slice(0, 180);
   const html = frame({
-    preheader: `${q.name} wrote about ${q.interest}.`,
+    preheader: `${q.name} wrote about ${q.interest}${q.conversation?.length ? " from the website assistant" : ""}.`,
     body: `
       <p style="margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:${GREEN};">New website inquiry</p>
       <h1 style="margin:0 0 20px;font-size:22px;line-height:1.3;font-weight:700;color:${INK};">${escape(q.interest)}</h1>
@@ -110,6 +137,7 @@ export function teamEmail(q: Inquiry, when = receivedAt()) {
       </table>
       <p style="margin:24px 0 8px;font-size:12px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;color:${FAINT};">Message</p>
       <div style="padding:16px 18px;background:${MIST};border-left:3px solid ${NAVY};border-radius:6px;font-size:15px;line-height:1.65;color:${INK};">${para(q.message)}</div>
+      ${conversationBlock(q.conversation)}
       ${button(`mailto:${q.email}?subject=${encodeURIComponent(`Re: your ${q.interest} inquiry`)}`, `Reply to ${escape(q.name.split(/\s+/)[0] || q.name)}`)}`,
     footer: "Sent by the contact form on the LiteraryWorks website. Reply to this email to answer the sender directly.",
   });
@@ -124,6 +152,9 @@ export function teamEmail(q: Inquiry, when = receivedAt()) {
     "",
     "Message:",
     q.message,
+    ...(q.conversation?.length
+      ? ["", "Conversation with the website assistant:", ...q.conversation.map((t) => `${t.role === "user" ? "Visitor" : "Assistant"}: ${t.content}`)]
+      : []),
     "",
     "Reply to this email to answer the sender directly.",
   ].join("\n");

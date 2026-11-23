@@ -22,14 +22,14 @@ export default function AiAuditPage() {
             Know what to automate. <em>Before you pay to build it.</em>
           </>
         }
-        lead="Most businesses do not have an AI problem. They have a workflow problem. We look at how your business really runs, find where time and money are being lost, and design the systems that fix it, in plain language, with a clear price."
+        lead="Most businesses do not have an AI problem. They have a workflow problem. We look at how your business really runs, find where time and money are being lost, and design the systems that fix it, in plain language, with a clear scope."
         actions={
           <>
             <Link className="btn btn-navy" href="/contact?topic=audit">
               Book a free 1-hour audit
             </Link>
             <Link className="btn btn-line" href="#start">
-              See the pricing
+              See how to start
             </Link>
           </>
         }
@@ -66,7 +66,7 @@ export default function AiAuditPage() {
                 Book the free audit
               </Link>
               <Link className="btn btn-line" href="#start">
-                See the pricing
+                See how to start
               </Link>
             </>
           ),
@@ -159,10 +159,10 @@ export default function AiAuditPage() {
       <section className="section on-mist" id="start">
         <div className="wrap">
           <SectionHead
-            kicker="Pricing"
+            kicker="Ways to engage"
             title={
               <>
-                Clear pricing. <em>No surprises.</em>
+                Clear scope. <em>No surprises.</em>
               </>
             }
             lead="Three ways to engage: start free, get clarity in 14 days, or build and run the systems with us."

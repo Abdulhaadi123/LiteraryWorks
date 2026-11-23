@@ -1,0 +1,99 @@
+/**
+ * What the assistant knows: the site's own words, gathered from the same data the pages render. Nothing here is
+ * written separately, so the assistant can never say something the site does not.
+ */
+import { auditOutputs, cases, company, engagement, faqs, guarantee, industries, ladder, location, moreBuilt, phases, plan, principles, products } from "@/lib/content";
+import { servicePages } from "@/lib/service-pages";
+import { services } from "@/lib/services";
+
+const list = (items: string[]) => items.map((i) => `- ${i}`).join("\n");
+
+function build() {
+  const parts: string[] = [];
+
+  parts.push(`# Company
+LiteraryWorks is a brand of ${company.legalName}, based in ${location.label}. It designs and builds AI automation, web and mobile apps and cloud systems for U.S. businesses.
+Email: ${company.email}. Contact form: /contact. There is no published phone number or street address.`);
+
+  parts.push(`# Ways to engage (the free 1-hour audit is the only published price; the 14-day audit and every build are quoted per business)
+${ladder.map((o) => `## ${o.name}: ${o.price} (${o.unit})${o.note ? `. ${o.note}` : ""}
+${list(o.points)}
+Link: ${o.cta.href}`).join("\n")}
+Guarantee on the paid audit: ${guarantee}`);
+
+  parts.push(`# The 14-day AI audit, day by day
+${plan.map((p) => `- ${p.days}, ${p.title}: ${p.text} You get: ${p.gets.join("; ")}.`).join("\n")}
+What you leave the free 1-hour audit with:
+${auditOutputs.map((a) => `- ${a.title}: ${a.text}`).join("\n")}
+Page: /ai-audit`);
+
+  parts.push(`# Services (page for each: /services/<slug>; all services: /services)
+${services
+  .map((s) => {
+    const p = servicePages[s.slug];
+    return `## ${s.name} (slug: ${s.slug})
+${s.short} ${p?.summary ?? ""}
+Features: ${p?.features.join("; ") ?? ""}
+Outcomes: ${p?.outcomes.join("; ") ?? ""}
+Use cases: ${p?.useCases.join("; ") ?? ""}
+Steps: ${p?.steps.map((x) => x.title).join(" > ") ?? ""}`;
+  })
+  .join("\n\n")}`);
+
+  parts.push(`# Case studies (page for each: /work/<slug>; all: /work)
+${cases
+  .map(
+    (c) => `## ${c.title} (slug: ${c.slug})
+Client: ${c.client}. Timeline: ${c.timeline}. Tags: ${c.tags.join(", ")}.
+${c.summary}
+Built: ${c.built.join("; ")}
+Results: ${c.results.map((r) => `${r.value} ${r.label}`).join("; ")}
+Tech: ${c.tech.join(", ")}${c.quote ? `\nClient quote: "${c.quote.text}" (${c.quote.name}, ${c.quote.role})` : ""}`,
+  )
+  .join("\n\n")}`);
+
+  parts.push(`# Our own products (each has its own website)
+${products.map((p) => `## ${p.name}: ${p.category}. ${p.status}.
+${p.text}
+Covers ${p.domains.join(", ")} and ${p.moreDomains} more regulatory domains. ${p.facts.map((f) => `${f.value} ${f.label.toLowerCase()}`).join("; ")}.
+Website: ${p.url} (the one outside link you may give, written as plain text, not as a markdown link)`).join("\n")}`);
+
+  parts.push(`# Other products the team has built (no pages of their own)
+${moreBuilt.map((m) => `- ${m.name}: ${m.text}`).join("\n")}`);
+
+  parts.push(`# How an engagement runs (four phases)
+${phases.map((p) => `- ${p.title}: ${p.goal} You get: ${p.gets.join("; ")}.`).join("\n")}
+Short form: ${engagement.map((e) => e.title).join(", ")}.`);
+
+  parts.push(`# Principles
+${principles.map((p) => `- ${p.title}: ${p.text}`).join("\n")}`);
+
+  parts.push(`# Industries
+${industries.map((i) => `- ${i.name}: ${i.text}`).join("\n")}`);
+
+  parts.push(`# FAQ
+${faqs.map((f) => `Q: ${f.q}\nA: ${f.a}`).join("\n")}`);
+
+  parts.push(`# Pages you may link to
+/ (home), /services, /ai-audit, /work, /about, /contact, /contact?topic=audit (book the free AI audit), /privacy,
+${services.map((s) => `/services/${s.slug}`).join(", ")},
+${cases.map((c) => `/work/${c.slug}`).join(", ")}`);
+
+  return parts.join("\n\n");
+}
+
+export const knowledge = build();
+
+/** Every path the assistant may link to; any other link in an answer is shown as plain text. */
+export const linkablePaths = new Set<string>([
+  "/",
+  "/services",
+  "/ai-audit",
+  "/work",
+  "/about",
+  "/contact",
+  "/contact?topic=audit",
+  "/privacy",
+  ...services.map((s) => `/services/${s.slug}`),
+  ...cases.map((c) => `/work/${c.slug}`),
+]);

@@ -319,8 +319,8 @@ export const ladder: Offer[] = [
   {
     tag: "Most chosen",
     name: "AI audit",
-    price: "$2,500",
-    unit: "14-day engagement",
+    price: "14 days",
+    unit: "From workflow map to a clear roadmap",
     note: "Credited toward the build if you go ahead with us.",
     points: [
       "A full workflow breakdown across operations",
@@ -335,8 +335,8 @@ export const ladder: Offer[] = [
   {
     tag: "Build and run",
     name: "AI system implementation",
-    price: "From $10,000",
-    unit: "Fixed quote after the audit",
+    price: "Fixed quote",
+    unit: "Scoped to your systems after the audit",
     points: [
       "Automations and AI agents built for your operations",
       "Integrated into the tools you already use",
@@ -407,12 +407,12 @@ export const faqs = [
     a: "No. It is a working session. We recommend a paid engagement only when it clearly makes sense for your business, and some audits end without a project.",
   },
   {
-    q: "What do I get in the $2,500 audit?",
+    q: "What do I get in the 14-day audit?",
     a: "A 14-day structured engagement: a full workflow breakdown, an AI system architecture, an ROI estimate and an implementation roadmap. If you build with us, the fee is credited toward the work.",
   },
   {
     q: "How is implementation priced?",
-    a: "From $10,000, depending on scope, integrations and complexity. After the audit we give you a fixed quote, so there are no surprises.",
+    a: "Every build is quoted on its own scope, integrations and complexity. After the audit we give you a fixed quote, so there are no surprises.",
   },
   {
     q: "How long does a build take?",
@@ -593,3 +593,33 @@ export const location = {
   mapEmbed: "https://www.google.com/maps?q=San+Antonio%2C+Texas&z=11&output=embed",
   mapLink: "https://www.google.com/maps/search/?api=1&query=San+Antonio%2C+Texas",
 };
+
+/** Our own products, as literaryworx.com presents them (figures and wording from that site; nothing added here). */
+export interface Product {
+  name: string;
+  category: string;
+  text: string;
+  domains: string[];
+  moreDomains: number;
+  facts: Metric[];
+  status: string;
+  url: string;
+}
+
+export const products: Product[] = [
+  {
+    name: "Balosys",
+    category: "Compliance intelligence for financial institutions",
+    text: "An AI-powered compliance intelligence platform that gives financial institutions on-demand access to 19 specialist advisors covering every major regulatory domain. Expert guidance in seconds, at a fraction of the cost of outside counsel.",
+    domains: ["UDAAP", "Fair Lending", "BSA / AML", "FCRA", "Reg Z", "CRA", "TCPA", "Vendor Risk"],
+    moreDomains: 39,
+    facts: [
+      { value: "19", label: "AI specialists" },
+      { value: "47+", label: "Regulatory domains" },
+      { value: "24/7", label: "Availability" },
+      { value: "$79", label: "Starting per month" },
+    ],
+    status: "Launching 2026",
+    url: "https://balosys.com/",
+  },
+];

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SystemDashPoster, SystemPoster } from "@/components/Posters";
 import { CaseReel } from "@/components/CaseReel";
 import { Marquee } from "@/components/Marquee";
+import { Products } from "@/components/Products";
 import { d, Faq, Ladder, SectionHead, Tiles } from "@/components/ui";
 import { QuoteSwitcher } from "@/components/QuoteSwitcher";
 import { ServicesGrid } from "@/components/ServicesGrid";
@@ -171,6 +172,8 @@ export default function Home() {
           </>
         }
       />
+
+      <Products />
 
       <section className="section on-white">
         <div className="wrap">
