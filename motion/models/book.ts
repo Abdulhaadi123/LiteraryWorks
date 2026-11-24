@@ -24,10 +24,13 @@ const BLOCK = 0.2;
 const Y0 = COVER + BLOCK;
 const STEP = 0.012;
 /** A page's picture, in pixels: [width, height] (smaller where the book is one of several objects on the stage). */
-const PAGE_PX: Record<"full" | "mini", [number, number]> = { full: [512, 683], mini: [384, 512] };
+const PAGE_PX: Record<"full" | "mini", [number, number]> = { full: [768, 1024], mini: [512, 683] };
 const NAVY = "#22425f";
 const GREEN = "#5db536";
 const INK = "#191716";
+// (text on the pages is dark and neutral: the blue-grey and pale greens that were used for small words were hard to read)
+const SOFT = "rgba(25, 23, 22, 0.78)";
+const DEEP_GREEN = "#2f7d1b";
 
 type Pen = (g: CanvasRenderingContext2D, w: number, h: number) => void;
 interface Spread {
@@ -123,7 +126,7 @@ function picture(img: HTMLImageElement | null, caption: string, note: string): P
     g.font = "700 24px Inter, system-ui, sans-serif";
     // (a long name wraps to a second line instead of running off the page)
     const next = wrap(g, caption, 40, y + ph + 54, w - 80, 28, 2);
-    g.fillStyle = "rgba(34,66,95,0.7)";
+    g.fillStyle = SOFT;
     g.font = "500 17px Inter, system-ui, sans-serif";
     wrap(g, note, 40, next + 4, w - 80, 24, 3);
   };
@@ -135,16 +138,16 @@ function caseText(c: (typeof cases)[number]): Pen {
     g.fillStyle = INK;
     g.font = "700 30px Inter, system-ui, sans-serif";
     let y = wrap(g, c.title, 40, 128, w - 80, 36, 4);
-    g.fillStyle = "rgba(34,66,95,0.7)";
+    g.fillStyle = SOFT;
     g.font = "500 17px Inter, system-ui, sans-serif";
     y = wrap(g, c.client, 40, y + 8, w - 80, 24, 2);
     fillRR(g, 40, y + 14, w - 80, 2, 1, "rgba(34,66,95,0.15)");
     c.results.slice(0, 3).forEach((m, i) => {
       const yy = y + 76 + i * 92;
-      g.fillStyle = i === 0 ? GREEN : NAVY;
+      g.fillStyle = i === 0 ? DEEP_GREEN : INK;
       g.font = "700 44px Inter, system-ui, sans-serif";
       g.fillText(m.value, 40, yy);
-      g.fillStyle = "rgba(25,23,22,0.75)";
+      g.fillStyle = SOFT;
       g.font = "500 17px Inter, system-ui, sans-serif";
       wrap(g, m.label, 40, yy + 28, w - 80, 22, 2);
     });
@@ -185,7 +188,7 @@ const introPage: Pen = (g, w) => {
   cases.forEach((c, i) => {
     g.fillStyle = GREEN;
     g.fillText(String(i + 1).padStart(2, "0"), 40, 262 + i * 58);
-    g.fillStyle = "rgba(25,23,22,0.8)";
+    g.fillStyle = INK;
     wrap(g, c.title, 80, 262 + i * 58, w - 120, 22, 2);
   });
 };
@@ -288,7 +291,7 @@ function aboutSpreads(imgs: (HTMLImageElement | null)[]): Spread[] {
       g.font = "700 34px Inter, system-ui, sans-serif";
       const y = wrap(g, pr.title, 40, 134, w - 80, 40, 3);
       fillRR(g, 40, y - 14, 150, 5, 2.5, GREEN);
-      g.fillStyle = "rgba(25,23,22,0.78)";
+      g.fillStyle = INK;
       g.font = "500 19px Inter, system-ui, sans-serif";
       wrap(g, pr.text, 40, y + 34, w - 80, 28, 8);
     },

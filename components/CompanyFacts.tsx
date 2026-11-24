@@ -6,7 +6,7 @@ import { company, location, products } from "@/lib/content";
  * Who stands behind the brand: the legal company, where it is based, who it serves and how to reach it, as a ruled
  * fact sheet. Only facts the site already states; no street address or phone number is published.
  */
-export function CompanyFacts({ tone = "white" }: { tone?: "white" | "mist" }) {
+export function CompanyFacts({ tone = "white", contact = true }: { tone?: "white" | "mist"; /** The "Contact the team" button (left out on the contact page itself). */ contact?: boolean }) {
   const rows: { label: string; value: React.ReactNode }[] = [
     { label: "Legal name", value: company.legalName },
     { label: "Brand", value: "LiteraryWorks" },
@@ -50,10 +50,12 @@ export function CompanyFacts({ tone = "white" }: { tone?: "white" | "mist" }) {
             lead={`LiteraryWorks is a brand of ${company.legalName}, a technology company based in ${location.label}. We design, build and run AI, software and cloud systems for U.S. businesses.`}
           />
           <div className="cta-row">
-            <Link className="btn btn-navy" href="/contact">
-              Contact the team
-            </Link>
-            <a className="btn btn-line" href={location.mapLink} target="_blank" rel="noopener noreferrer">
+            {contact ? (
+              <Link className="btn btn-navy" href="/contact">
+                Contact the team
+              </Link>
+            ) : null}
+            <a className={`btn ${contact ? "btn-line" : "btn-navy"}`} href={location.mapLink} target="_blank" rel="noopener noreferrer">
               Open in Google Maps
               <span className="sr-only"> (opens in a new tab)</span>
             </a>

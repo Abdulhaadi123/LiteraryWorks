@@ -1,3 +1,4 @@
+import { CompanyFacts } from "@/components/CompanyFacts";
 import { ContactForm } from "@/components/ContactForm";
 import { Faq, PageHero, SectionHead } from "@/components/ui";
 import { company, faqs, location } from "@/lib/content";
@@ -90,6 +91,8 @@ export default function ContactPage() {
           <Faq items={faqs} />
         </div>
       </section>
+
+      <CompanyFacts contact={false} />
     </>
   );
 }

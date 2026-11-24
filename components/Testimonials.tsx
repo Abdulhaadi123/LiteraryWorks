@@ -13,6 +13,9 @@ const initials = (name: string) =>
     .join("");
 
 const GAP = 20; // between two cards, in px (the same as in the CSS)
+/** How long a card stays before the row moves on, and how long it waits after the visitor has touched it. */
+const EVERY_MS = 4800;
+const AFTER_TOUCH_MS = 12000;
 
 /**
  * What clients say: a row of cards that scrolls sideways (the wheel, a swipe, the arrow keys, or the two buttons), each
@@ -52,6 +55,51 @@ export function Testimonials({ items }: { items: Quote[] }) {
       if (raf) cancelAnimationFrame(raf);
     };
   }, [read]);
+
+  /**
+   * The row moves on by itself, one card at a time, and comes back to the first after the last. It waits while the pointer is
+   * over it or keyboard focus is in it, for a while after a touch, the wheel or a key, while it is off screen or the tab is hidden,
+   * and it never moves for a visitor who asked for reduced motion.
+   */
+  useEffect(() => {
+    const el = track.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let hover = false;
+    let focus = false;
+    let visible = false;
+    let quietUntil = 0;
+    const touched = () => {
+      quietUntil = Date.now() + AFTER_TOUCH_MS;
+    };
+    const io = new IntersectionObserver((entries) => (visible = entries.some((e) => e.isIntersecting)), { threshold: 0.35 });
+    io.observe(el);
+    const enter = () => (hover = true);
+    const leave = () => (hover = false);
+    const fin = () => (focus = true);
+    const fout = () => (focus = false);
+    el.addEventListener("pointerenter", enter);
+    el.addEventListener("pointerleave", leave);
+    el.addEventListener("focusin", fin);
+    el.addEventListener("focusout", fout);
+    for (const t of ["pointerdown", "touchstart", "wheel", "keydown"]) el.addEventListener(t, touched, { passive: true });
+    const timer = window.setInterval(() => {
+      if (hover || focus || !visible || document.hidden || Date.now() < quietUntil) return;
+      const card = el.querySelector<HTMLElement>("li");
+      if (!card) return;
+      const step = card.offsetWidth + GAP;
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+      el.scrollTo({ left: atEnd ? 0 : Math.round(el.scrollLeft / step) * step + step, behavior: "smooth" });
+    }, EVERY_MS);
+    return () => {
+      window.clearInterval(timer);
+      io.disconnect();
+      el.removeEventListener("pointerenter", enter);
+      el.removeEventListener("pointerleave", leave);
+      el.removeEventListener("focusin", fin);
+      el.removeEventListener("focusout", fout);
+      for (const t of ["pointerdown", "touchstart", "wheel", "keydown"]) el.removeEventListener(t, touched);
+    };
+  }, []);
 
   const move = (dir: 1 | -1) => {
     const el = track.current;

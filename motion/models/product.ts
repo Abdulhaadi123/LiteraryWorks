@@ -94,9 +94,11 @@ const build: ModelBuilder = async (env, mini) => {
       const r = smooth(clamp01((p - 0.45) / 0.4));
       phones.forEach(({ phone, P }, i) => {
         const q = smooth(clamp01((p - 0.45 - i * 0.12) / 0.35));
-        P.position.y = H - 0.1 + q * 0.22;
-        // (it comes up and leans toward the viewer, so its screen faces the eye)
-        P.rotation.x = q * 0.34;
+        // it comes up and leans toward the viewer, so its screen faces the eye; it tips about its lower edge (that edge stays
+        // where it is, the top comes up), so no part of it sinks into the tray
+        const lean = q * 0.3;
+        P.position.y = H - 0.1 + q * 0.12 + 1.1 * Math.sin(lean);
+        P.rotation.x = lean;
         phone.power(0.25 + 0.75 * q);
       });
     },

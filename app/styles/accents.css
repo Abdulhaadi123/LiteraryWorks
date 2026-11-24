@@ -831,33 +831,18 @@
   }
   .sectors li:first-child h3 {
     color: #fff;
-    font-size: clamp(1.5rem, 2.2vw, 1.9rem);
   }
   .sectors li:first-child p {
     color: rgba(226, 236, 243, 0.82);
-    font-size: 1.05rem;
   }
   .sectors li:first-child .card-icon {
-    width: 3.4rem;
-    height: 3.4rem;
     background: var(--green);
     color: #10202f;
   }
-  @media (min-width: 64rem) {
-    .sectors li:first-child {
-      grid-column: span 2;
-      grid-row: span 2;
-      align-content: end;
-      padding: 2.5rem;
-    }
-  }
-  /* the large tile: the words first, then the work itself (a screenshot of the system) in whatever room is left, so
-     the picture never makes the tile taller than the two beside it */
+  /* the healthcare tile is as large as its words (a tile like the others, in navy), ending with a link to its case study */
   .sectors li:first-child {
     display: flex;
     flex-direction: column;
-    align-content: normal;
-    overflow: hidden;
   }
   .sector-link {
     display: inline-flex;
@@ -885,38 +870,6 @@
   }
   .sector-link:hover svg {
     transform: translateX(3px);
-  }
-  .sector-shot {
-    position: relative;
-    flex: 1 1 auto;
-    min-height: 11rem;
-    margin: 1.5rem 0 0;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 14px;
-    background: #0f2233;
-    box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.6);
-  }
-  .sector-shot img {
-    /* zoomed on the product itself (the dashboard, the right part of the picture), not on the title card beside it */
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 185%;
-    max-width: none;
-    height: auto;
-  }
-  @media (min-width: 64rem) {
-    .sectors li:first-child {
-      padding: 2rem 2.25rem 2.25rem;
-    }
-    .sectors li:first-child .card-icon {
-      width: 2.75rem;
-      height: 2.75rem;
-    }
-    .sectors li:first-child h3 {
-      margin-top: 1rem;
-    }
   }
 
   /* ---- questions: white cards with a round control, navy when open ---- */

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { versioned } from "@/lib/assets";
 import { auditOutputs, cases, industries, phases, problems, rhythm, techUsed, type Phase } from "@/lib/content";
 import { Icon, type IconName } from "./icons";
 import { Checks, SectionHead } from "./ui";
@@ -181,21 +180,14 @@ export function Industries({ tone = "white" }: { tone?: "white" | "mist" }) {
               </span>
               <h3>{i.name}</h3>
               <p>{i.text}</p>
-              {/* the large first tile ends with the work itself: the AI medical scribe we built for a healthcare client */}
+              {/* the first tile ends with a link to the work itself: the AI medical scribe we built for a healthcare client */}
               {k === 0 ? (
-                <>
-                  <Link className="sector-link" href="/work/ai-medical-scribe">
-                    See the AI medical scribe case study
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M5 12h14M13 6l6 6-6 6" />
-                    </svg>
-                  </Link>
-                  {/* the product's own dashboard, shown whole (never cut): the first picture of the case study's gallery */}
-                  <figure className="sector-shot">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={versioned("/cases/ai-medical-scribe/1.webp")} width={1280} height={660} alt="" loading="lazy" decoding="async" />
-                  </figure>
-                </>
+                <Link className="sector-link" href="/work/ai-medical-scribe">
+                  See the AI medical scribe case study
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </Link>
               ) : null}
             </li>
           ))}
