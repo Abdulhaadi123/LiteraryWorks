@@ -83,11 +83,46 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
     } catch {}
   }, [messages, busy]);
 
-  // follow the answer as it streams, unless the visitor has scrolled up to read
+  // the answer that has been shown in full (its follow-up questions and buttons wait for it)
+  const [doneId, setDoneId] = useState("");
+  const autoRaf = useRef(0);
+  const autoTop = useRef(0);
+
+  /**
+   * Follow the end of the conversation as it grows, unless the visitor has scrolled up to read. The view eases towards the end
+   * a little each frame instead of jumping a line at a time, and stops as soon as it has arrived.
+   */
+  const follow = useCallback(() => {
+    if (autoRaf.current) return;
+    let prev = performance.now();
+    const step = (now: number) => {
+      autoRaf.current = 0;
+      const el = list.current;
+      if (!el || !pinned.current) return;
+      const dt = Math.min(64, Math.max(0, now - prev));
+      prev = now;
+      const to = el.scrollHeight - el.clientHeight;
+      const gap = to - el.scrollTop;
+      if (Math.abs(gap) < 0.5) return;
+      const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      el.scrollTop = calm || Math.abs(gap) < 1.5 ? to : el.scrollTop + gap * (1 - Math.exp(-dt / 110));
+      autoTop.current = el.scrollTop;
+      autoRaf.current = requestAnimationFrame(step);
+    };
+    autoRaf.current = requestAnimationFrame(step);
+  }, []);
+
   useLayoutEffect(() => {
-    const el = list.current;
-    if (el && pinned.current) el.scrollTop = el.scrollHeight;
-  }, [messages, form]);
+    follow();
+  }, [messages, form, doneId, follow]);
+
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(autoRaf.current);
+      autoRaf.current = 0;
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -106,7 +141,8 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
 
   const onScroll = () => {
     const el = list.current;
-    if (el) pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48;
+    // (the view moving by itself, towards the end of a growing answer, is not the visitor scrolling away)
+    if (el && Math.abs(el.scrollTop - autoTop.current) > 1.5) pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48;
   };
 
   const ask = useCallback(
@@ -242,7 +278,7 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
   }, [draft]);
 
   const last = messages[messages.length - 1];
-  const settled = !busy && last?.role === "assistant" && !last.error;
+  const settled = !busy && last?.role === "assistant" && !last.error && doneId === last.id;
 
   return (
     <div id="lw-chat" className={`chat${open ? " is-open" : ""}`} role="dialog" aria-labelledby={titleId} aria-hidden={!open} inert={!open} onKeyDown={onPanelKey}>
@@ -299,18 +335,11 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
                 <div className="chat-bubble">{m.content}</div>
               </div>
             );
-          const typing = busy && isLast && !m.content;
           return (
             <Fragment key={m.id}>
               <div className={`chat-msg is-bot${m.error ? " is-error" : ""}`}>
                 <div className="chat-bubble" aria-busy={busy && isLast}>
-                  {typing ? (
-                    <span className="chat-typing" aria-label="The assistant is writing">
-                      <i />
-                      <i />
-                      <i />
-                    </span>
-                  ) : m.error ? (
+                  {m.error ? (
                     <>
                       <p>{m.content}</p>
                       {m.final ? (
@@ -329,8 +358,15 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
                     </>
                   ) : (
                     <>
-                      <Rich text={m.content} onNavigate={closeOnPhone(onClose)} onContact={openForm} />
-                      {m.cut && isLast && !busy && (
+                      <Answer
+                        text={m.content}
+                        live={busy && isLast}
+                        onNavigate={closeOnPhone(onClose)}
+                        onContact={openForm}
+                        onGrow={follow}
+                        onDone={() => setDoneId(m.id)}
+                      />
+                      {m.cut && isLast && !busy && doneId === m.id && (
                         <p className="chat-cut">
                           The answer was cut off.{" "}
                           <button type="button" className="chat-retry" onClick={retry}>
@@ -421,6 +457,150 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
 const closeOnPhone = (onClose: () => void) => () => {
   if (window.matchMedia("(max-width: 47.99rem)").matches) onClose();
 };
+
+/**
+ * How an answer is shown while it streams in. The text reaches the browser in bursts, and showing each burst as it comes
+ * makes the answer lurch. So it is released at an even pace instead, a word at a time: gently when little is waiting, faster
+ * as more piles up (so it never falls far behind), and a little quicker once the answer is complete. The speed is the backlog
+ * times `catchUp` a second, kept between `base` and a ceiling (`max` while it streams, `finish` after), in characters a second.
+ */
+const REVEAL = { base: 55, max: 300, finish: 600, catchUp: 2.2 } as const;
+
+const calmMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** How much of the received text may be shown now: never a half-written word, link, bold text or list marker. */
+function revealLimit(text: string, live: boolean): number {
+  if (!live) return text.length;
+  let limit = text.length;
+  // the last word may still be growing
+  const tail = /\s(\S*)$/.exec(text);
+  if (tail) {
+    if (tail[1]) limit = tail.index + 1;
+  } else limit = 0;
+  // bold text that has not been closed (a link that has not been closed is shown by its words alone: see `unfinished`)
+  if ((text.slice(0, limit).match(/\*\*/g) ?? []).length % 2 === 1) {
+    const at = text.lastIndexOf("**", limit - 1);
+    if (at >= 0 && limit - at < 200) limit = at;
+  }
+  // a list marker or heading mark on its own: the line is not a list item yet
+  const nl = text.lastIndexOf("\n", limit - 1);
+  if (/^\s*(?:[-*•#]+|\d+[.)])\s*$/.test(text.slice(nl + 1, limit))) limit = nl + 1;
+  return Math.max(0, limit);
+}
+
+/**
+ * The text as far as it is shown, without the markup of a link that is still being written: [the free AI au shows as the
+ * free AI au, and becomes a link when it is closed (so a long link's words appear one by one, not all at once).
+ */
+const unfinished = (s: string) => s.replace(/\[([^\]\n]*)(?:\]\([^)\s]*)?$/, "$1");
+
+/** Where to stop for a wish to show `want` characters: at the end of a word, and not inside bold text. */
+function snapEnd(text: string, want: number, limit: number): number {
+  let end = Math.min(want, limit);
+  if (end >= limit) return limit;
+  if (end > 0 && !/\s/.test(text[end - 1]) && !/\s/.test(text[end])) {
+    const gap = text.slice(end, limit).search(/\s/);
+    end = gap < 0 ? limit : end + gap;
+  }
+  for (const m of text.slice(0, limit).matchAll(/\*\*[^*\n]+\*\*/g)) {
+    const from = m.index ?? 0;
+    const to = from + m[0].length;
+    if (from < end && end < to) {
+      end = to;
+      break;
+    }
+    if (from >= end) break;
+  }
+  // not straight after a list marker or heading mark (a lone "-" is not a list item yet): take the item's first word with it
+  const line = text.lastIndexOf("\n", end - 1) + 1;
+  if (/^\s*(?:[-*•#]+|\d+[.)])\s*$/.test(text.slice(line, end))) {
+    const word = /\S+/.exec(text.slice(end, limit));
+    end = word ? end + (word.index ?? 0) + word[0].length : line;
+  }
+  return end;
+}
+
+/** How many characters of a streaming answer to show: it follows the text that has arrived at an even pace. */
+function useReveal(text: string, live: boolean): number {
+  const [shown, setShown] = useState(() => (live && !calmMotion() ? 0 : text.length));
+  const src = useRef({ text, live });
+  src.current = { text, live };
+  const run = useRef({ pos: shown, shown, raf: 0, last: 0 });
+
+  useEffect(() => {
+    const s = run.current;
+    const frame = (now: number) => {
+      s.raf = 0;
+      const { text: t, live: going } = src.current;
+      const limit = revealLimit(t, going);
+      const dt = Math.min(0.064, Math.max(0, (now - s.last) / 1000));
+      s.last = now;
+      if (calmMotion()) s.pos = limit;
+      else if (s.pos < limit) {
+        const backlog = limit - s.pos;
+        const rate = Math.min(going ? REVEAL.max : REVEAL.finish, Math.max(REVEAL.base, backlog * REVEAL.catchUp));
+        s.pos = Math.min(limit, s.pos + rate * dt);
+      }
+      const next = snapEnd(t, Math.floor(s.pos), limit);
+      if (next !== s.shown) {
+        s.shown = next;
+        setShown(next);
+      }
+      if (going || s.shown < t.length) s.raf = requestAnimationFrame(frame);
+    };
+    if (!s.raf && (live || s.shown < text.length)) {
+      s.last = performance.now();
+      s.raf = requestAnimationFrame(frame);
+    }
+  }, [text, live]);
+
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(run.current.raf);
+      run.current.raf = 0;
+    },
+    [],
+  );
+  return shown;
+}
+
+/** An answer: three dots until its first words are ready, then the text, released evenly (see REVEAL). */
+function Answer({
+  text,
+  live,
+  onNavigate,
+  onContact,
+  onGrow,
+  onDone,
+}: {
+  text: string;
+  live: boolean;
+  onNavigate: () => void;
+  onContact: (topic?: string) => void;
+  onGrow: () => void;
+  onDone: () => void;
+}) {
+  const shown = useReveal(text, live);
+  const done = !live && shown >= text.length;
+  const finished = useRef(onDone);
+  finished.current = onDone;
+  // keep the end of the conversation in view as the answer grows
+  useLayoutEffect(() => {
+    onGrow();
+  }, [shown, onGrow]);
+  useEffect(() => {
+    if (done) finished.current();
+  }, [done]);
+  if (!shown && live)
+    return (
+      <span className="chat-typing" aria-label="The assistant is writing">
+        <i />
+        <i />
+        <i />
+      </span>
+    );
+  return <Rich text={live || shown < text.length ? unfinished(text.slice(0, shown)) : text} onNavigate={onNavigate} onContact={onContact} />;
+}
 
 /** The answer's light markdown (paragraphs, lists, **bold**, links to our own pages) as React elements, never HTML. */
 function Rich({ text, onNavigate, onContact }: { text: string; onNavigate: () => void; onContact: (topic?: string) => void }) {

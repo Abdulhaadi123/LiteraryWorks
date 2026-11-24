@@ -402,6 +402,8 @@ html.chat-locked body {
   padding: 1.125rem 1rem 1rem;
   background: var(--mist);
   scrollbar-width: thin;
+  /* the view follows a growing answer by itself (ChatPanel.tsx): the browser must not also adjust it */
+  overflow-anchor: none;
 }
 .chat-msg {
   display: flex;
@@ -422,6 +424,15 @@ html.chat-locked body {
   border: 1px solid var(--line);
   border-bottom-left-radius: 4px;
   color: var(--ink);
+  /* one width from the first word to the last: a bubble that fits its text would grow and re-wrap with every new word */
+  width: 88%;
+  transition: width 0.3s var(--ease-out);
+}
+.is-bot .chat-bubble:has(> .chat-typing) {
+  width: 4.1rem;
+}
+.is-bot.is-error .chat-bubble {
+  width: auto;
 }
 .is-me .chat-bubble {
   background: var(--navy);
@@ -766,7 +777,8 @@ html.chat-locked body {
   .chat-launcher,
   .chat-launcher-icon,
   .chat-teaser,
-  .chat-teaser-body {
+  .chat-teaser-body,
+  .is-bot .chat-bubble {
     transition: none;
   }
   .chat-typing i,
