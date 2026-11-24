@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { versioned } from "@/lib/assets";
 import { auditOutputs, cases, industries, phases, problems, rhythm, techUsed, type Phase } from "@/lib/content";
 import { Icon, type IconName } from "./icons";
 import { Checks, SectionHead } from "./ui";
@@ -192,7 +193,7 @@ export function Industries({ tone = "white" }: { tone?: "white" | "mist" }) {
                   {/* the product's own dashboard, shown whole (never cut): the first picture of the case study's gallery */}
                   <figure className="sector-shot">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/cases/ai-medical-scribe/1.webp" width={1280} height={660} alt="" loading="lazy" decoding="async" />
+                    <img src={versioned("/cases/ai-medical-scribe/1.webp")} width={1280} height={660} alt="" loading="lazy" decoding="async" />
                   </figure>
                 </>
               ) : null}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProjectPage } from "@/components/ProjectPage";
 import { CaseCards, CaseImage, Checks, PageHero, SectionHead } from "@/components/ui";
+import { versioned } from "@/lib/assets";
 import { caseImages } from "@/lib/case-images";
 import { caseBySlug, cases } from "@/lib/content";
 import { projectBySlug, projects } from "@/lib/projects";
@@ -141,7 +142,7 @@ export default async function CasePage({ params }: { params: Promise<{ slug: str
                 <li key={i}>
                   <figure>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`/cases/${slug}/${i + 1}.webp`} width={s[0]} height={s[1]} alt={`${c.client}: screen ${i + 1} of ${gallery.length}`} loading="lazy" decoding="async" />
+                    <img src={versioned(`/cases/${slug}/${i + 1}.webp`)} width={s[0]} height={s[1]} alt={`${c.client}: screen ${i + 1} of ${gallery.length}`} loading="lazy" decoding="async" />
                   </figure>
                 </li>
               ))}

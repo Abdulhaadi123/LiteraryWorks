@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Checks, PageHero, Portfolio, SectionHead } from "@/components/ui";
+import { versioned } from "@/lib/assets";
 import { projectList, projectPictures, projects, type Project, type ProjectBlock } from "@/lib/projects";
 
 /**
@@ -41,7 +42,7 @@ export function ProjectPage({ p }: { p: Project }) {
     <li key={n}>
       <figure>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`/projects/${p.slug}/${n}.webp`} width={s[0]} height={s[1]} alt={alt(p, n, pics.length)} loading="lazy" decoding="async" />
+        <img src={versioned(`/projects/${p.slug}/${n}.webp`)} width={s[0]} height={s[1]} alt={alt(p, n, pics.length)} loading="lazy" decoding="async" />
       </figure>
     </li>
   );
@@ -62,7 +63,7 @@ export function ProjectPage({ p }: { p: Project }) {
           {/* the picture keeps its own shape (never cropped); it may be as wide as keeps it under 36rem tall */}
           <div className="wrap" style={{ aspectRatio: `${cover[0]} / ${cover[1]}`, maxWidth: `${((36 * cover[0]) / cover[1]).toFixed(1)}rem` }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`/projects/${p.slug}/1.webp`} width={cover[0]} height={cover[1]} alt={alt(p, 1, pics.length)} fetchPriority="high" decoding="async" />
+            <img src={versioned(`/projects/${p.slug}/1.webp`)} width={cover[0]} height={cover[1]} alt={alt(p, 1, pics.length)} fetchPriority="high" decoding="async" />
           </div>
         </div>
       ) : null}

@@ -1,3 +1,4 @@
+import { versioned } from "../../lib/assets";
 import type * as THREE from "three";
 import { loadImage } from "../kit";
 import { placeholderScreen, screenTexture } from "../screens";
@@ -33,9 +34,9 @@ export function createEnv(renderer: THREE.WebGLRenderer, seed: string): ModelEnv
     aniso,
     textures,
     rnd: rng(hash(seed)),
-    image: (name) => picture(name.startsWith("/") ? `${name}.webp` : `/shots/${name}.webp`),
+    image: (name) => picture(versioned(name.startsWith("/") ? `${name}.webp` : `/shots/${name}.webp`)),
     async shot(name, w = 1024, h = 576) {
-      const img = await picture(name.startsWith("/") ? `${name}.webp` : `/shots/${name}.webp`);
+      const img = await picture(versioned(name.startsWith("/") ? `${name}.webp` : `/shots/${name}.webp`));
       const tex = img ? screenTexture(img, aniso, w, h) : placeholderScreen(aniso, w, h);
       textures.push(tex);
       // give the browser a breath between pictures, so building a scene is many short tasks, not one long one

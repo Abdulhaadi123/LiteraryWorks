@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
+import { versioned } from "@/lib/assets";
 import { cases, faqs as allFaqs, guarantee, ladder, type CaseStudy } from "@/lib/content";
 import { services, type ServiceIndexItem } from "@/lib/services";
 import { Icon, serviceIcon, type IconName } from "./icons";
@@ -155,8 +156,8 @@ export function CaseImage({ slug, sizes, priority }: { slug: string; sizes: stri
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={`/cases/${slug}.webp`}
-      srcSet={`/cases/${slug}-640.webp 640w, /cases/${slug}.webp 1280w`}
+      src={versioned(`/cases/${slug}.webp`)}
+      srcSet={`${versioned(`/cases/${slug}-640.webp`)} 640w, ${versioned(`/cases/${slug}.webp`)} 1280w`}
       sizes={sizes}
       width={1280}
       height={720}
@@ -266,7 +267,7 @@ export function Portfolio({ items }: { items: { name: string; text: string; href
           <figure>
             {projectShot[m.name] ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={`/shots/${projectShot[m.name]}.webp`} width={1024} height={576} alt="" loading="lazy" decoding="async" />
+              <img src={versioned(`/shots/${projectShot[m.name]}.webp`)} width={1024} height={576} alt="" loading="lazy" decoding="async" />
             ) : null}
             <figcaption>
               <h3>{m.href ? <Link href={m.href}>{m.name}</Link> : m.name}</h3>
