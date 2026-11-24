@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { cases } from "@/lib/content";
-import { servicesAria } from "@/lib/scenes";
+import { SERVICES_AT, servicesAria, servicesScene } from "@/lib/scenes";
 import { servicePages } from "@/lib/service-pages";
 import { services } from "@/lib/services";
 import { Checks } from "./ui";
@@ -95,26 +95,50 @@ function Deck({
   );
 }
 
-/** The services as a deck: one small 3D scene for each service, each a different kind of animation, with its first three features beside it. */
+/**
+ * The services as a story that plays by itself (like the home page's hero): the introduction over a system plan, then one
+ * real object for each service with its first three features beside it. The camera moves from object to object on a
+ * timer and the words change with it, over and over; a bar for each beat jumps to it. One screen tall, so scrolling goes
+ * straight on to the page. Where the scene does not run, the plain list (`fallback`) is shown instead.
+ */
 export function ServicesDeck({ id, intro, fallback }: { id: string; intro: ReactNode; fallback: ReactNode }) {
+  const to = (i: number) => SERVICES_AT[i + 1] ?? 1;
   return (
-    <Deck
-      id={id}
-      variant="services"
-      vh={420}
-      aria={servicesAria}
-      intro={intro}
-      fallback={fallback}
-      items={services.map((s) => ({
-        id: s.slug,
-        title: s.name,
-        kicker: s.group,
-        lead: s.short,
-        bullets: servicePages[s.slug]?.features.slice(0, 3),
-        href: `/services/${s.slug}`,
-        cta: `Explore ${s.name}`,
-      }))}
-    />
+    <>
+      <Xp
+        id={id}
+        scene="deck"
+        className="xp-deck"
+        auto
+        steps={["Overview", ...services.map((s) => s.name)]}
+        aria={servicesAria}
+        labels={[]}
+        data={servicesScene()}
+      >
+        <Phase from={SERVICES_AT[0]} to={to(0)} on>
+          {intro}
+        </Phase>
+        {services.map((s, i) => {
+          const bullets = servicePages[s.slug]?.features.slice(0, 3);
+          return (
+            <Phase key={s.slug} from={SERVICES_AT[i + 1]} to={to(i + 1)}>
+              <p className="kicker">
+                {String(i + 1).padStart(2, "0")} / {s.group}
+              </p>
+              <h2 className="h-lg">{s.name}</h2>
+              <p className="lead">{s.short}</p>
+              {bullets ? <Checks items={bullets} /> : null}
+              <div className="cta-row">
+                <Link className="btn btn-white btn-sm" href={`/services/${s.slug}`}>
+                  Explore {s.name}
+                </Link>
+              </div>
+            </Phase>
+          );
+        })}
+      </Xp>
+      <div className="deck-fallback">{fallback}</div>
+    </>
   );
 }
 

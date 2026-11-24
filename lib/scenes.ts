@@ -1,5 +1,6 @@
 import type { SceneData } from "@/motion/types";
 import { caseForService } from "./content";
+import { services } from "./services";
 
 /**
  * Which real objects each pinned section shows, one for each beat of its copy, and what a screen reader is told about
@@ -59,9 +60,22 @@ const STORY = ["devices", "report", "hub", "product"];
 // (it plays by itself and comes round to its first object again: see `loop` in motion/types.ts)
 export const storyScene = (): SceneData => ({ ...sequence(STORY, [0, 0.25, 0.5, 0.75]), loop: true });
 
-/** An inner page's scene (components/SceneHero.tsx: the headline, two chapters and a closing call to action). */
+/**
+ * The services page's story: an object for its introduction (a system plan on the table: "one method"), then the object of
+ * each service in the order the site lists them. Like the home page's it plays by itself and comes round to its first
+ * object again. `SERVICES_AT` is where each beat begins; the page's copy (components/ServicesDeck.tsx) uses the same numbers.
+ */
+const SERVICES_IDS = ["blueprint", ...services.map((s) => s.slug)];
+export const SERVICES_AT = SERVICES_IDS.map((_, i) => i / SERVICES_IDS.length);
+export const servicesScene = (): SceneData => ({ ...sequence(SERVICES_IDS, SERVICES_AT), variant: "services", loop: true });
+
+/**
+ * An inner page's scene (components/SceneHero.tsx: the headline, two chapters and a closing call to action): four beats,
+ * one object each, playing by itself like the home page's. `PAGE_AT` is where each beat begins; the page's copy uses it too.
+ */
+export const PAGE_AT = [0, 0.25, 0.5, 0.75];
 export function pageScene(variant: string): SceneData {
-  return sequence(pageIds(variant), [0, 0.12, 0.5, 0.8]);
+  return { ...sequence(pageIds(variant), PAGE_AT), loop: true };
 }
 function pageIds(variant: string): string[] {
   if (variant === "audit") return ["calculator", "stopwatch", "calendar", "book:handbook"];
@@ -77,7 +91,7 @@ export function sceneAria(variant: string): string {
 }
 
 /** Bumped whenever the stills are rendered again, so browsers fetch the new pictures instead of a cached old one. */
-export const STILL_VERSION = "5";
+export const STILL_VERSION = "6";
 
 /** What a service's still (the home page's grid) shows. */
 export const serviceStillAlt = (slug: string): string => {
@@ -85,10 +99,8 @@ export const serviceStillAlt = (slug: string): string => {
   return d.charAt(0).toUpperCase() + d.slice(1);
 };
 
-/** The services deck: one object for each service, in the order the site lists them. */
+/** The services page's picture: an object for the introduction, then one for each service, one at a time, changing by themselves. */
 export const servicesAria =
-  "Nine 3D scenes, one for each service, shown one at a time: " +
-  Object.values(SERVICE_MODELS)
-    .map(([m]) => DESC[m])
-    .join("; ") +
+  "A 3D picture that changes by itself, one object at a time: " +
+  [DESC.blueprint, ...Object.values(SERVICE_MODELS).map(([m]) => DESC[m])].join("; then ") +
   ".";

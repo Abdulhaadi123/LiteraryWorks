@@ -194,7 +194,7 @@ async function main() {
   }
 }
 
-/** The nine services' stills for the home page's grid: the /services deck, each object in the middle of its beat, cut to 4:3. */
+/** The nine services' stills for the home page's grid: the /services story (it plays by itself; with ?still it can be drawn at an exact progress), each object in the middle of its beat, cut to 4:3. */
 async function renderServices(page) {
   const slugs = ["ai-automation", "ai-voice-systems", "saas-platforms", "enterprise-software", "ai-web-apps", "ai-mobile-apps", "ui-ux-design", "cloud-devops", "construction-technology"];
   const dir = join(out, "services");
@@ -215,13 +215,12 @@ async function renderServices(page) {
     return { left: copy.right + 24, right, top: 92, bottom: h - 92 };
   })()`);
   await page.ev(`(() => { const s = document.createElement('style'); s.textContent = ${JSON.stringify(STILL_CSS)}; document.head.appendChild(s); })()`);
-  const INTRO = 0.09;
-  const start = (i) => (i === 0 ? 0 : INTRO + (i / slugs.length) * (1 - INTRO));
+  // ten beats (the introduction, then the nine services), each a tenth of the story: SERVICES_AT in lib/scenes.ts
+  const beats = slugs.length + 1;
   for (let i = 0; i < slugs.length; i++) {
-    const p = (start(i) + (i < slugs.length - 1 ? start(i + 1) : 1)) / 2;
-    const y = await page.ev(`(() => { const s = document.querySelector('#services-deck'); const top = s.getBoundingClientRect().top + scrollY; const end = top + s.offsetHeight - innerHeight; return top + ${p} * (end - top); })()`);
-    await page.ev(`window.scrollTo(0, ${y})`);
-    await sleep(5000);
+    const p = (i + 1 + 0.5) / beats;
+    await page.ev(`window.__lwSeek(${p})`);
+    await sleep(2500);
     // a 4:3 cut round the middle of the band, with a little air round the object (the header and the copy are hidden)
     const bw = band.right - band.left;
     const bh = band.bottom - band.top;

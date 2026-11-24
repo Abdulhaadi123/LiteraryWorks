@@ -523,3 +523,11 @@ html.motion .xp.xp-auto.xp-live:not(.xp-failed) .xp-controls {
   outline-offset: 2px;
   border-radius: 6px;
 }
+
+/* a short screen (a small laptop): the words of a story that plays by itself keep clear of the floating header above and of
+   the beat bars below, whatever the length of the beat's headline */
+@media (max-height: 44rem) {
+  html.motion .xp.xp-auto:not(.xp-failed) .xp-phase {
+    padding-block: 4.6rem 3.6rem;
+  }
+}

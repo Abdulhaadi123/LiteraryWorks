@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { pageScene, sceneAria } from "@/lib/scenes";
+import { PAGE_AT, pageScene, sceneAria } from "@/lib/scenes";
 import { Checks } from "./ui";
 import { Phase, Xp } from "./Xp";
 
@@ -11,8 +11,9 @@ export interface Chapter {
 }
 
 /**
- * The top of an inner page, as a short pinned scene: the page's headline first, then two chapters and a closing
- * call to action beside the 3D picture, which plays this page's own story (a pipeline, a ring of sound, a stack of layers ...).
+ * The top of an inner page, as a scene that plays by itself (like the home page's): the page's headline first, then two
+ * chapters and a closing call to action beside the 3D picture, which moves on from object to object on a timer (a
+ * pipeline, a book of our case studies, a speakerphone ...). One screen tall, so scrolling goes straight on to the page.
  * On phones, under reduced motion and where the scene cannot start, only the headline block shows (the rest of
  * the page says the same things in full).
  */
@@ -38,9 +39,19 @@ export function SceneHero({
   chapters: [Chapter, Chapter];
   closing: { title: ReactNode; lead: string; actions: ReactNode };
 }) {
+  const to = (i: number) => PAGE_AT[i + 1] ?? 1;
   return (
-    <Xp id={id} scene="deck" className="xp-compact" vh={260} aria={aria ?? sceneAria(variant)} labels={[]} data={pageScene(variant)}>
-      <Phase from={0} to={0.12}>
+    <Xp
+      id={id}
+      scene="deck"
+      className="xp-compact"
+      auto
+      steps={["Overview", chapters[0].kicker, chapters[1].kicker, "Next step"]}
+      aria={aria ?? sceneAria(variant)}
+      labels={[]}
+      data={pageScene(variant)}
+    >
+      <Phase from={PAGE_AT[0]} to={to(0)} on>
         <p className="kicker rise">{kicker}</p>
         <h1 className="h-hero rise" style={{ "--i": 1 } as React.CSSProperties}>
           {title}
@@ -53,14 +64,14 @@ export function SceneHero({
         </div>
       </Phase>
       {chapters.map((c, i) => (
-        <Phase key={c.kicker} from={i ? 0.5 : 0.12} to={i ? 0.8 : 0.5}>
+        <Phase key={c.kicker} from={PAGE_AT[i + 1]} to={to(i + 1)}>
           <p className="kicker">{c.kicker}</p>
           <h2 className="h-lg">{c.title}</h2>
           {c.lead ? <p className="lead">{c.lead}</p> : null}
           {c.items ? <Checks items={c.items} /> : null}
         </Phase>
       ))}
-      <Phase from={0.8} to={1}>
+      <Phase from={PAGE_AT[3]} to={to(3)}>
         <p className="kicker">Next step</p>
         <h2 className="h-lg">{closing.title}</h2>
         <p className="lead">{closing.lead}</p>

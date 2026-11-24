@@ -6,7 +6,7 @@ import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
   "AI audit",
-  "Start with a free 1-hour AI audit, or a 14-day audit that ends in a roadmap you can act on, with or without us. Money-back guarantee.",
+  "Start with a free 1-hour AI audit, or a 14-day audit that ends in a roadmap you can act on, with or without us.",
   "/ai-audit",
 );
 
@@ -59,7 +59,7 @@ export default function AiAuditPage() {
               Start free. <em>Go deeper when it makes sense</em>
             </>
           ),
-          lead: "If the audit does not give you clarity on what to automate next, you do not pay.",
+          lead: "The first hour is free, and the plan you leave with is yours whether or not we build it.",
           actions: (
             <>
               <Link className="btn btn-navy" href="/contact?topic=audit">

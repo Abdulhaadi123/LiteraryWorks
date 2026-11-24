@@ -2,7 +2,7 @@
  * What the assistant knows: the site's own words, gathered from the same data the pages render. Nothing here is
  * written separately, so the assistant can never say something the site does not.
  */
-import { auditOutputs, cases, company, engagement, faqs, guarantee, industries, ladder, location, phases, plan, principles, products } from "@/lib/content";
+import { auditOutputs, cases, company, engagement, faqs, industries, ladder, location, phases, plan, principles, products } from "@/lib/content";
 import { projects, projectPictures, type Project } from "@/lib/projects";
 import { servicePages } from "@/lib/service-pages";
 import { services } from "@/lib/services";
@@ -37,7 +37,7 @@ Email: ${company.email}. Contact form: /contact. There is no published phone num
 ${ladder.map((o) => `## ${o.name}: ${o.price} (${o.unit})${o.note ? `. ${o.note}` : ""}
 ${list(o.points)}
 Link: ${o.cta.href}`).join("\n")}
-Guarantee on the paid audit: ${guarantee}`);
+(There is no published guarantee, refund or money-back policy.)`);
 
   parts.push(`# The 14-day AI audit, day by day
 ${plan.map((p) => `- ${p.days}, ${p.title}: ${p.text} You get: ${p.gets.join("; ")}.`).join("\n")}

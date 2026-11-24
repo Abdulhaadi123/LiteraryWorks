@@ -851,20 +851,6 @@ a.case:hover .case-img img,
     padding-block: 2.9rem;
   }
 }
-.guarantee {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem 1rem;
-  margin-top: 2.5rem;
-  padding: 1.1rem 1.4rem;
-  border: 1px solid #cfeac2;
-  border-radius: var(--r);
-  background: #f2fbed;
-  font-size: 1rem;
-  color: #26521f;
-}
-
 /* ---------- what clients say ---------- */
 .quote {
   position: relative;

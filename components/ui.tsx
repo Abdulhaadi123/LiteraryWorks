@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import { versioned } from "@/lib/assets";
-import { cases, faqs as allFaqs, guarantee, ladder, type CaseStudy } from "@/lib/content";
+import { cases, faqs as allFaqs, ladder, type CaseStudy } from "@/lib/content";
 import { services, type ServiceIndexItem } from "@/lib/services";
 import { Icon, serviceIcon, type IconName } from "./icons";
 
@@ -125,29 +125,23 @@ export function ServiceCards({ items = services }: { items?: ServiceIndexItem[] 
 
 export function Ladder() {
   return (
-    <>
-      <ul className="ladder" data-stagger>
-        {ladder.map((o) => (
-          <li key={o.name} className={o.featured ? "is-featured" : undefined}>
-            <p className="ladder-tag">{o.tag}</p>
-            <h3 className="h-md">{o.name}</h3>
-            <p className="ladder-price">
-              <b>{o.price}</b>
-              <span>{o.unit}</span>
-            </p>
-            {o.note ? <p className="ladder-note">{o.note}</p> : null}
-            <Checks items={o.points} />
-            <Link href={o.cta.href} className={`btn ${o.featured ? "btn-white" : "btn-navy"}`}>
-              {o.cta.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <p className="guarantee" data-reveal>
-        <span className="pill pill-new">Guarantee</span>
-        {guarantee}
-      </p>
-    </>
+    <ul className="ladder" data-stagger>
+      {ladder.map((o) => (
+        <li key={o.name} className={o.featured ? "is-featured" : undefined}>
+          <p className="ladder-tag">{o.tag}</p>
+          <h3 className="h-md">{o.name}</h3>
+          <p className="ladder-price">
+            <b>{o.price}</b>
+            <span>{o.unit}</span>
+          </p>
+          {o.note ? <p className="ladder-note">{o.note}</p> : null}
+          <Checks items={o.points} />
+          <Link href={o.cta.href} className={`btn ${o.featured ? "btn-white" : "btn-navy"}`}>
+            {o.cta.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 

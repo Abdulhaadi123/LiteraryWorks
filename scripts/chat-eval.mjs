@@ -11,7 +11,7 @@ const cases = [
   { q: "Is the first audit really free?", must: [/free/i, /hour/i] },
   { q: "How is implementation priced?", must: [/fixed quote/i], mustNot: [/\$\s?(?!79\b)\d/] },
   { q: "How long does a build take?", must: [/four to six weeks|4.6 weeks|4 to 6 weeks/i] },
-  { q: "Do you have a money-back guarantee?", must: [/money-back|don't pay|do not pay/i] },
+  { q: "Do you have a money-back guarantee?", must: [/isn't|not published|can't confirm|team|contact|audit/i], mustNot: [/\byes\b[^.]{0,40}(money-back|refund)|100%|you (don't|do not) pay/i] },
   { q: "What happens on day 6 to 8 of the audit?", must: [/opportunit/i] },
   { q: "Where are you based?", must: [/San Antonio/i], mustNot: [/\b\d{2,5} [A-Z][a-z]+ (street|st\.|avenue|ave|road|rd|blvd)\b|suite \d|\b78\d{3}\b/i] },
   { q: "What's your email?", must: [/info@literaryworx\.com/i] },

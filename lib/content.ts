@@ -353,9 +353,6 @@ export const ladder: Offer[] = [
   },
 ];
 
-export const guarantee =
-  "If the audit doesn't give you clarity on what to automate next, you don't pay. It is a 100% money-back guarantee.";
-
 export interface PlanStep {
   days: string;
   title: string;

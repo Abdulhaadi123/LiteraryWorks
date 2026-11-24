@@ -23,7 +23,7 @@ export default function ServicesPage() {
               Nine services. <em>One method</em>
             </h2>
             <p className="lead">
-              We help businesses find, build and scale the systems that take work off their teams: strategy first, then automation, software and cloud. Keep scrolling to turn through them.
+              We help businesses find, build and scale the systems that take work off their teams: strategy first, then automation, software and cloud.
             </p>
             <div className="cta-row">
               <Link className="btn btn-navy" href="/contact?topic=audit">
