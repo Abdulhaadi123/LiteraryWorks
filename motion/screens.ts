@@ -13,30 +13,31 @@ import { canvasTexture } from "./kit";
  * picture, so nothing is cut off and no frame is drawn. The device's own glass gives the rounded corners.
  */
 export function screenTexture(img: HTMLImageElement, maxAniso: number, w = 1024, h = 640): THREE.CanvasTexture {
-  return canvasTexture(
-    w,
-    h,
-    (g, cw, ch) => {
-      g.imageSmoothingQuality = "high";
-      const iw = img.naturalWidth;
-      const ih = img.naturalHeight;
-      const k = Math.min(cw / iw, ch / ih);
-      const dw = iw * k;
-      const dh = ih * k;
-      const dx = (cw - dw) / 2;
-      const dy = (ch - dh) / 2;
-      if (dy > 0.5) {
-        g.drawImage(img, 0, 0, iw, 1, 0, 0, cw, dy + 1);
-        g.drawImage(img, 0, ih - 1, iw, 1, 0, dy + dh - 1, cw, ch - dy - dh + 1);
-      }
-      if (dx > 0.5) {
-        g.drawImage(img, 0, 0, 1, ih, 0, 0, dx + 1, ch);
-        g.drawImage(img, iw - 1, 0, 1, ih, dx + dw - 1, 0, cw - dx - dw + 1, ch);
-      }
-      g.drawImage(img, dx, dy, dw, dh);
-    },
-    maxAniso,
-  );
+  return canvasTexture(w, h, (g, cw, ch) => drawWhole(g, img, 0, 0, cw, ch), maxAniso);
+}
+
+/**
+ * Draws a picture whole inside a rectangle (x, y, w, h): as large as fits, centred, never cut off. Where it does not fill
+ * the rectangle, the strip left over continues the picture's own edge, so there is no frame and no bar.
+ */
+export function drawWhole(g: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number): void {
+  g.imageSmoothingQuality = "high";
+  const iw = img.naturalWidth;
+  const ih = img.naturalHeight;
+  const k = Math.min(w / iw, h / ih);
+  const dw = iw * k;
+  const dh = ih * k;
+  const dx = x + (w - dw) / 2;
+  const dy = y + (h - dh) / 2;
+  if (dy - y > 0.5) {
+    g.drawImage(img, 0, 0, iw, 1, x, y, w, dy - y + 1);
+    g.drawImage(img, 0, ih - 1, iw, 1, x, dy + dh - 1, w, y + h - dy - dh + 1);
+  }
+  if (dx - x > 0.5) {
+    g.drawImage(img, 0, 0, 1, ih, x, y, dx - x + 1, h);
+    g.drawImage(img, iw - 1, 0, 1, ih, dx + dw - 1, y, x + w - dx - dw + 1, h);
+  }
+  g.drawImage(img, dx, dy, dw, dh);
 }
 
 /** A screen for a device whose picture could not be fetched: the brand's navy with its green mark and a few lines, so a device never shows a blank. */

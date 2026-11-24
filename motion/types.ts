@@ -24,6 +24,9 @@ export interface SceneData {
    * range (progress 1 to 1 + LOOP_TAIL in motion/timing.ts), so the story can start over without a cut.
    */
   loop?: boolean;
+  /** For a deck that plays by itself: how long each beat lasts, and the first one, in ms (default: motion/timing.ts). */
+  beatMs?: number;
+  firstMs?: number;
 }
 
 /** A tag that follows a panel of the model. */

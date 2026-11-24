@@ -86,28 +86,45 @@ const kicker = (g: CanvasRenderingContext2D, text: string, y = 74) => {
 
 function picture(img: HTMLImageElement | null, caption: string, note: string): Pen {
   return (g, w, h) => {
-    const x = 40;
-    const y = 70;
-    const bw = w - 80;
-    const bh = h * 0.56;
+    // the whole picture, in its own shape (it is never cut to a box); a tall one is kept within the page
+    const room = w - 80;
+    const maxH = h * 0.56;
+    const aspect = img ? img.naturalWidth / img.naturalHeight : 16 / 9;
+    let pw = room;
+    let ph = room / aspect;
+    if (ph > maxH) {
+      ph = maxH;
+      pw = ph * aspect;
+    }
+    // the picture, its caption and its note stand as one block, centred on the page
+    const y = Math.max(70, (h - (ph + 54 + 24 * 3 + 8)) / 2 - 10);
+    const x = 40 + (room - pw) / 2;
     g.save();
-    rr(g, x, y, bw, bh, 14);
+    g.shadowColor = "rgba(25,40,60,0.3)";
+    g.shadowBlur = 24;
+    g.shadowOffsetY = 8;
+    rr(g, x, y, pw, ph, 14);
+    g.fillStyle = NAVY;
+    g.fill();
+    g.restore();
+    g.save();
+    rr(g, x, y, pw, ph, 14);
     g.clip();
     if (img) {
-      const k = Math.max(bw / img.naturalWidth, bh / img.naturalHeight);
       g.imageSmoothingQuality = "high";
-      g.drawImage(img, x + (bw - img.naturalWidth * k) / 2, y + (bh - img.naturalHeight * k) / 2, img.naturalWidth * k, img.naturalHeight * k);
-    } else {
-      g.fillStyle = NAVY;
-      g.fillRect(x, y, bw, bh);
+      g.drawImage(img, x, y, pw, ph);
     }
     g.restore();
+    rr(g, x, y, pw, ph, 14);
+    g.strokeStyle = "rgba(34,66,95,0.18)";
+    g.lineWidth = 1.5;
+    g.stroke();
     g.fillStyle = INK;
     g.font = "700 24px Inter, system-ui, sans-serif";
-    g.fillText(caption, 40, y + bh + 54);
+    g.fillText(caption, 40, y + ph + 54);
     g.fillStyle = "rgba(34,66,95,0.7)";
     g.font = "500 17px Inter, system-ui, sans-serif";
-    wrap(g, note, 40, y + bh + 86, w - 80, 24, 3);
+    wrap(g, note, 40, y + ph + 86, w - 80, 24, 3);
   };
 }
 

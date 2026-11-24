@@ -342,7 +342,9 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
           };
         } else {
           const beat = Number(query.get("beat"));
-          const beatMs = beat >= 600 && beat <= 60000 ? beat : BEAT_MS;
+          const custom = beat >= 600 && beat <= 60000;
+          // (a page may set its own pace in its scene data: the services page's beats are a second longer)
+          const beatMs = custom ? beat : (data?.beatMs ?? BEAT_MS);
           autoplay = createAutoplay({
             section,
             at: phases.map((ph) => ph.from),
@@ -355,7 +357,7 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
             visible: () => visible && onScreen,
             busy: () => tilting,
             beatMs,
-            firstMs: (FIRST_BEAT_MS / BEAT_MS) * beatMs,
+            firstMs: custom || data?.firstMs === undefined ? (FIRST_BEAT_MS / BEAT_MS) * beatMs : data.firstMs,
           });
           autoplay.start();
         }

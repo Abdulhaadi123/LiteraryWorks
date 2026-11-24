@@ -9,6 +9,10 @@ export const BEAT_MS = 4500;
 /** The first beat (the devices, which only stand there) is shorter: the story gets to the objects that move sooner. */
 export const FIRST_BEAT_MS = 3000;
 
+/** The services page has ten beats (an introduction and nine services), so each stays a second longer than the others. */
+export const SERVICES_BEAT_MS = BEAT_MS + 1000;
+export const SERVICES_FIRST_MS = FIRST_BEAT_MS + 1000;
+
 /** The camera takes 2 x PAN of the story's progress to move from one object to the next (scenes/deck.ts). */
 export const PAN = 0.022;
 

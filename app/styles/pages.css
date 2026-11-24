@@ -1154,7 +1154,7 @@ a.case:hover .case-img img,
 /* ---- a band of large words that drifts sideways ---- */
 .marquee {
   overflow: hidden;
-  padding-block: clamp(1.1rem, 2.4vw, 2rem);
+  padding-block: clamp(0.8rem, 1.7vw, 1.3rem);
   border-block: 1px solid var(--line);
   background: #fff;
 }
@@ -1169,8 +1169,8 @@ a.case:hover .case-img img,
 }
 .marquee span {
   flex: none;
-  padding-right: 1.4rem;
-  font-size: clamp(2.1rem, 5.2vw, 4.4rem);
+  padding-right: 1.1rem;
+  font-size: clamp(1.6rem, 3.9vw, 3.3rem);
   font-weight: 650;
   line-height: 1.15;
   letter-spacing: -0.04em;
@@ -1182,7 +1182,7 @@ a.case:hover .case-img img,
   -webkit-text-stroke: 1.5px var(--navy);
 }
 .marquee i {
-  padding-left: 1.4rem;
+  padding-left: 1.1rem;
   font-style: normal;
   color: var(--green);
   -webkit-text-stroke: 0;

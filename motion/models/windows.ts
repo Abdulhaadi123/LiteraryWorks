@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { lerp, smooth } from "../engine";
 import type { ScreenHandle } from "../devices";
+import { drawWhole } from "../screens";
 import { drawn, fillRR, marker, plane, rr } from "./parts";
 import { mat, put, rbox, screenFader, shadow } from "./real";
 import type { Model, ModelBuilder, ModelEnv } from "./types";
@@ -52,11 +53,7 @@ async function windowPicture(env: ModelEnv, name: string, host: string, mini: bo
     g.rect(0, 64, w, ph);
     g.clip();
     if (img) {
-      const k = Math.max(w / img.naturalWidth, ph / img.naturalHeight);
-      const dw = img.naturalWidth * k;
-      const dh = img.naturalHeight * k;
-      g.imageSmoothingQuality = "high";
-      g.drawImage(img, (w - dw) / 2, 64 + (ph - dh) / 2, dw, dh);
+      drawWhole(g, img, 0, 64, w, ph);
     } else {
       g.fillStyle = "#22425f";
       g.fillRect(0, 64, w, ph);

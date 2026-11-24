@@ -1,3 +1,4 @@
+import { SERVICES_BEAT_MS, SERVICES_FIRST_MS } from "@/motion/timing";
 import type { SceneData } from "@/motion/types";
 import { caseForService } from "./content";
 import { services } from "./services";
@@ -67,7 +68,7 @@ export const storyScene = (): SceneData => ({ ...sequence(STORY, [0, 0.25, 0.5, 
  */
 const SERVICES_IDS = ["blueprint", ...services.map((s) => s.slug)];
 export const SERVICES_AT = SERVICES_IDS.map((_, i) => i / SERVICES_IDS.length);
-export const servicesScene = (): SceneData => ({ ...sequence(SERVICES_IDS, SERVICES_AT), variant: "services", loop: true });
+export const servicesScene = (): SceneData => ({ ...sequence(SERVICES_IDS, SERVICES_AT), variant: "services", loop: true, beatMs: SERVICES_BEAT_MS, firstMs: SERVICES_FIRST_MS });
 
 /**
  * An inner page's scene (components/SceneHero.tsx: the headline, two chapters and a closing call to action): four beats,
