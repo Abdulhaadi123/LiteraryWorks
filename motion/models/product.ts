@@ -47,7 +47,11 @@ const build: ModelBuilder = async (env, mini) => {
   group.add(shadow(env, W + 1.6, D + 1.4, 0.28, 0, 0));
 
   /* ---- the lid, with our mark on top ---- */
-  const top = drawn(env, 512, 640, (g, w, h) => {
+  // (drawn at twice the size, so the lid's print stays sharp when the box fills the stage)
+  const top = drawn(env, 1024, 1280, (g, w2, h2) => {
+    g.scale(2, 2);
+    const w = w2 / 2;
+    const h = h2 / 2;
     g.fillStyle = "#f6f8fa";
     g.fillRect(0, 0, w, h);
     // the mark: a navy L holding a green W
@@ -78,7 +82,7 @@ const build: ModelBuilder = async (env, mini) => {
   const model: Model = {
     group,
     tags: [],
-    camera: { az: [-0.3, 0.18], elev: [0.5, 0.42] },
+    camera: { az: [-0.12, 0.08], elev: [1.2, 1.12] },
     floorY: 0,
     set(_a, _l, p) {
       // the lid lifts, swings back and comes to lean against the back of the box
@@ -91,11 +95,12 @@ const build: ModelBuilder = async (env, mini) => {
       phones.forEach(({ phone, P }, i) => {
         const q = smooth(clamp01((p - 0.45 - i * 0.12) / 0.35));
         P.position.y = H - 0.1 + q * 0.22;
-        P.rotation.x = -q * 0.12;
+        // (it comes up and leans toward the viewer, so its screen faces the eye)
+        P.rotation.x = q * 0.34;
         phone.power(0.25 + 0.75 * q);
       });
     },
-    frame: () => ({ cx: 0, cy: 0.8, hw: 2.4, hh: 1.6 }),
+    frame: () => ({ cx: 0, cy: 0.5, hw: 1.55, hh: 1.5 }),
   };
   model.set(1, 1, 0);
   return model;

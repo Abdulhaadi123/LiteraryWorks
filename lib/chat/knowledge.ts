@@ -3,6 +3,8 @@
  * written separately, so the assistant can never say something the site does not.
  */
 import { auditOutputs, cases, company, engagement, faqs, industries, ladder, location, phases, plan, principles, products } from "@/lib/content";
+import { clientLogos } from "@/lib/client-logos";
+import { clientQuotes } from "@/lib/clients";
 import { projects, projectPictures, type Project } from "@/lib/projects";
 import { servicePages } from "@/lib/service-pages";
 import { services } from "@/lib/services";
@@ -75,6 +77,10 @@ ${products.map((p) => `## ${p.name}: ${p.category}. ${p.status}.
 ${p.text}
 Covers ${p.domains.join(", ")} and ${p.moreDomains} more regulatory domains. ${p.facts.map((f) => `${f.value} ${f.label.toLowerCase()}`).join("; ")}.
 Website: ${p.url} (the one outside link you may give, written as plain text, not as a markdown link)`).join("\n")}`);
+
+  parts.push(`# Clients (shown on the home page and the about page, #clients)
+Logos shown: ${clientLogos.map((l) => l.name).join(", ")}. The names and words below are published; no ratings, counts of clients or satisfaction figures are published, so give none.
+${clientQuotes.map((q) => `- ${q.name}, ${q.role}: "${q.text}"`).join("\n")}`);
 
   parts.push(`# Other products and platforms the team has built (each has its own page on this site, linked below)
 Everything the team has published about each one is written here, and nothing else is known about it: no technology stack, architecture, clients, prices, dates, user numbers or results beyond what is written. A part that is missing (a challenge, a solution, features) was not published. When you describe one, link to its page once.

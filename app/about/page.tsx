@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SceneHero } from "@/components/SceneHero";
 import { Rhythm } from "@/components/Sections";
+import { Clients } from "@/components/Clients";
 import { CompanyFacts } from "@/components/CompanyFacts";
 import { Checks, SectionHead } from "@/components/ui";
 import { principles } from "@/lib/content";
@@ -144,6 +145,8 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      <Clients tone="mist" />
 
       <CompanyFacts />
     </>

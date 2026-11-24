@@ -288,14 +288,6 @@ export const cases: CaseStudy[] = [
 
 export const caseBySlug = (slug: string) => cases.find((c) => c.slug === slug);
 
-/** What clients say on the home page: every quote from the case studies, the named clients first. */
-export const voices: Quote[] = [
-  cases[5].quote!,
-  cases[0].quote!,
-  cases[4].quote!,
-  cases[3].quote!,
-];
-
 export interface Offer {
   tag: string;
   name: string;

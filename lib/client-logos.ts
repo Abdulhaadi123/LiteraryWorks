@@ -1,0 +1,23 @@
+/** The logos of some of the businesses we have built for (public/clients/logos/, each at twice the size it is shown). Made by the logo download; do not edit. */
+export const clientLogos: { name: string; file: string; w: number; h: number }[] = [
+  { name: "Aztech Executive Search", file: "aztech-executive-search.webp", w: 256, h: 88 },
+  { name: "AI Language Tutor", file: "ai-language-tutor.webp", w: 320, h: 52 },
+  { name: "Grace AI", file: "grace-ai.webp", w: 250, h: 61 },
+  { name: "Beanstalk", file: "beanstalk.webp", w: 68, h: 88 },
+  { name: "Gioconda AI", file: "gioconda-ai.webp", w: 320, h: 45 },
+  { name: "Vyral AI", file: "vyral-ai.webp", w: 259, h: 88 },
+  { name: "DreamyBot", file: "dreamybot.webp", w: 320, h: 29 },
+  { name: "Novank", file: "novank.webp", w: 320, h: 75 },
+  { name: "NoAir Lab", file: "noair-lab.webp", w: 162, h: 42 },
+  { name: "Riskli", file: "riskli.webp", w: 118, h: 88 },
+  { name: "All Trials AI", file: "all-trials-ai.webp", w: 320, h: 71 },
+  { name: "Vocalli AI", file: "vocalli-ai.webp", w: 320, h: 36 },
+  { name: "Optituning", file: "optituning.webp", w: 112, h: 88 },
+  { name: "Juice Guru", file: "juice-guru.webp", w: 229, h: 61 },
+  { name: "Cliniq Health", file: "cliniq-health.webp", w: 137, h: 88 },
+  { name: "Precision Grading", file: "precision-grading.webp", w: 93, h: 88 },
+  { name: "OTA-GPT", file: "ota-gpt.webp", w: 88, h: 88 },
+  { name: "Compano", file: "compano.webp", w: 320, h: 67 },
+  { name: "NextGenVoice", file: "nextgenvoice.webp", w: 86, h: 88 },
+  { name: "Flend", file: "flend.webp", w: 287, h: 88 },
+];

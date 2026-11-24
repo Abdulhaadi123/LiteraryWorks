@@ -69,7 +69,7 @@ const build: ModelBuilder = async (env) => {
   const model: Model = {
     group,
     tags: [],
-    camera: { az: [-0.3, 0.18], elev: [0.5, 0.42] },
+    camera: { az: [-0.2, 0.12], elev: [0.85, 0.75] },
     floorY: 0,
     set(_a, _l, p) {
       // the keys, pressed in turn

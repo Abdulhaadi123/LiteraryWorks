@@ -21,16 +21,20 @@ const build: ModelBuilder = async (env) => {
   /* ---- the hub ---- */
   put(group, rbox(3.2, 0.42, 1.3, 0.12, 4), mat.alu(0xc4cad1, 0.3), 0, 0.21, 0);
   put(group, rbox(3.0, 0.02, 1.1, 0.01), mat.paint(GRAPHITE, 0.35), 0, 0.425, 0);
-  const label = drawn(env, 512, 160, (g, w, h) => {
+  // (twice the pixels, and a larger label, so the words read from where the camera stands)
+  const label = drawn(env, 1024, 320, (g, w2, h2) => {
+    g.scale(2, 2);
+    const w = w2 / 2;
+    const h = h2 / 2;
     g.fillStyle = "#2c3139";
     g.fillRect(0, 0, w, h);
-    fillRR(g, 36, 52, 56, 56, 12, "#73c94a");
+    fillRR(g, 30, 44, 72, 72, 14, "#73c94a");
     g.fillStyle = "#ffffff";
-    g.font = "700 46px Inter, system-ui, sans-serif";
+    g.font = "700 60px Inter, system-ui, sans-serif";
     g.textBaseline = "middle";
-    g.fillText("One system", 116, 82);
+    g.fillText("One system", 126, 82);
   });
-  const lab = put(group, new THREE.PlaneGeometry(1.3, 0.4), new THREE.MeshBasicMaterial({ map: label, toneMapped: false }), 0, 0.437, 0);
+  const lab = put(group, new THREE.PlaneGeometry(1.7, 0.53), new THREE.MeshBasicMaterial({ map: label, toneMapped: false }), 0, 0.437, 0);
   lab.rotation.x = -Math.PI / 2;
   put(group, rbox(3.0, 0.04, 1.1, 0.02), mat.rubber(), 0, 0.02, 0);
   group.add(shadow(env, 5.6, 4.6, 0.26, 0, 1.2));
@@ -62,7 +66,7 @@ const build: ModelBuilder = async (env) => {
   const model: Model = {
     group,
     tags: [],
-    camera: { az: [-0.34, 0.2], elev: [0.42, 0.34] },
+    camera: { az: [-0.22, 0.14], elev: [0.62, 0.52] },
     floorY: 0,
     set(_a, _l, p) {
       plugs.forEach((pl, i) => {

@@ -102,7 +102,7 @@ const build: ModelBuilder = async (env) => {
   const model: Model = {
     group,
     tags: [],
-    camera: { az: [-0.3, 0.18], elev: [0.34, 0.28] },
+    camera: { az: [-0.2, 0.12], elev: [0.44, 0.38] },
     floorY: 0,
     set(_a, _l, p) {
       // the keys slide in from the right, turning as they go, and settle in front of the binders

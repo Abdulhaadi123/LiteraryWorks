@@ -5,11 +5,11 @@ import { CompanyFacts } from "@/components/CompanyFacts";
 import { Marquee } from "@/components/Marquee";
 import { Products } from "@/components/Products";
 import { d, Faq, Ladder, SectionHead, Tiles } from "@/components/ui";
-import { QuoteSwitcher } from "@/components/QuoteSwitcher";
+import { Clients } from "@/components/Clients";
 import { ServicesGrid } from "@/components/ServicesGrid";
 import { AuditStrip, Industries, Phases, Problems } from "@/components/Sections";
 import { Phase, Xp } from "@/components/Xp";
-import { cases, company, voices, location } from "@/lib/content";
+import { cases, company, location } from "@/lib/content";
 import { sceneAria, storyScene } from "@/lib/scenes";
 import { siteName, siteUrl } from "@/lib/seo";
 
@@ -177,12 +177,7 @@ export default function Home() {
 
       <Products />
 
-      <section className="section on-white">
-        <div className="wrap">
-          <SectionHead kicker="In their words" title={<>What clients <em>say</em></>} />
-          <QuoteSwitcher items={voices} />
-        </div>
-      </section>
+      <Clients />
 
       <section className="section on-mist">
         <div className="wrap two-col">

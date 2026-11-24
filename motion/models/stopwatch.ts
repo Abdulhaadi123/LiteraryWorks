@@ -78,7 +78,7 @@ const build: ModelBuilder = async (env) => {
   const model: Model = {
     group,
     tags: [],
-    camera: { az: [-0.25, 0.15], elev: [0.62, 0.52] },
+    camera: { az: [-0.16, 0.1], elev: [0.9, 0.8] },
     floorY: 0,
     set(_a, _l, p) {
       const t = smooth(clamp01((p - 0.05) / 0.85));

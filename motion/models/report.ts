@@ -118,7 +118,7 @@ const build: ModelBuilder = async (env, mini) => {
   const model: Model = {
     group,
     tags: [],
-    camera: { az: [-0.22, 0.14], elev: [0.78, 0.7] },
+    camera: { az: [-0.14, 0.1], elev: [1.05, 0.98] },
     floorY: 0,
     set(_a, _l, p) {
       // the glass moves down the list; each item is ticked as it passes

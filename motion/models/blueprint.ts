@@ -201,7 +201,7 @@ const build: ModelBuilder = async (env, mini) => {
   const model: Model = {
     group,
     tags: [],
-    camera: { az: [-0.3, 0.12], elev: [0.52, 0.44] },
+    camera: { az: [-0.18, 0.1], elev: [0.9, 0.82] },
     floorY: 0,
     set(_a, _l, p) {
       const t = smooth(clamp01(p / 0.85));

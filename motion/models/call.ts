@@ -181,7 +181,7 @@ const build: ModelBuilder = async (env, mini) => {
   const model: Model = {
     group,
     tags: [],
-    camera: { az: [-0.3, 0.2], elev: [0.34, 0.26] },
+    camera: { az: [-0.2, 0.14], elev: [0.62, 0.52] },
     floorY: 0,
     set(_a, _l, p) {
       // the call starts a little before the middle of the beat

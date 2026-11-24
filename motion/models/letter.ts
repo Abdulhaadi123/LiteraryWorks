@@ -77,7 +77,7 @@ const build: ModelBuilder = async (env) => {
   const model: Model = {
     group,
     tags: [],
-    camera: { az: [-0.26, 0.16], elev: [0.62, 0.52] },
+    camera: { az: [-0.16, 0.1], elev: [0.95, 0.86] },
     floorY: 0,
     set(_a, _l, p) {
       // the letter comes down onto the table behind the envelope, then slides in under the front

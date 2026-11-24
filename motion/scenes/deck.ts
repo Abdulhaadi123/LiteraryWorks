@@ -54,9 +54,10 @@ export default async function build(ctx: SceneCtx): Promise<SceneHandle> {
   // which objects are built and their shaders compiled (the first is, when the first frame is drawn)
   const built: boolean[] = Array.from({ length: N }, () => false);
   let disposed = false;
+  // the lighter version of each object only where there are many (the services page's ten); a story of four builds them in full, so every screen is sharp
+  const lite = N > 6;
   const make = async (i: number) => {
-    // (the lighter version: several objects are on the stage at once)
-    const model = await (await loadModel(ids[i] ?? "devices"))(env, true);
+    const model = await (await loadModel(ids[i] ?? "devices"))(env, lite);
     if (disposed) return;
     fitFrame(model);
     model.set(1, 1, 0.5);
