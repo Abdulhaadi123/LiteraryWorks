@@ -135,7 +135,7 @@ const build: ModelBuilder = async (env, mini) => {
     g.font = `500 ${Math.round(22 * k)}px Inter, system-ui, sans-serif`;
     g.fillStyle = "rgba(255,255,255,0.75)";
     g.fillText("Scope, parts, order", tx + 22 * k, ty + 88 * k);
-    g.fillText("LiteraryWorks", tx + 22 * k, ty + 124 * k);
+    g.fillText("Literary Worx", tx + 22 * k, ty + 124 * k);
     g.fillText("Rev. A", tx + 272 * k, ty + 88 * k);
     // the approval stamp
     g.save();

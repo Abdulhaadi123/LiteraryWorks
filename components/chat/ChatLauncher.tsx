@@ -90,11 +90,11 @@ export function ChatLauncher() {
   return (
     <>
       {teaser && !open ? (
-        <div className="chat-teaser" role="complementary" aria-label="A question from the LiteraryWorks assistant">
+        <div className="chat-teaser" role="complementary" aria-label="A question from the Literary Worx assistant">
           <button type="button" className="chat-teaser-body" onClick={askTeaser} onPointerEnter={load} onFocus={load}>
             <span className="chat-teaser-who">
               <i aria-hidden="true" />
-              LiteraryWorks assistant
+              Literary Worx assistant
             </span>
             <span className="chat-teaser-text">{teaser.text}</span>
             <span className="chat-teaser-go">
@@ -115,7 +115,7 @@ export function ChatLauncher() {
         ref={button}
         type="button"
         className={`chat-launcher${open ? " is-open" : ""}${teaser && !open ? " is-asking" : ""}`}
-        aria-label={open ? "Close the LiteraryWorks assistant" : "Ask the LiteraryWorks assistant"}
+        aria-label={open ? "Close the Literary Worx assistant" : "Ask the Literary Worx assistant"}
         aria-expanded={open}
         aria-controls="lw-chat"
         onPointerEnter={load}

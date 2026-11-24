@@ -3,7 +3,7 @@ import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
   "Privacy notice",
-  "What LiteraryWorks collects through this website, why, who processes it and how to reach us.",
+  "What Literary Worx collects through this website, why, who processes it and how to reach us.",
   "/privacy",
 );
 

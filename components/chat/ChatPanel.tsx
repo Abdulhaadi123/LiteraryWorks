@@ -25,7 +25,7 @@ type Msg = {
 
 const STORE_KEY = "lw-chat-v1";
 const MAX_INPUT = 800;
-const STARTERS = ["What does LiteraryWorks do?", "How does the free AI audit work?", "What does a project cost?", "Show me your case studies"];
+const STARTERS = ["What does Literary Worx do?", "How does the free AI audit work?", "What does a project cost?", "Show me your case studies"];
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -251,7 +251,7 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
           <Mark />
         </span>
         <div className="chat-title">
-          <h2 id={titleId}>LiteraryWorks assistant</h2>
+          <h2 id={titleId}>Literary Worx assistant</h2>
           <p>
             <span className="chat-live" aria-hidden="true" />
             Ask about our services and work
@@ -277,7 +277,7 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
       <div className="chat-log" ref={list} onScroll={onScroll} data-lenis-prevent aria-live="off">
         <div className="chat-msg is-bot">
           <div className="chat-bubble">
-            <p>Hi, I&apos;m the LiteraryWorks assistant. Ask me about our services, case studies, prices or the free AI audit.</p>
+            <p>Hi, I&apos;m the Literary Worx assistant. Ask me about our services, case studies, prices or the free AI audit.</p>
             <p className="chat-langs">You can write in any language.</p>
           </div>
         </div>
@@ -344,7 +344,7 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
               </div>
               {isLast && settled && (m.a === "book" || m.a === "contact") && !form && (
                 <div className="chat-card">
-                  <p className="chat-card-title">Talk to the LiteraryWorks team</p>
+                  <p className="chat-card-title">Talk to the Literary Worx team</p>
                   <button type="button" className="chat-btn is-primary" onClick={() => openForm("Free AI audit")}>
                     Book a free AI audit
                     <svg viewBox="0 0 24 24" aria-hidden="true">

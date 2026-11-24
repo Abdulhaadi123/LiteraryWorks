@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 
-export const siteName = "LiteraryWorks";
+export const siteName = "Literary Worx";
 
 /** The verified public address of the site (set NEXT_PUBLIC_SITE_URL before deploying). */
 export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
 
 /** The picture that link previews show (made by scripts/make-brand-assets.mjs from the real 3D model). */
 export const ogImage = {
-  url: "/og/literaryworks.jpg",
+  url: "/og/literaryworx.jpg",
   width: 1200,
   height: 630,
-  alt: "LiteraryWorks: AI and software, working as one system",
+  alt: "Literary Worx: AI and software, working as one system",
 };
 
 export function pageMeta(title: string, description: string, path = ""): Metadata {

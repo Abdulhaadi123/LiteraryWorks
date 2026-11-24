@@ -1,5 +1,5 @@
 export const site = {
-  name: "LiteraryWorks",
+  name: "Literary Worx",
   tagline: "AI, software and cloud systems for U.S. businesses.",
 };
 

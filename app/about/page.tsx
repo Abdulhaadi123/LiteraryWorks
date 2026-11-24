@@ -9,7 +9,7 @@ import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
   "About",
-  "LiteraryWorks designs and builds AI automation, software and cloud systems for U.S. businesses, and writes everything down so you can keep going without us.",
+  "Literary Worx designs and builds AI automation, software and cloud systems for U.S. businesses, and writes everything down so you can keep going without us.",
   "/about",
 );
 
@@ -25,7 +25,7 @@ export default function AboutPage() {
             We build the systems <em>behind the work</em>
           </>
         }
-        lead="LiteraryWorks designs and builds AI automation, software and cloud systems for U.S. businesses. We start with how your work actually runs, and we write everything down so you can keep going without us."
+        lead="Literary Worx designs and builds AI automation, software and cloud systems for U.S. businesses. We start with how your work actually runs, and we write everything down so you can keep going without us."
         actions={
           <>
             <Link className="btn btn-navy" href="/contact?topic=audit">

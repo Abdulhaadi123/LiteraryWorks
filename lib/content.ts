@@ -1,6 +1,6 @@
 import { balosys } from "./site";
 
-/* The words of the site, in one place. Written for LiteraryWorks from the services and work of the Sparkix and FAYD teams. */
+/* The words of the site, in one place. Written for Literary Worx from the services and work of the Sparkix and FAYD teams. */
 
 export interface Metric {
   value: string;

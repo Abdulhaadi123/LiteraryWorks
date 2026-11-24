@@ -5,7 +5,7 @@ import { mat, put, rbox, shadow } from "./real";
 import type { Model, ModelBuilder } from "./types";
 
 /**
- * Tell us about the work: an envelope addressed to LiteraryWorks lies on the table with its flap open. As the page
+ * Tell us about the work: an envelope addressed to Literary Worx lies on the table with its flap open. As the page
  * scrolls a letter slides into it, the flap closes and a green seal goes on.
  */
 
@@ -32,7 +32,7 @@ const build: ModelBuilder = async (env) => {
     g.font = "600 34px Inter, system-ui, sans-serif";
     g.fillText("To", 380, 360);
     g.font = "700 52px Inter, system-ui, sans-serif";
-    g.fillText("LiteraryWorks", 380, 420);
+    g.fillText("Literary Worx", 380, 420);
     fillRR(g, 380, 450, 300, 12, 6, "rgba(34,66,95,0.25)");
     fillRR(g, 380, 478, 220, 12, 6, "rgba(34,66,95,0.18)");
   });

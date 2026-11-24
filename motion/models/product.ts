@@ -71,7 +71,7 @@ const build: ModelBuilder = async (env, mini) => {
     g.fillStyle = "#22425f";
     g.font = "700 40px Inter, system-ui, sans-serif";
     g.textAlign = "center";
-    g.fillText("LiteraryWorks", w / 2, 430);
+    g.fillText("Literary Worx", w / 2, 430);
   });
   const lid = new THREE.Group();
   put(lid, rbox(W + 0.08, LH, D + 0.08, 0.04), white, 0, 0, 0);

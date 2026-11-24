@@ -1,5 +1,5 @@
 /**
- * The LiteraryWorks mark: a navy "L" that holds a green "W", built from the same bold, flat strokes as the brand
+ * The Literary Worx mark: a navy "L" that holds a green "W", built from the same bold, flat strokes as the brand
  * guide's monogram. The wordmark is live text (two lines, like the guide's lockup), so it stays sharp and readable.
  */
 export function Mark({ className }: { className?: string }) {
@@ -17,7 +17,7 @@ export function Logo({ tone = "color" }: { tone?: "color" | "light" }) {
       <Mark className="logo-mark" />
       <span className="logo-word">
         <b>Literary</b>
-        <b>Works</b>
+        <b>Worx</b>
       </span>
     </span>
   );

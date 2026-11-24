@@ -37,7 +37,7 @@ const DESC: Record<string, string> = {
   stopwatch: "a stopwatch whose hand makes one full turn of its sixty-minute dial while a green ring fills",
   calendar: "a desk calendar open at a two-week page, its days ticked off one by one and the last day ringed",
   keys: "three binders of documentation standing on the table, and a ring of keys with a green tag sliding in front of them",
-  letter: "an envelope addressed to LiteraryWorks; a letter slides in, the flap closes and a green seal goes on",
+  letter: "an envelope addressed to Literary Worx; a letter slides in, the flap closes and a green seal goes on",
   call: "a conference speakerphone whose light turns green as the call starts, beside a phone with the invite for a free one-hour session",
   headset: "a call-centre headset on its stand beside a phone with a live call",
   dashboard: "a product dashboard with usage bars, plans, accounts and a donut chart standing out of it",

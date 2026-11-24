@@ -40,7 +40,7 @@ export function Footer() {
 
       <div className="wrap footer-grid">
         <div className="footer-brand">
-          <Link href="/" className="brand" aria-label="LiteraryWorks, home" prefetch={false}>
+          <Link href="/" className="brand" aria-label="Literary Worx, home" prefetch={false}>
             <Logo tone="light" />
           </Link>
           <p>AI, software and cloud systems for U.S. businesses. Written plainly, built carefully, handed over documented.</p>
@@ -91,12 +91,12 @@ export function Footer() {
       {/* the large wordmark is a second way home (not a second stop for the keyboard) */}
       <p className="footer-mark">
         <Link href="/" tabIndex={-1} aria-hidden="true" prefetch={false}>
-          LiteraryWorks
+          Literary Worx
         </Link>
       </p>
       <div className="wrap footer-base">
         <p>
-          © {new Date().getFullYear()} {company.legalName}. LiteraryWorks is a brand of {company.legalName}. All rights reserved.
+          © {new Date().getFullYear()} {company.legalName}. Literary Worx is a brand of {company.legalName}. All rights reserved.
         </p>
       </div>
     </footer>

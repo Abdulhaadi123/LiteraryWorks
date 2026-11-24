@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     template: `%s | ${siteName}`,
   },
   description:
-    "LiteraryWorks designs and builds AI automation, web and mobile apps and cloud systems for U.S. businesses. Start with a free 1-hour AI audit.",
+    "Literary Worx designs and builds AI automation, web and mobile apps and cloud systems for U.S. businesses. Start with a free 1-hour AI audit.",
   applicationName: siteName,
   openGraph: { siteName, type: "website", locale: "en_US", url: siteUrl, images: [ogImage] },
   twitter: { card: "summary_large_image", images: [ogImage.url] },

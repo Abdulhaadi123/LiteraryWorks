@@ -78,7 +78,7 @@ export async function POST(request: Request) {
   if (!SENDGRID_API_KEY || !CONTACT_TO_EMAIL || !CONTACT_FROM_EMAIL) {
     return fail("Our inquiry inbox is not configured yet. Please try again later.", 503);
   }
-  const fromName = process.env.CONTACT_FROM_NAME || "LiteraryWorks";
+  const fromName = process.env.CONTACT_FROM_NAME || "Literary Worx";
   const team = CONTACT_TO_EMAIL.split(",").map((e) => e.trim()).filter(Boolean);
 
   // the notice to the team decides the answer: the message only counts as sent once SendGrid has accepted it

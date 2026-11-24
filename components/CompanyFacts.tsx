@@ -9,7 +9,7 @@ import { company, location, products } from "@/lib/content";
 export function CompanyFacts({ tone = "white", contact = true }: { tone?: "white" | "mist"; /** The "Contact the team" button (left out on the contact page itself). */ contact?: boolean }) {
   const rows: { label: string; value: React.ReactNode }[] = [
     { label: "Legal name", value: company.legalName },
-    { label: "Brand", value: "LiteraryWorks" },
+    { label: "Brand", value: "Literary Worx" },
     {
       label: "Headquarters",
       value: (
@@ -47,7 +47,7 @@ export function CompanyFacts({ tone = "white", contact = true }: { tone?: "white
                 The company <em>behind the work</em>
               </span>
             }
-            lead={`LiteraryWorks is a brand of ${company.legalName}, a technology company based in ${location.label}. We design, build and run AI, software and cloud systems for U.S. businesses.`}
+            lead={`Literary Worx is a brand of ${company.legalName}, a technology company based in ${location.label}. We design, build and run AI, software and cloud systems for U.S. businesses.`}
           />
           <div className="cta-row">
             {contact ? (

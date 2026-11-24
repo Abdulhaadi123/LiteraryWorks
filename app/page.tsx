@@ -53,7 +53,7 @@ export default function Home() {
             AI and software, <em>working as one system</em>
           </h1>
           <p className="lead rise" style={d(2)}>
-            LiteraryWorks designs and builds AI systems, web and mobile apps and cloud platforms for U.S. businesses. We start with a free audit of where your time and money are going.
+            Literary Worx designs and builds AI systems, web and mobile apps and cloud platforms for U.S. businesses. We start with a free audit of where your time and money are going.
           </p>
           <div className="cta-row rise" style={d(3)}>
             <Link className="btn btn-navy" href="/contact?topic=audit">

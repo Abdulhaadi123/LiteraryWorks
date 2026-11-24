@@ -44,7 +44,7 @@ export function Header() {
     <header className="site-header" ref={root}>
       <div className="site-header-bar">
         {/* not prefetched: the home page's hero picture would be fetched on every other page, for a visit that may never happen */}
-        <Link href="/" className="brand" aria-label="LiteraryWorks, home" prefetch={false}>
+        <Link href="/" className="brand" aria-label="Literary Worx, home" prefetch={false}>
           <Logo />
         </Link>
         <nav className="site-nav" aria-label="Primary">

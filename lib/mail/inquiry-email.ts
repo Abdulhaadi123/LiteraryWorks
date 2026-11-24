@@ -57,7 +57,7 @@ function frame({ preheader, body, footer }: { preheader: string; body: string; f
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light only">
-<title>LiteraryWorks</title>
+<title>Literary Worx</title>
 </head>
 <body style="margin:0;padding:0;background:${MIST};">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${escape(preheader)}</div>
@@ -67,7 +67,7 @@ function frame({ preheader, body, footer }: { preheader: string; body: string; f
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
         <tr>
           <td style="background:${NAVY};border-radius:14px 14px 0 0;padding:24px 32px;border-bottom:4px solid ${GREEN};">
-            <span style="font-family:${FONT};font-size:20px;font-weight:700;letter-spacing:-0.3px;color:#ffffff;">Literary<span style="color:${GREEN};">Works</span></span>
+            <span style="font-family:${FONT};font-size:20px;font-weight:700;letter-spacing:-0.3px;color:#ffffff;">Literary <span style="color:${GREEN};">Worx</span></span>
           </td>
         </tr>
         <tr>
@@ -139,7 +139,7 @@ export function teamEmail(q: Inquiry, when = receivedAt()) {
       <div style="padding:16px 18px;background:${MIST};border-left:3px solid ${NAVY};border-radius:6px;font-size:15px;line-height:1.65;color:${INK};">${para(q.message)}</div>
       ${conversationBlock(q.conversation)}
       ${button(`mailto:${q.email}?subject=${encodeURIComponent(`Re: your ${q.interest} inquiry`)}`, `Reply to ${escape(q.name.split(/\s+/)[0] || q.name)}`)}`,
-    footer: "Sent by the contact form on the LiteraryWorks website. Reply to this email to answer the sender directly.",
+    footer: "Sent by the contact form on the Literary Worx website. Reply to this email to answer the sender directly.",
   });
   const text = [
     "New website inquiry",
@@ -168,7 +168,7 @@ export function teamEmail(q: Inquiry, when = receivedAt()) {
 export function confirmationEmail(q: Inquiry, contactEmail: string) {
   const first = (q.name.split(/\s+/)[0] || "").replace(/[^\p{L}\p{M}'-]/gu, "").slice(0, 30);
   const hello = first ? `Hi ${first},` : "Hello,";
-  const subject = "We have your message | LiteraryWorks";
+  const subject = "We have your message | Literary Worx";
   const steps = [
     ["Usually within one business day", "We read your message and reply by email to agree a time."],
     ["A working session", "On a call, we look at how the work happens today and what would help most. For the AI audit, this first hour is free."],
@@ -178,7 +178,7 @@ export function confirmationEmail(q: Inquiry, contactEmail: string) {
     preheader: "Thanks for getting in touch. Here is what happens next.",
     body: `
       <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;font-weight:700;color:${INK};">${escape(hello)}</h1>
-      <p style="margin:0 0 16px;">Thank you for writing to LiteraryWorks. Your message about <b style="color:${INK};">${escape(q.interest)}</b> has reached our team.</p>
+      <p style="margin:0 0 16px;">Thank you for writing to Literary Worx. Your message about <b style="color:${INK};">${escape(q.interest)}</b> has reached our team.</p>
       <p style="margin:24px 0 8px;font-size:12px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;color:${FAINT};">What happens next</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-family:${FONT};">
         ${steps
@@ -197,23 +197,23 @@ export function confirmationEmail(q: Inquiry, contactEmail: string) {
           .join("")}
       </table>
       <p style="margin:24px 0 0;">If anything is urgent, reply to this email or write to <a href="mailto:${escape(contactEmail)}" style="color:${NAVY};">${escape(contactEmail)}</a>.</p>
-      <p style="margin:24px 0 0;color:${INK};">The LiteraryWorks team</p>`,
-    footer: "You received this because you sent a message through the contact form on the LiteraryWorks website. If that was not you, you can ignore this email.<br>Literary Worx LLC · San Antonio, Texas",
+      <p style="margin:24px 0 0;color:${INK};">The Literary Worx team</p>`,
+    footer: "You received this because you sent a message through the contact form on the Literary Worx website. If that was not you, you can ignore this email.<br>Literary Worx LLC · San Antonio, Texas",
   });
   const text = [
     hello,
     "",
-    `Thank you for writing to LiteraryWorks. Your message about ${q.interest} has reached our team.`,
+    `Thank you for writing to Literary Worx. Your message about ${q.interest} has reached our team.`,
     "",
     "What happens next:",
     ...steps.map(([t, d], i) => `${i + 1}. ${t}: ${d}`),
     "",
     `If anything is urgent, reply to this email or write to ${contactEmail}.`,
     "",
-    "The LiteraryWorks team",
+    "The Literary Worx team",
     "",
     "--",
-    "You received this because you sent a message through the contact form on the LiteraryWorks website. If that was not you, you can ignore this email.",
+    "You received this because you sent a message through the contact form on the Literary Worx website. If that was not you, you can ignore this email.",
     "Literary Worx LLC · San Antonio, Texas",
   ].join("\n");
   return { subject, html, text };

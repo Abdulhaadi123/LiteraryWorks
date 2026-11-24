@@ -45,7 +45,7 @@ function inviteScreen(env: ModelEnv, w: number, h: number): THREE.Texture {
     g.fillStyle = "rgba(25,23,22,0.6)";
     g.font = `500 ${Math.round(24 * k)}px Inter, system-ui, sans-serif`;
     g.fillText("60 minutes · Video call", 76 * k, 500 * k);
-    g.fillText("With the LiteraryWorks team", 76 * k, 538 * k);
+    g.fillText("With the Literary Worx team", 76 * k, 538 * k);
     fillRR(g, 76 * k, 584 * k, 170 * k, 64 * k, 32 * k, "#73c94a");
     g.fillStyle = "#191716";
     g.font = `700 ${Math.round(26 * k)}px Inter, system-ui, sans-serif`;
@@ -86,7 +86,7 @@ function callScreen(env: ModelEnv, w: number, h: number): THREE.Texture {
     g.fillText("LW", w / 2, 334 * k);
     g.fillStyle = "#ffffff";
     g.font = `700 ${Math.round(40 * k)}px Inter, system-ui, sans-serif`;
-    g.fillText("LiteraryWorks", w / 2, 512 * k);
+    g.fillText("Literary Worx", w / 2, 512 * k);
     g.fillStyle = "rgba(255,255,255,0.7)";
     g.font = `500 ${Math.round(26 * k)}px Inter, system-ui, sans-serif`;
     g.fillText("Free AI audit · In call", w / 2, 560 * k);
