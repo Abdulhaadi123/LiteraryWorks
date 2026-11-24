@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
-import { versioned } from "@/lib/assets";
+import { hdCovers, versioned } from "@/lib/assets";
 import { cases, faqs as allFaqs, ladder, type CaseStudy } from "@/lib/content";
 import { services, type ServiceIndexItem } from "@/lib/services";
 import { Icon, serviceIcon, type IconName } from "./icons";
@@ -151,7 +151,7 @@ export function CaseImage({ slug, sizes, priority }: { slug: string; sizes: stri
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={versioned(`/cases/${slug}.webp`)}
-      srcSet={`${versioned(`/cases/${slug}-640.webp`)} 640w, ${versioned(`/cases/${slug}.webp`)} 1280w`}
+      srcSet={`${versioned(`/cases/${slug}-640.webp`)} 640w, ${versioned(`/cases/${slug}.webp`)} ${hdCovers.has(slug) ? 1920 : 1280}w`}
       sizes={sizes}
       width={1280}
       height={720}

@@ -92,7 +92,7 @@ export function sceneAria(variant: string): string {
 }
 
 /** Bumped whenever the stills are rendered again, so browsers fetch the new pictures instead of a cached old one. */
-export const STILL_VERSION = "6";
+export const STILL_VERSION = "7";
 
 /** What a service's still (the home page's grid) shows. */
 export const serviceStillAlt = (slug: string): string => {

@@ -1,42 +1,25 @@
 import Link from "next/link";
 import { company, location } from "@/lib/content";
+import type { CtaNames } from "@/lib/footer-cta";
+import { projects } from "@/lib/projects";
 import { services } from "@/lib/services";
+import { FooterCtaBand } from "./FooterCta";
 import { Logo } from "./Logo";
+
+/** The names the call to action's words use on service and project pages. */
+const ctaNames: CtaNames = {
+  services: Object.fromEntries(services.map((s) => [s.slug, s.name])),
+  projects: Object.fromEntries(projects.map((p) => [p.slug, p.name])),
+  email: company.email,
+  city: location.city,
+  region: location.region,
+};
 
 export function Footer() {
   return (
     <footer className="site-footer on-navy textured">
       <div className="brand-band" aria-hidden="true" />
-      <div className="wrap footer-cta">
-        <div>
-          <p className="kicker">Start with clarity</p>
-          <h2 className="h-lg">
-            Know exactly what to automate, <em>before you pay to build it</em>
-          </h2>
-          <ul className="cta-facts">
-            <li>
-              <b>60 min</b>
-              <span>Free audit session</span>
-            </li>
-            <li>
-              <b>14 days</b>
-              <span>Structured audit</span>
-            </li>
-            <li>
-              <b>One team</b>
-              <span>Plan, build and handover</span>
-            </li>
-          </ul>
-        </div>
-        <div className="cta-row">
-          <Link className="btn btn-white" href="/contact?topic=audit">
-            Book a free AI audit
-          </Link>
-          <Link className="btn btn-line" href="/ai-audit">
-            The three ways to start
-          </Link>
-        </div>
-      </div>
+      <FooterCtaBand names={ctaNames} />
 
       <div className="wrap footer-grid">
         <div className="footer-brand">
