@@ -16,7 +16,7 @@ import { instructions, META_CLOSE, META_OPEN, pageNote } from "@/lib/chat/prompt
 export const dynamic = "force-dynamic";
 
 const MAX_TURNS = 12; // messages of history sent to the model
-const MAX_USER = 800; // characters in one visitor message
+const MAX_USER = 2000; // characters in one visitor message
 const MAX_ASSISTANT = 2400;
 const MAX_TOTAL = 14_000;
 

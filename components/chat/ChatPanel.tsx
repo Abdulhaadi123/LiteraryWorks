@@ -24,7 +24,7 @@ type Msg = {
 };
 
 const STORE_KEY = "lw-chat-v1";
-const MAX_INPUT = 800;
+const MAX_INPUT = 2000;
 const STARTERS = ["What does Literary Worx do?", "How does the free AI audit work?", "What does a project cost?", "Show me your case studies"];
 
 const uid = () => Math.random().toString(36).slice(2, 10);
