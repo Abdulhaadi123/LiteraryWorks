@@ -76,7 +76,7 @@ Tech: ${c.tech.join(", ")}${c.quote ? `\nClient quote: "${c.quote.text}" (${c.qu
 ${products.map((p) => `## ${p.name}: ${p.category}. ${p.status}.
 ${p.text}
 Covers ${p.domains.join(", ")} and ${p.moreDomains} more regulatory domains. ${p.facts.map((f) => `${f.value} ${f.label.toLowerCase()}`).join("; ")}.
-Website: ${p.url} (the one outside link you may give, written as plain text, not as a markdown link)`).join("\n")}`);
+Website: ${p.url} (the one outside link you may give: write it as a markdown link whose words are the domain, for example [balosys.com](https://balosys.com/))`).join("\n")}`);
 
   parts.push(`# Clients (shown on the home page and the about page, #clients)
 Logos shown: ${clientLogos.map((l) => l.name).join(", ")}. The names and words below are published; no ratings, counts of clients or satisfaction figures are published, so give none.

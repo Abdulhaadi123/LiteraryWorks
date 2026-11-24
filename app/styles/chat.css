@@ -622,6 +622,7 @@ html.chat-locked body {
   stroke-linejoin: round;
 }
 .chat-form input,
+.chat-form select,
 .chat-form textarea {
   width: 100%;
   padding: 0.6rem 0.75rem;
@@ -634,10 +635,30 @@ html.chat-locked body {
   resize: vertical;
 }
 .chat-form input:focus,
+.chat-form select:focus,
 .chat-form textarea:focus {
   outline: 2px solid var(--navy);
   outline-offset: -1px;
   border-color: var(--navy);
+}
+/* a button that reads as a link (in the note and the error: they open the form here instead of leaving the page) */
+.chat-linkbtn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.chat-linkbtn:hover {
+  color: var(--ink);
+}
+.chat-linkbtn:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+  border-radius: 3px;
 }
 .chat-small {
   font-size: 0.75rem;

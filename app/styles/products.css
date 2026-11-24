@@ -766,14 +766,15 @@
   display: flex;
   gap: 1.25rem;
   margin: 0;
-  padding: 0.5rem 0 1.75rem;
+  padding: 0.5rem max(var(--gutter), calc((100% - 78rem) / 2)) 1.75rem;
   overflow-x: auto;
   list-style: none;
   align-items: flex-start;
-  scroll-snap-type: x mandatory;
   scrollbar-width: none;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
 }
 .tcar-track::-webkit-scrollbar {
   display: none;
@@ -786,7 +787,6 @@
 .tcar-card {
   display: flex;
   flex: 0 0 min(26rem, 86vw);
-  scroll-snap-align: start;
 }
 /* side by side, the cards in a row are as tall as the tallest, and their names line up */
 @media (min-width: 48rem) {
@@ -871,6 +871,10 @@
   align-items: center;
   gap: 1rem;
 }
+/* the two cards on the about page ("Who we work with", "When it is too early") are as tall as each other and start at the same line */
+.split > .panel {
+  align-self: stretch;
+}
 .tcar-count {
   color: var(--fg-faint);
   font-size: 0.85rem;
@@ -924,5 +928,9 @@
 @media (prefers-reduced-motion: reduce) {
   .tcar-bar i {
     transition: none;
+  }
+  .tcar-track {
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 }

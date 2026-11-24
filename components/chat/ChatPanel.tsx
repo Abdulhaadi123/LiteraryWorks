@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { Fragment, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 import { Mark } from "@/components/Logo";
+import { balosys } from "@/lib/site";
+import { services } from "@/lib/services";
+import { topics } from "@/lib/topics";
 
 type Action = "book" | "contact" | "none";
 type Msg = {
@@ -26,6 +29,22 @@ const STARTERS = ["What does LiteraryWorks do?", "How does the free AI audit wor
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
+/** What the visitor most likely wants to talk about, from the page they are on (a service page names its service). */
+function topicHere(): string {
+  const path = window.location.pathname;
+  const slug = path.match(/^\/services\/([a-z0-9-]+)/)?.[1];
+  const hit = slug ? topics.find((t) => t.key === slug) : undefined;
+  if (hit) return hit.value;
+  return path.startsWith("/ai-audit") ? "Free AI audit" : "Something else";
+}
+
+/** A link to the contact page in an answer: /contact, or /contact?topic=<key> (the form opens with that topic chosen). */
+const contactTopic = (href: string): string | null => {
+  const m = href.match(/^\/contact(?:\?topic=([a-z-]+))?$/);
+  if (!m) return null;
+  return topics.find((t) => t.key === m[1])?.value ?? "Something else";
+};
+
 function loadMessages(): Msg[] {
   try {
     const raw = sessionStorage.getItem(STORE_KEY);
@@ -41,7 +60,8 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
   const [messages, setMessages] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
-  const [formFor, setFormFor] = useState<string | null>(null);
+  // the contact form inside the conversation (open, with the topic it starts on), so nobody has to leave to write to the team
+  const [form, setForm] = useState<{ topic: string; n: number } | null>(null);
   const [announce, setAnnounce] = useState("");
   const list = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
@@ -67,7 +87,7 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
   useLayoutEffect(() => {
     const el = list.current;
     if (el && pinned.current) el.scrollTop = el.scrollHeight;
-  }, [messages, formFor]);
+  }, [messages, form]);
 
   useEffect(() => {
     if (!open) return;
@@ -98,7 +118,7 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
       const base = [...history.filter((m) => !m.error), user];
       setMessages([...base, reply]);
       setDraft("");
-      setFormFor(null);
+      setForm(null);
       setBusy(true);
       setAnnounce("");
       pinned.current = true;
@@ -193,12 +213,17 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
   const reset = () => {
     abort.current?.abort();
     setMessages([]);
-    setFormFor(null);
+    setForm(null);
     setDraft("");
     try {
       sessionStorage.removeItem(STORE_KEY);
     } catch {}
     input.current?.focus();
+  };
+
+  const openForm = (topic?: string) => {
+    pinned.current = true;
+    setForm({ topic: topic ?? topicHere(), n: Date.now() });
   };
 
   const onPanelKey = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -232,6 +257,11 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
             Ask about our services and work
           </p>
         </div>
+        <button type="button" className="chat-icon-btn" onClick={() => openForm()} aria-label="Message the team" title="Message the team">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 6.5h16v11H4zM4.5 7l7.5 6 7.5-6" />
+          </svg>
+        </button>
         <button type="button" className="chat-icon-btn" onClick={reset} aria-label="Start a new conversation" title="New conversation" disabled={!messages.length}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5" />
@@ -285,9 +315,9 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
                       <p>{m.content}</p>
                       {m.final ? (
                         <p>
-                          <Link href="/contact" onClick={closeOnPhone(onClose)}>
-                            Write to us through the contact form
-                          </Link>
+                          <button type="button" className="chat-linkbtn" onClick={() => openForm()}>
+                            Write to us here
+                          </button>
                         </p>
                       ) : (
                         isLast && (
@@ -299,7 +329,7 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
                     </>
                   ) : (
                     <>
-                      <Rich text={m.content} onNavigate={closeOnPhone(onClose)} />
+                      <Rich text={m.content} onNavigate={closeOnPhone(onClose)} onContact={openForm} />
                       {m.cut && isLast && !busy && (
                         <p className="chat-cut">
                           The answer was cut off.{" "}
@@ -312,21 +342,20 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
                   )}
                 </div>
               </div>
-              {isLast && settled && (m.a === "book" || m.a === "contact") && formFor !== m.id && (
+              {isLast && settled && (m.a === "book" || m.a === "contact") && !form && (
                 <div className="chat-card">
                   <p className="chat-card-title">Talk to the LiteraryWorks team</p>
-                  <Link className="chat-btn is-primary" href="/contact?topic=audit" onClick={closeOnPhone(onClose)}>
+                  <button type="button" className="chat-btn is-primary" onClick={() => openForm("Free AI audit")}>
                     Book a free AI audit
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M5 12h14M13 6l6 6-6 6" />
                     </svg>
-                  </Link>
-                  <button type="button" className="chat-btn" onClick={() => setFormFor(m.id)}>
+                  </button>
+                  <button type="button" className="chat-btn" onClick={() => openForm(m.a === "book" ? "Free AI audit" : "Something else")}>
                     Ask us to contact you
                   </button>
                 </div>
               )}
-              {isLast && settled && formFor === m.id && <LeadForm messages={messages} topic={m.a === "book" ? "Free AI audit" : "Something else"} onCancel={() => setFormFor(null)} />}
               {isLast && settled && !!m.s?.length && (
                 <div className="chat-chips" aria-label="Suggested questions">
                   {m.s.map((q) => (
@@ -339,6 +368,8 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
             </Fragment>
           );
         })}
+
+        {form && <LeadForm key={form.n} messages={messages} topic={form.topic} onCancel={() => setForm(null)} />}
       </div>
 
       <p className="sr-only" role="status" aria-live="polite">
@@ -376,7 +407,11 @@ export function ChatPanel({ open, onClose, ask: asked, onAsked }: { open: boolea
         )}
       </form>
       <p className="chat-note">
-        AI answers can be wrong. For anything important, <Link href="/contact" onClick={closeOnPhone(onClose)}>contact the team</Link>.
+        AI answers can be wrong. For anything important,{" "}
+        <button type="button" className="chat-linkbtn" onClick={() => openForm()}>
+          message the team here
+        </button>
+        .
       </p>
     </div>
   );
@@ -388,19 +423,19 @@ const closeOnPhone = (onClose: () => void) => () => {
 };
 
 /** The answer's light markdown (paragraphs, lists, **bold**, links to our own pages) as React elements, never HTML. */
-function Rich({ text, onNavigate }: { text: string; onNavigate: () => void }) {
+function Rich({ text, onNavigate, onContact }: { text: string; onNavigate: () => void; onContact: (topic?: string) => void }) {
   const blocks: ReactNode[] = [];
   const lines = text.split(/\r?\n/);
   let para: string[] = [];
   let items: string[] = [];
   let ordered = false;
   const flushPara = () => {
-    if (para.length) blocks.push(<p key={blocks.length}>{inline(para.join(" "), onNavigate)}</p>);
+    if (para.length) blocks.push(<p key={blocks.length}>{inline(para.join(" "), onNavigate, onContact)}</p>);
     para = [];
   };
   const flushList = () => {
     if (items.length) {
-      const children = items.map((t, i) => <li key={i}>{inline(t, onNavigate)}</li>);
+      const children = items.map((t, i) => <li key={i}>{inline(t, onNavigate, onContact)}</li>);
       blocks.push(ordered ? <ol key={blocks.length}>{children}</ol> : <ul key={blocks.length}>{children}</ul>);
     }
     items = [];
@@ -427,26 +462,111 @@ function Rich({ text, onNavigate }: { text: string; onNavigate: () => void }) {
   return <>{blocks}</>;
 }
 
+/** The only other websites a link may point to: our own products' (the assistant may name them; nothing else becomes a link). */
+const OUTSIDE_HOSTS = [new URL(balosys.url).host.replace(/^www\./, "")];
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/** The address of a link to one of those websites (https only, no login in it), or null. */
+const outsideUrl = (href: string): string | null => {
+  try {
+    const u = new URL(/^https?:\/\//i.test(href) ? href : `https://${href}`);
+    return u.protocol === "https:" && !u.username && OUTSIDE_HOSTS.includes(u.host.replace(/^www\./, "")) ? u.href : null;
+  } catch {
+    return null;
+  }
+};
+/** The words of such a link: the domain (and path), without the https:// and a closing slash: balosys.com */
+const outsideLabel = (href: string) => href.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "");
+/** A bare mention of one of those websites in the text (balosys.com, www.balosys.com, https://balosys.com/ ...). */
+const OUTSIDE_MENTION = `(?:https?:\\/\\/)?(?:www\\.)?(?:${OUTSIDE_HOSTS.map(escapeRe).join("|")})(?:\\/[^\\s)<]*)?`;
+
+/** A link to one of those websites: it opens in a new tab and says so for assistive technology. */
+function Outside({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer">
+      {children}
+      <span className="sr-only"> (opens in a new tab)</span>
+    </a>
+  );
+}
+
 const SAFE_PATH = /^\/(?:(?:services|work)(?:\/[a-z0-9-]+)?|ai-audit|about|privacy|contact(?:\?topic=[a-z-]+)?)?$/;
 
-function inline(text: string, onNavigate: () => void): ReactNode[] {
+/** A page's address written out in the text (/contact, /ai-audit, /work/some-project): it is shown by name, never as a path. */
+const BARE_PATH = "\\/(?:contact(?:\\?topic=[a-z-]+)?|ai-audit|about|privacy|work(?:\\/[a-z0-9-]+)?|services(?:\\/[a-z0-9-]+)?)";
+
+/** The words for one of our pages: what a visitor reads instead of its address. */
+function pathWords(href: string): string {
+  const path = href.split("?")[0].replace(/\/$/, "");
+  if (path === "/contact") return "contact form";
+  if (path === "/ai-audit") return "free AI audit";
+  if (path === "/about") return "about page";
+  if (path === "/privacy") return "privacy policy";
+  if (path === "/work") return "case studies";
+  if (path.startsWith("/work/")) return "this case study";
+  if (path === "/services") return "services";
+  const service = services.find((s) => path === `/services/${s.slug}`);
+  if (service) return service.name;
+  return "this page";
+}
+
+function inline(text: string, onNavigate: () => void, onContact: (topic?: string) => void): ReactNode[] {
   const out: ReactNode[] = [];
-  const re = /\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
+  const re = new RegExp(`\\*\\*([^*]+)\\*\\*|\\[([^\\]]+)\\]\\(([^)\\s]+)\\)|(${OUTSIDE_MENTION})|(${BARE_PATH})`, "gi");
   let at = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
+    // a mention that is part of a longer word or address (notbalosys.com, balosys.com.other.example, someone@balosys.com) is not ours
+    if (m[4] && ((m.index > 0 && /[\w@./-]/.test(text[m.index - 1])) || /^(?:[\w@-]|\.\w)/.test(text.slice(m.index + m[0].length, m.index + m[0].length + 2)))) continue;
+    // the same for a page's address: only on its own (after a space or a bracket, not followed by more of a word or path)
+    if (m[5] && ((m.index > 0 && !/[\s(["'“,:;]/.test(text[m.index - 1])) || /^[\w/-]/.test(text.slice(m.index + m[0].length, m.index + m[0].length + 1)))) continue;
     if (m.index > at) out.push(text.slice(at, m.index));
     if (m[1]) out.push(<strong key={m.index}>{m[1]}</strong>);
-    else {
-      // only our own pages become links; anything else stays as its words
-      const href = m[3].replace(/^https?:\/\/[^/]*literaryworx?\.com/i, "") || "/";
+    else if (m[4]) {
+      // one of our products' websites written out in the text: a link, with the full stop or comma that ends the sentence left outside it
+      const trail = m[4].match(/[.,;:!?)\]]+$/)?.[0] ?? "";
+      const written = trail ? m[4].slice(0, -trail.length) : m[4];
+      const url = outsideUrl(written);
       out.push(
-        SAFE_PATH.test(href) ? (
-          <Link key={m.index} href={href} onClick={onNavigate}>
+        url ? (
+          <Outside key={m.index} href={url}>
+            {outsideLabel(written)}
+          </Outside>
+        ) : (
+          written
+        ),
+      );
+      if (trail) out.push(trail);
+    } else {
+      // only our own pages (and our products' websites) become links; anything else stays as its words
+      const href = m[5] ?? (m[3].replace(/^https?:\/\/[^/]*literaryworx?\.com/i, "") || "/");
+      // the words of the link are never a page's address: /contact is shown as "contact form", and still goes there
+      const label = m[5] || /^\s*(?:https?:\/\/[^/\s]*literaryworx?\.com)?\/[\w?=&/-]*\s*$/i.test(m[2]) ? pathWords(href) : m[2];
+      const topic = contactTopic(href);
+      const outside = m[5] ? null : outsideUrl(m[3]);
+      out.push(
+        outside ? (
+          <Outside key={m.index} href={outside}>
             {m[2]}
+          </Outside>
+        ) : topic ? (
+          // a link to the contact page opens the form here, in the conversation (the address stays for a new tab)
+          <Link
+            key={m.index}
+            href={href}
+            onClick={(e) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+              e.preventDefault();
+              onContact(topic);
+            }}
+          >
+            {label}
+          </Link>
+        ) : SAFE_PATH.test(href) ? (
+          <Link key={m.index} href={href} onClick={onNavigate}>
+            {label}
           </Link>
         ) : (
-          m[2]
+          label
         ),
       );
     }
@@ -458,15 +578,20 @@ function inline(text: string, onNavigate: () => void): ReactNode[] {
 
 type FormState = "idle" | "sending" | "sent" | "error";
 
-/** "Ask us to contact you": the same inquiry the contact page sends, with this conversation attached for context. */
-function LeadForm({ messages, topic, onCancel }: { messages: Msg[]; topic: string; onCancel: () => void }) {
+/** The contact form, inside the conversation: the same inquiry the contact page sends, with this conversation attached for context. */
+function LeadForm({ messages, topic: start, onCancel }: { messages: Msg[]; topic: string; onCancel: () => void }) {
   const [state, setState] = useState<FormState>("idle");
   const [note, setNote] = useState("");
+  const [topic, setTopic] = useState(start);
   const first = useRef<HTMLInputElement>(null);
+  const root = useRef<HTMLFormElement>(null);
   const id = useId();
+  // with no conversation to send along, the visitor says what they need; after a conversation it is optional
+  const talked = messages.some((m) => !m.error);
 
   useEffect(() => {
     first.current?.focus({ preventScroll: true });
+    root.current?.scrollIntoView({ block: "nearest" });
   }, []);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -512,10 +637,11 @@ function LeadForm({ messages, topic, onCancel }: { messages: Msg[]; topic: strin
     );
 
   return (
-    <form className="chat-card chat-form" onSubmit={onSubmit} aria-labelledby={`${id}-t`}>
+    <form ref={root} className="chat-card chat-form" onSubmit={onSubmit} aria-labelledby={`${id}-t`}>
       <p className="chat-card-title" id={`${id}-t`}>
-        Ask us to contact you
+        Message the team
       </p>
+      <p className="chat-small">Tell us who you are and what you need. We reply by email, usually within one business day.</p>
       <label className="sr-only" htmlFor={`${id}-n`}>
         Name (required)
       </label>
@@ -528,10 +654,28 @@ function LeadForm({ messages, topic, onCancel }: { messages: Msg[]; topic: strin
         Company (optional)
       </label>
       <input id={`${id}-c`} name="company" placeholder="Company" autoComplete="organization" maxLength={120} />
-      <label className="sr-only" htmlFor={`${id}-m`}>
-        How can we help? (optional)
+      <label className="sr-only" htmlFor={`${id}-i`}>
+        What do you need help with?
       </label>
-      <textarea id={`${id}-m`} name="message" placeholder="How can we help?" rows={3} maxLength={5000} />
+      <select id={`${id}-i`} name="interest" value={topic} onChange={(e) => setTopic(e.target.value)}>
+        {topics.map((t) => (
+          <option key={t.key} value={t.value}>
+            {t.value}
+          </option>
+        ))}
+      </select>
+      <label className="sr-only" htmlFor={`${id}-m`}>
+        {talked ? "How can we help? (optional)" : "How can we help? (required)"}
+      </label>
+      <textarea
+        id={`${id}-m`}
+        name="message"
+        placeholder={talked ? "How can we help? (optional)" : "How can we help? *"}
+        rows={3}
+        maxLength={5000}
+        required={!talked}
+        minLength={talked ? undefined : 10}
+      />
       <div className="chat-hp" aria-hidden="true">
         <label htmlFor={`${id}-w`}>Website</label>
         <input id={`${id}-w`} name="website" tabIndex={-1} autoComplete="off" />

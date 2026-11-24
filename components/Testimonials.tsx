@@ -13,106 +13,135 @@ const initials = (name: string) =>
     .join("");
 
 const GAP = 20; // between two cards, in px (the same as in the CSS)
-/** How long a card stays before the row moves on, and how long it waits after the visitor has touched it. */
-const EVERY_MS = 4800;
-const AFTER_TOUCH_MS = 12000;
+/** How fast the row drifts, in px a second, and how long it waits after the visitor has touched it. */
+const SPEED = 42;
+const AFTER_TOUCH_MS = 3500;
 
 /**
- * What clients say: a row of cards that scrolls sideways (the wheel, a swipe, the arrow keys, or the two buttons), each
- * with the person's photo or initials, name and role. Every quote is in the page; only the position in the row changes.
+ * What clients say: a row of cards that drifts sideways by itself, the way the band of logos does, from one edge of the
+ * window to the other, and starts over seamlessly (the cards are repeated once). It stops under the pointer and while
+ * keyboard focus is in it, and for a moment after a touch, a swipe, the wheel or a key; the two buttons and a swipe move it
+ * by hand. For a visitor who asked for reduced motion it stands still (and is not repeated). Every quote is in the page once.
  */
 export function Testimonials({ items }: { items: Quote[] }) {
+  const root = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLUListElement>(null);
   const [at, setAt] = useState(0);
-  const [edge, setEdge] = useState({ start: true, end: false });
+  // the row is repeated once, in the browser only (the page itself carries each quote once)
+  const [copies, setCopies] = useState(1);
+  const n = items.length;
+  const hold = useRef({ quietUntil: 0, smoothUntil: 0 });
+
+  /** The width of one full set of cards: where the row starts over. 0 while it is not repeated. */
+  const setWidth = useCallback(() => {
+    const el = track.current;
+    const cards = el?.querySelectorAll<HTMLElement>("li");
+    if (!el || !cards || cards.length < 2 * n) return 0;
+    return cards[n].offsetLeft - cards[0].offsetLeft;
+  }, [n]);
 
   const read = useCallback(() => {
     const el = track.current;
-    if (!el) return;
-    const card = el.querySelector<HTMLElement>("li");
-    const step = card ? card.offsetWidth + GAP : 1;
-    setAt(Math.min(items.length - 1, Math.round(el.scrollLeft / step)));
-    setEdge({ start: el.scrollLeft < 4, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4 });
-  }, [items.length]);
+    const card = el?.querySelector<HTMLElement>("li");
+    if (!el || !card) return;
+    setAt(Math.round(el.scrollLeft / (card.offsetWidth + GAP)) % n);
+  }, [n]);
+
+  useEffect(() => {
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) setCopies(2);
+  }, []);
 
   useEffect(() => {
     const el = track.current;
-    if (!el) return;
+    const box = root.current;
+    if (!el || !box) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let raf = 0;
-    const on = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        read();
-      });
-    };
-    read();
-    el.addEventListener("scroll", on, { passive: true });
-    window.addEventListener("resize", on);
-    return () => {
-      el.removeEventListener("scroll", on);
-      window.removeEventListener("resize", on);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [read]);
-
-  /**
-   * The row moves on by itself, one card at a time, and comes back to the first after the last. It waits while the pointer is
-   * over it or keyboard focus is in it, for a while after a touch, the wheel or a key, while it is off screen or the tab is hidden,
-   * and it never moves for a visitor who asked for reduced motion.
-   */
-  useEffect(() => {
-    const el = track.current;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let last = 0;
+    let acc = 0;
     let hover = false;
     let focus = false;
     let visible = false;
-    let quietUntil = 0;
-    const touched = () => {
-      quietUntil = Date.now() + AFTER_TOUCH_MS;
+    const wrap = () => {
+      const w = setWidth();
+      if (w && Date.now() >= hold.current.smoothUntil && el.scrollLeft >= w) el.scrollLeft -= w;
     };
-    const io = new IntersectionObserver((entries) => (visible = entries.some((e) => e.isIntersecting)), { threshold: 0.35 });
-    io.observe(el);
+    const frame = (t: number) => {
+      raf = requestAnimationFrame(frame);
+      const dt = Math.min(64, Math.max(0, t - last));
+      last = t;
+      if (reduced || !visible || hover || focus || document.hidden || Date.now() < hold.current.quietUntil || Date.now() < hold.current.smoothUntil) return;
+      acc += (SPEED * dt) / 1000;
+      const whole = Math.floor(acc);
+      if (whole >= 1) {
+        acc -= whole;
+        el.scrollLeft += whole;
+        wrap();
+      }
+    };
+    const onScroll = () => {
+      wrap();
+      read();
+    };
+    const touched = () => {
+      hold.current.quietUntil = Date.now() + AFTER_TOUCH_MS;
+    };
+    const io = new IntersectionObserver(
+      (entries) => {
+        visible = entries.some((e) => e.isIntersecting);
+        if (visible && !raf) {
+          last = performance.now();
+          raf = requestAnimationFrame(frame);
+        } else if (!visible && raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        }
+      },
+      { threshold: 0.1 },
+    );
+    io.observe(box);
     const enter = () => (hover = true);
     const leave = () => (hover = false);
     const fin = () => (focus = true);
     const fout = () => (focus = false);
-    el.addEventListener("pointerenter", enter);
-    el.addEventListener("pointerleave", leave);
-    el.addEventListener("focusin", fin);
-    el.addEventListener("focusout", fout);
-    for (const t of ["pointerdown", "touchstart", "wheel", "keydown"]) el.addEventListener(t, touched, { passive: true });
-    const timer = window.setInterval(() => {
-      if (hover || focus || !visible || document.hidden || Date.now() < quietUntil) return;
-      const card = el.querySelector<HTMLElement>("li");
-      if (!card) return;
-      const step = card.offsetWidth + GAP;
-      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
-      el.scrollTo({ left: atEnd ? 0 : Math.round(el.scrollLeft / step) * step + step, behavior: "smooth" });
-    }, EVERY_MS);
+    box.addEventListener("pointerenter", enter);
+    box.addEventListener("pointerleave", leave);
+    box.addEventListener("focusin", fin);
+    box.addEventListener("focusout", fout);
+    for (const ev of ["pointerdown", "touchstart", "wheel", "keydown"]) el.addEventListener(ev, touched, { passive: true });
+    el.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", read);
+    read();
     return () => {
-      window.clearInterval(timer);
+      if (raf) cancelAnimationFrame(raf);
       io.disconnect();
-      el.removeEventListener("pointerenter", enter);
-      el.removeEventListener("pointerleave", leave);
-      el.removeEventListener("focusin", fin);
-      el.removeEventListener("focusout", fout);
-      for (const t of ["pointerdown", "touchstart", "wheel", "keydown"]) el.removeEventListener(t, touched);
+      box.removeEventListener("pointerenter", enter);
+      box.removeEventListener("pointerleave", leave);
+      box.removeEventListener("focusin", fin);
+      box.removeEventListener("focusout", fout);
+      for (const ev of ["pointerdown", "touchstart", "wheel", "keydown"]) el.removeEventListener(ev, touched);
+      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", read);
     };
-  }, []);
+  }, [copies, read, setWidth]);
 
   const move = (dir: 1 | -1) => {
     const el = track.current;
     const card = el?.querySelector<HTMLElement>("li");
     if (!el || !card) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const step = card.offsetWidth + GAP;
     // about as many cards as are in view, so a press shows a fresh set
-    const n = Math.max(1, Math.floor(el.clientWidth / (card.offsetWidth + GAP)));
-    el.scrollBy({ left: dir * n * (card.offsetWidth + GAP), behavior: reduced ? "auto" : "smooth" });
+    const by = Math.max(1, Math.floor(el.clientWidth / step)) * step;
+    hold.current.smoothUntil = Date.now() + (reduced ? 0 : 900);
+    hold.current.quietUntil = Date.now() + 6000;
+    const w = setWidth();
+    if (dir < 0 && w && el.scrollLeft < by) el.scrollLeft += w; // (the same picture one set along: going back past the first card)
+    el.scrollBy({ left: dir * by, behavior: reduced ? "auto" : "smooth" });
   };
 
   return (
-    <div className="tcar" data-reveal>
+    <div className="tcar" ref={root} data-reveal>
       <ul
         className="tcar-track"
         ref={track}
@@ -128,40 +157,42 @@ export function Testimonials({ items }: { items: Quote[] }) {
           }
         }}
       >
-        {items.map((q) => (
-          <li key={q.name + q.role} className="tcar-card">
-            <figure>
-              <span className="tcar-mark" aria-hidden="true">
-                “
-              </span>
-              <blockquote>{q.text}</blockquote>
-              <figcaption>
-                <span className="tcar-avatar" aria-hidden="true">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {q.photo ? <img src={q.photo} alt="" width={96} height={96} loading="lazy" decoding="async" /> : initials(q.name)}
+        {Array.from({ length: copies }, (_, c) =>
+          items.map((q) => (
+            <li key={`${c}-${q.name}${q.role}`} className="tcar-card" aria-hidden={c > 0 || undefined}>
+              <figure>
+                <span className="tcar-mark" aria-hidden="true">
+                  “
                 </span>
-                <span className="tcar-who">
-                  <b>{q.name}</b>
-                  <span>{q.role}</span>
-                </span>
-              </figcaption>
-            </figure>
-          </li>
-        ))}
+                <blockquote>{q.text}</blockquote>
+                <figcaption>
+                  <span className="tcar-avatar" aria-hidden="true">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {q.photo ? <img src={q.photo} alt="" width={96} height={96} loading="lazy" decoding="async" /> : initials(q.name)}
+                  </span>
+                  <span className="tcar-who">
+                    <b>{q.name}</b>
+                    <span>{q.role}</span>
+                  </span>
+                </figcaption>
+              </figure>
+            </li>
+          )),
+        )}
       </ul>
-      <div className="tcar-nav">
+      <div className="wrap tcar-nav">
         <span className="tcar-count" aria-hidden="true">
-          <b>{String(at + 1).padStart(2, "0")}</b> / {String(items.length).padStart(2, "0")}
+          <b>{String(at + 1).padStart(2, "0")}</b> / {String(n).padStart(2, "0")}
         </span>
         <span className="tcar-bar" aria-hidden="true">
-          <i style={{ transform: `scaleX(${((at + 1) / items.length).toFixed(3)})` }} />
+          <i style={{ transform: `scaleX(${((at + 1) / n).toFixed(3)})` }} />
         </span>
-        <button type="button" className="tcar-arrow" aria-label="Earlier testimonials" disabled={edge.start} onClick={() => move(-1)}>
+        <button type="button" className="tcar-arrow" aria-label="Earlier testimonials" onClick={() => move(-1)}>
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M19 12H5M11 6l-6 6 6 6" />
           </svg>
         </button>
-        <button type="button" className="tcar-arrow" aria-label="More testimonials" disabled={edge.end} onClick={() => move(1)}>
+        <button type="button" className="tcar-arrow" aria-label="More testimonials" onClick={() => move(1)}>
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>

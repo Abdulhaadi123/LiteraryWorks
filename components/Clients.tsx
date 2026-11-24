@@ -19,9 +19,7 @@ export function Clients({ tone = "white" }: { tone?: "white" | "mist" }) {
         />
       </div>
       <ClientLogos />
-      <div className="wrap">
-        <Testimonials items={clientQuotes} />
-      </div>
+      <Testimonials items={clientQuotes} />
     </section>
   );
 }
