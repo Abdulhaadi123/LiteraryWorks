@@ -38,24 +38,36 @@ const addressOf = (request: Request) => (request.headers.get("x-forwarded-for")?
 
 type Turn = { role: "user" | "assistant"; content: string };
 
-function readTurns(input: unknown): Turn[] | null {
-  if (!input || typeof input !== "object" || !Array.isArray((input as { messages?: unknown }).messages)) return null;
-  const raw = (input as { messages: unknown[] }).messages;
-  if (raw.length < 1 || raw.length > 60) return null;
+/**
+ * The conversation the visitor's browser sends: valid turns, or why not. Only the newest message is held to the length
+ * limit (that is what the visitor just typed). Earlier turns are history: a long earlier answer is shortened and the
+ * oldest turns are dropped when the whole is too long, so a long conversation never makes a short question fail.
+ */
+function readTurns(input: unknown): Turn[] | "invalid" | "long" {
+  if (!input || typeof input !== "object" || !Array.isArray((input as { messages?: unknown }).messages)) return "invalid";
+  const all = (input as { messages: unknown[] }).messages;
+  if (all.length < 1) return "invalid";
+  const raw = all.slice(-60);
   const turns: Turn[] = [];
-  for (const m of raw) {
-    if (!m || typeof m !== "object") return null;
+  for (let i = 0; i < raw.length; i++) {
+    const m = raw[i];
+    if (!m || typeof m !== "object") return "invalid";
     const { role, content } = m as { role?: unknown; content?: unknown };
-    if ((role !== "user" && role !== "assistant") || typeof content !== "string") return null;
+    if ((role !== "user" && role !== "assistant") || typeof content !== "string") return "invalid";
     const text = content.trim();
     if (!text) continue;
-    if (text.length > (role === "user" ? MAX_USER : MAX_ASSISTANT)) return null;
-    turns.push({ role, content: text });
+    const limit = role === "user" ? MAX_USER : MAX_ASSISTANT;
+    if (text.length > limit && i === raw.length - 1) return "long";
+    turns.push({ role, content: text.slice(0, limit) });
   }
-  const recent = turns.slice(-MAX_TURNS);
+  let recent = turns.slice(-MAX_TURNS);
   while (recent.length && recent[0].role !== "user") recent.shift();
-  if (!recent.length || recent[recent.length - 1].role !== "user") return null;
-  if (recent.reduce((n, t) => n + t.content.length, 0) > MAX_TOTAL) return null;
+  if (!recent.length || recent[recent.length - 1].role !== "user") return "invalid";
+  // too much history: let the oldest turns go (never the newest question)
+  while (recent.length > 1 && recent.reduce((n, t) => n + t.content.length, 0) > MAX_TOTAL) {
+    recent = recent.slice(1);
+    while (recent.length > 1 && recent[0].role !== "user") recent = recent.slice(1);
+  }
   return recent;
 }
 
@@ -90,7 +102,8 @@ export async function POST(request: Request) {
     return fail("Please send a valid message.", 400);
   }
   const turns = readTurns(input);
-  if (!turns) return fail(`Please keep each message under ${MAX_USER} characters.`, 400);
+  if (turns === "long") return fail(`Please keep your message under ${MAX_USER} characters.`, 400);
+  if (turns === "invalid") return fail("Please send a valid message.", 400);
 
   if (!process.env.ANTHROPIC_API_KEY) return fail("The assistant is not available right now. Please use the contact form.", 503);
   client ??= new Anthropic({ maxRetries: 1, timeout: 45_000 });
@@ -220,7 +233,7 @@ function relay(
           console.info(`[chat] ${message.model} in=${u.input_tokens} cache_read=${u.cache_read_input_tokens ?? 0} cache_write=${u.cache_creation_input_tokens ?? 0} out=${u.output_tokens} stop=${message.stop_reason}`);
         }
         if (message.stop_reason === "refusal") {
-          send({ t: "e", m: "I can only help with questions about LiteraryWorks and our work. Please try another question, or contact the team." });
+          send({ t: "e", m: "I can only help with questions about Literary Worx and our work. Please try another question, or contact the team." });
           return;
         }
         const body = cleanHead(full + "\n") ?? "";
