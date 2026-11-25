@@ -37,7 +37,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
       <SceneHero
         id="top"
         variant={slug}
-        kicker={`${s.group} / Service`}
+        kicker={`${s.kind} / Service`}
         title={s.name}
         lead={p.summary}
         actions={

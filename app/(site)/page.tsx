@@ -4,7 +4,6 @@ import { CaseReel } from "@/components/CaseReel";
 import { Marquee } from "@/components/Marquee";
 import { Products } from "@/components/Products";
 import { d, Faq, Ladder, SectionHead, Tiles } from "@/components/ui";
-import { Clients } from "@/components/Clients";
 import { ServicesGrid } from "@/components/ServicesGrid";
 import { AuditStrip, Industries, Phases, Problems } from "@/components/Sections";
 import { Phase, Xp } from "@/components/Xp";
@@ -175,8 +174,6 @@ export default function Home() {
       />
 
       <Products />
-
-      <Clients />
 
       <section className="section on-mist">
         <div className="wrap two-col">

@@ -459,20 +459,6 @@
   border-radius: 50%;
   background: currentColor;
 }
-.tag[data-group="AI"] {
-  --tag-ink: var(--green-ink);
-  --tag-bg: rgba(115, 201, 74, 0.14);
-  --tag-line: rgba(115, 201, 74, 0.5);
-}
-.tag[data-group="Cloud"] {
-  --tag-bg: transparent;
-  --tag-line: rgba(34, 66, 95, 0.4);
-}
-.tag[data-group="Construction"] {
-  --tag-ink: var(--fg-soft);
-  --tag-bg: rgba(25, 23, 22, 0.05);
-  --tag-line: rgba(25, 23, 22, 0.2);
-}
 .svc-tags .tag {
   letter-spacing: 0.09em;
 }
@@ -632,8 +618,7 @@
 
 /* ---- the home page's case studies: the whole picture stays in view ----
    The outline numeral used to sit over the top-left of each picture and cover its title; it is a small tag now, and
-   the dark wash that helped it read is gone. In the sideways gallery a card is as wide as the height of the screen
-   allows, so on a laptop screen the picture and the words under it are never cut off by the bottom edge. */
+   the dark wash that helped it read is gone. */
 .reel-img::after {
   content: none;
 }
@@ -650,9 +635,6 @@
   line-height: 1.2;
   -webkit-text-stroke: 0;
   filter: none;
-}
-.reel.is-live .reel-card {
-  width: min(34rem, 44vw, max(21rem, calc((100svh - 28rem) * 16 / 9)));
 }
 
 /* ---- case study and project pictures are shown whole, never cropped ----

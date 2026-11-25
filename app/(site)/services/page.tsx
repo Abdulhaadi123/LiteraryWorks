@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ServicesDeck } from "@/components/ServicesDeck";
 import { Industries, Stack } from "@/components/Sections";
+import { ServicesDetail } from "@/components/ServicesDetail";
 import { PageHero, ServiceCards } from "@/components/ui";
 import { pageMeta } from "@/lib/seo";
 
@@ -64,7 +65,9 @@ export default function ServicesPage() {
         }
       />
 
-      <Industries tone="white" />
+      <ServicesDetail />
+
+      <Industries tone="mist" />
 
       <Stack />
     </>

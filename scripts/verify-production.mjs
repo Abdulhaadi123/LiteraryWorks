@@ -373,45 +373,73 @@ async function main() {
       page.close();
     }
 
-    // 2a2. the case studies reel on the home page: pinned, and the cards slide sideways while you scroll through it
+    // 2a2. the case studies row on the home page drifts sideways by itself (like the client testimonials), stops under the
+    // pointer, moves by hand with its buttons, and shows all six pictures; the clients' section is on the about page only
     {
       const page = await visit(chrome, "/", { width: 1440, height: 900 });
       await waitForScene(page, "#story");
-      let live = false;
-      for (let i = 0; i < 40 && !live; i++) {
-        live = await page.ev("!!document.querySelector('#work.reel.is-live')");
-        if (!live) await sleep(250);
+      await page.ev("document.querySelector('#work')?.scrollIntoView({ block: 'center' })");
+      // (with the software renderer the shaders compile on the main thread, which can hold the page for many seconds after
+      // it opens; so wait for the row to answer instead of reading it once)
+      let sets = 0;
+      for (let i = 0; i < 60 && sets < 2; i++) {
+        sets = await page.ev("document.querySelectorAll('#work .drift-set').length");
+        if (sets < 2) await sleep(250);
       }
-      check(live, "home: the case studies reel is pinned (motion on)");
-      // (with the software renderer the shaders compile on the main thread, which can hold it for many seconds after the
-      // page opens; so wait for the reel to answer instead of reading it once)
-      const read = () => page.ev("(() => { const t = document.querySelector('[data-reel-track]'); const m = new DOMMatrix(getComputedStyle(t).transform); const b = document.querySelector('[data-reel-bar]'); return { x: m.m41, bar: new DOMMatrix(getComputedStyle(b).transform).a }; })()");
-      const at = async (p, until) => {
-        const y = await page.ev(`(() => { const s = document.querySelector('#work'); const top = s.getBoundingClientRect().top + scrollY; return top + ${p} * (s.offsetHeight - innerHeight); })()`);
-        await page.ev(`window.scrollTo(0, ${y})`);
-        await sleep(3200);
-        let r = await read();
-        for (let i = 0; i < 60 && until && !until(r); i++) {
-          await sleep(500);
-          r = await read();
-        }
-        return r;
-      };
-      const start = await at(0.02);
-      // through the middle like a visitor, so every card passes the screen (their pictures are lazy)
-      let prev = start;
-      for (const p of [0.35, 0.65]) prev = await at(p, (r) => r.x < prev.x - 100);
-      const end = await at(0.98, (r) => r.x < start.x - 500 && r.bar > start.bar + 0.5);
-      check(end.x < start.x - 500, "home: the reel's cards slide sideways as you scroll", `from ${Math.round(start.x)} to ${Math.round(end.x)} px`);
-      check(end.bar > start.bar + 0.5, "home: the reel's green line fills as you scroll", `from ${start.bar.toFixed(2)} to ${end.bar.toFixed(2)}`);
+      check(sets === 2, "home: the case studies row is repeated once, so it can loop (motion on)", String(sets));
+      const left = () => page.ev("document.querySelector('#work .drift-track').scrollLeft");
+      const a0 = await left();
+      let a1 = a0;
+      for (let i = 0; i < 60 && a1 < a0 + 60; i++) {
+        await sleep(500);
+        a1 = await left();
+      }
+      check(a1 >= a0 + 60, "home: the case studies row drifts sideways by itself", `from ${Math.round(a0)} to ${Math.round(a1)} px`);
+      const box = await page.ev("(() => { const r = document.querySelector('#work .drift-track').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()");
+      await page.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: box.x, y: box.y });
+      await sleep(700);
+      const h0 = await left();
+      await sleep(1500);
+      const h1 = await left();
+      check(Math.abs(h1 - h0) <= 3, "home: the row stops under the pointer", `${Math.round(h0)} -> ${Math.round(h1)} px`);
+      await page.ev("document.querySelector('#work .tcar-arrow[aria-label=\"More case studies\"]').click()");
+      await sleep(1500);
+      const h2 = await left();
+      check(h2 > h1 + 100, "home: the next button moves the row by hand", `${Math.round(h1)} -> ${Math.round(h2)} px`);
+      // the pictures are lazy: step the row along by hand so every card passes the screen
       let pics = 0;
-      for (let i = 0; i < 40; i++) {
-        pics = await page.ev("[...document.querySelectorAll('#work .reel-img img')].filter((i) => i.complete && i.naturalWidth > 0).length");
+      for (let i = 0; i < 12; i++) {
+        pics = await page.ev("[...document.querySelectorAll('#work .drift-set:first-child .reel-img img')].filter((i) => i.complete && i.naturalWidth > 0).length");
         if (pics === 6) break;
-        await sleep(250);
+        await page.ev("document.querySelector('#work .tcar-arrow[aria-label=\"More case studies\"]').click()");
+        await sleep(1300);
       }
       check(pics === 6, "home: all six case study pictures load", `${pics} loaded`);
+      const tabbable = await page.ev("document.querySelectorAll('#work .drift-set + .drift-set a:not([tabindex=\"-1\"])').length");
+      check(tabbable === 0, "home: the repeated cards are not keyboard stops", `${tabbable} are`);
       page.close();
+
+      const homeHtml = await (await fetch(`${base}/`)).text();
+      const aboutHtml = await (await fetch(`${base}/about`)).text();
+      check(!/id="clients"/.test(homeHtml), "home: no clients section (it is on the about page)");
+      check(/id="clients"/.test(aboutHtml) && /tcar-track/.test(aboutHtml), "about: the clients and their words are there");
+
+      // the services: a tag names the kind of work (not "AI" or "Software"), and the services page describes every service in plain words
+      const servicesHtml = await (await fetch(`${base}/services`)).text();
+      const items = (servicesHtml.match(/class="svc-detail-item"/g) || []).length;
+      check(items === 9, "services: all nine services are described on the page, in plain words", `${items} found`);
+      check(/<h3[^>]*class="svc-detail-name"/.test(servicesHtml) && (servicesHtml.match(/href="\/services\/[a-z-]+"/g) || []).length >= 9, "services: each one links to its page");
+      const generic = (homeHtml + servicesHtml).match(/class="tag svc-(?:group|row-group)"[^>]*>(AI|Software|Cloud|Construction)</g) || [];
+      check(generic.length === 0, "the service tags name the kind of work, not 'AI' or 'Software'", generic.slice(0, 2).join(" "));
+
+      // reduced motion: the row stands still and is not repeated
+      const calm = await visit(chrome, "/", { width: 1440, height: 900, reduced: true });
+      await calm.ev("document.querySelector('#work')?.scrollIntoView({ block: 'center' })");
+      await sleep(2500);
+      const calmSets = await calm.ev("document.querySelectorAll('#work .drift-set').length");
+      const calmX = await calm.ev("document.querySelector('#work .drift-track').scrollLeft");
+      check(calmSets === 1 && calmX === 0, "home: with reduced motion the case studies row stands still and is not repeated", `${calmSets} set(s), scrollLeft ${calmX}`);
+      calm.close();
     }
 
     // 2b. the model never runs over the copy, on a small laptop or an ultra-wide screen (the canvas is drawn with and without; only the copy's area is compared)

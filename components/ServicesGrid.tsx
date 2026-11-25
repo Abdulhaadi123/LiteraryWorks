@@ -35,9 +35,7 @@ export function ServicesGrid({ id = "services" }: { id?: string }) {
                 </div>
                 <div className="svc-body">
                   <span className="svc-tags">
-                    <span className="tag svc-group" data-group={s.group}>
-                      {s.group}
-                    </span>
+                    <span className="tag svc-group">{s.kind}</span>
                     {s.isNew ? <span className="pill pill-new">New</span> : null}
                   </span>
                   <h3 className="svc-name">{s.name}</h3>

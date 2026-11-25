@@ -1198,7 +1198,7 @@ a.case:hover .case-img img,
   }
 }
 
-/* ---- the case studies as a horizontal gallery: cards that slide sideways while the page scrolls ---- */
+/* ---- the case studies: a row of cards that drifts sideways by itself (components/DriftRow.tsx; the row, its edges and its buttons are the testimonials' .tcar styles) ---- */
 .reel {
   padding-block: clamp(4.5rem, 8vw, 7rem);
   background: #fff;
@@ -1211,18 +1211,21 @@ a.case:hover .case-img img,
   margin-bottom: clamp(2rem, 4vw, 3rem);
   margin-inline: max(var(--gutter), calc((100% - 78rem) / 2));
 }
-.reel-track {
-  display: grid;
-  gap: 1.5rem;
-  margin: 0 auto;
+/* the row is the containing block of the cards' hidden screen-reader words (position: absolute): without it they sit out in the page
+   at the far end of the row and make the whole page scroll sideways */
+.drift-track {
+  position: relative;
+}
+.drift-set {
+  display: flex;
+  flex: none;
+  gap: 1.25rem;
+  margin: 0;
   padding: 0;
-  width: min(100% - 2 * var(--gutter), 78rem);
   list-style: none;
 }
-@media (min-width: 40rem) {
-  .reel-track {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.reel-card {
+  flex: 0 0 min(26rem, 84vw);
 }
 .reel-link {
   display: block;
@@ -1291,56 +1294,89 @@ a.case:hover .case-img img,
   font-size: 0.95rem;
   color: var(--fg-soft);
 }
-.reel-line {
-  display: none;
+
+/* ---- the services page: every service in plain words ---- */
+.svc-detail-list {
+  display: grid;
+  gap: clamp(2.5rem, 5vw, 4.5rem);
+  margin: clamp(2rem, 4vw, 3rem) 0 0;
+  padding: 0;
+  list-style: none;
 }
-/* pinned: the section is tall, its stage sticks, and the row of cards slides sideways (set up by ReelDriver) */
-.reel.is-live {
-  height: calc(100svh + var(--reel-x, 0px));
-  padding-block: 0;
+.svc-detail-item {
+  display: grid;
+  gap: 1.5rem;
+  padding-top: clamp(2rem, 4vw, 3rem);
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 6rem;
 }
-.reel.is-live .reel-stage {
-  position: sticky;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: clamp(1rem, 3vh, 2rem);
-  height: 100svh;
-  padding-top: 5.5rem;
-  overflow: hidden;
-}
-.reel.is-live .reel-head {
-  margin-bottom: 0;
-  gap: 0.7rem;
-}
-.reel.is-live .reel-head .lead {
-  display: none;
-}
-.reel.is-live .reel-track {
-  display: flex;
-  gap: 1.75rem;
-  width: max-content;
-  margin: 0;
-  padding-inline: max(var(--gutter), calc((100vw - 78rem) / 2));
-  will-change: transform;
-}
-.reel.is-live .reel-card {
-  flex: none;
-  width: min(34rem, 44vw);
-}
-.reel.is-live .reel-line {
-  position: relative;
+.svc-detail-pic {
   display: block;
-  width: min(100% - 2 * var(--gutter), 78rem);
-  height: 2px;
-  margin-inline: auto;
-  background: var(--line);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--mist-2);
 }
-.reel.is-live .reel-line i {
-  position: absolute;
-  inset: 0;
-  background: var(--green);
-  transform: scaleX(0);
-  transform-origin: 0 50%;
+.svc-detail-pic img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.svc-detail-body {
+  display: grid;
+  align-content: center;
+  gap: 1rem;
+}
+.svc-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0;
+}
+.svc-detail-n {
+  color: var(--faint);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  font-variant-numeric: tabular-nums;
+}
+.svc-detail-name {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+.svc-detail-lead {
+  margin: 0;
+  max-width: 40rem;
+  color: var(--body);
+}
+.svc-detail-cols {
+  display: grid;
+  gap: 1.25rem 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+.svc-detail-cols h4 {
+  margin: 0 0 0.5rem;
+  color: var(--ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.svc-detail-body .cta-row {
+  margin-top: 0.4rem;
+}
+@media (min-width: 64rem) {
+  .svc-detail-item {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: clamp(2.5rem, 5vw, 4.5rem);
+    align-items: center;
+  }
+  .svc-detail-item:nth-child(even) .svc-detail-pic {
+    order: 2;
+  }
 }

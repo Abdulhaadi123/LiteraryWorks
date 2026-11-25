@@ -123,7 +123,7 @@ export function ServicesDeck({ id, intro, fallback }: { id: string; intro: React
           return (
             <Phase key={s.slug} from={SERVICES_AT[i + 1]} to={to(i + 1)}>
               <p className="kicker">
-                {String(i + 1).padStart(2, "0")} / {s.group}
+                {String(i + 1).padStart(2, "0")} / {s.kind}
               </p>
               <h2 className="h-lg">{s.name}</h2>
               <p className="lead">{s.short}</p>

@@ -3,7 +3,7 @@ import { ClientLogos } from "./ClientLogos";
 import { Testimonials } from "./Testimonials";
 import { SectionHead } from "./ui";
 
-/** The businesses we have built for (their logos) and what they say: on the home page and the about page. */
+/** The businesses we have built for (their logos) and what they say: on the about page. */
 export function Clients({ tone = "white" }: { tone?: "white" | "mist" }) {
   return (
     <section className={`section on-${tone} clients`} id="clients">
