@@ -12,11 +12,12 @@ const kinds: Record<AuditKind, { text: string; tone: "ok" | "bad" | "" }> = {
   blocked: { text: "Blocked (too many attempts)", tone: "bad" },
   signout: { text: "Signed out", tone: "" },
   signout_all: { text: "Signed out everywhere", tone: "" },
+  setup: { text: "Admin account made", tone: "ok" },
 };
 
 export default async function SecurityPage() {
   const session = await requireAdmin("/admin/security");
-  const status = adminStatus();
+  const status = await adminStatus();
   let events: AuditEvent[] = [];
   let unreadable = false;
   try {
@@ -29,14 +30,14 @@ export default async function SecurityPage() {
     {
       on: status.twoFactor,
       title: "Two-step sign-in",
-      text: status.twoFactor ? "A 6-digit code from your authenticator app is needed with the password. Each code works once." : "Off. Run npm run admin:setup, add the ADMIN_TOTP_SECRET it prints to the host's settings and scan or type the key into an authenticator app.",
+      text: status.twoFactor ? "A 6-digit code from your authenticator app is needed with the password. Each code works once." : "Off: the password alone signs in, so keep it long. To switch it on, add ADMIN_TOTP_SECRET to the host's settings (npm run admin:setup makes a key) and type the key into an authenticator app.",
     },
     { on: true, title: "Attempt limits", text: "8 attempts in 15 minutes from one address, and 30 an hour on the account; the count lives in the store, so it holds on every server." },
     { on: true, title: "Session cookie", text: `Signed, HttpOnly, SameSite=Strict, and Secure on https. A session ends after ${sessionHours()} hours, or earlier when you sign out.` },
     {
-      on: status.storage === "redis",
+      on: status.storage === "mongo" || status.storage === "redis",
       title: "Data store",
-      text: status.storage === "redis" ? "Redis, over HTTPS." : "A file on this server (.data/store.json). Fine for trying things out; a host with no disk (Vercel) needs Redis, or messages and the sign-in limits are lost.",
+      text: status.storage === "mongo" ? "MongoDB: messages are in the inquiries collection, the account, counters and log in kv." : status.storage === "redis" ? "Redis, over HTTPS." : "A file on this server (.data/store.json). Fine for trying things out; a host with no disk (Vercel) needs MongoDB or Redis, or messages and the sign-in limits are lost.",
     },
   ];
 

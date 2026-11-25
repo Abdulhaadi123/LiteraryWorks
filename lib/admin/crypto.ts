@@ -62,6 +62,22 @@ export async function verifyPassword(password: string, stored: string): Promise<
   return key.length === h.key.length && timingSafeEqual(key, h.key);
 }
 
+const COMMON_PASSWORDS = ["password", "passw0rd", "123456789012", "qwertyuiop12", "letmein12345", "administrator", "welcome12345"];
+
+/** Why a new password is too weak (a sentence), or "" when it is acceptable: 12+ characters, varied, not common, not the e-mail name. */
+export function passwordProblem(password: string, email: string): string {
+  if (password.length < 12) return "Use at least 12 characters.";
+  if (password.length > 200) return "That password is too long (200 characters at most).";
+  if (new Set(password).size < 6) return "Use a more varied password.";
+  const lower = password.toLowerCase();
+  if (COMMON_PASSWORDS.some((c) => lower.includes(c))) return "That is a very common password.";
+  const local = email.split("@")[0].toLowerCase();
+  if (local.length >= 4 && lower.includes(local)) return "Do not use your e-mail name inside the password.";
+  const classes = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((re) => re.test(password)).length;
+  if (password.length < 16 && classes < 3) return "Use 16 or more characters, or mix letters, numbers and symbols.";
+  return "";
+}
+
 let decoy: Promise<string> | undefined;
 /** A hash of a random password, made once. Checking a wrong e-mail address against it takes as long as a real check. */
 export const decoyHash = () => (decoy ??= hashPassword(randomToken(24)));

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ActivityChart } from "@/components/admin/ActivityChart";
 import { InquiryTable } from "@/components/admin/InquiryTable";
-import { adminStatus } from "@/lib/admin/auth";
 import { getInbox } from "@/lib/admin/data";
 import { plural } from "@/lib/admin/format";
 import { summarize, type StoredInquiry } from "@/lib/admin/inquiries";
@@ -18,7 +17,6 @@ const warn = (
 
 export default async function OverviewPage() {
   await requireAdmin("/admin");
-  const status = adminStatus();
   let inbox: StoredInquiry[] = [];
   let unreadable = false;
   try {
@@ -55,18 +53,6 @@ export default async function OverviewPage() {
             {warn}
             <span>
               <b>The inbox could not be read.</b> The data store did not answer. Reload in a moment; if it stays, check the store&apos;s settings.
-            </span>
-          </p>
-        ) : null}
-        {!status.twoFactor ? (
-          <p className="adm-note">
-            {warn}
-            <span>
-              <b>Two-step sign-in is off.</b> Anyone with the password could get in. Add a code from an authenticator app: see{" "}
-              <Link href="/admin/security" style={{ textDecoration: "underline" }}>
-                Security
-              </Link>
-              .
             </span>
           </p>
         ) : null}

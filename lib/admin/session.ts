@@ -16,7 +16,7 @@ export const currentSession = cache(async (): Promise<Session | null> => {
 
 /** For a page: the session, or a redirect to the sign-in page (which then returns here). */
 export async function requireAdmin(next: string): Promise<Session> {
-  if (!adminStatus().ready) redirect("/admin/login");
+  if (!(await adminStatus()).ready) redirect("/admin/login");
   const session = await currentSession();
   if (!session) redirect(`/admin/login?next=${encodeURIComponent(next)}`);
   return session;

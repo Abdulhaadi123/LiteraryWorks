@@ -3,7 +3,8 @@ import { dirname, join } from "node:path";
 
 /**
  * The admin area's small data store (inquiries, sign-in counters, the sign-in log). It speaks a handful of Redis
- * commands and has two backends:
+ * commands and has three backends:
+ *  - MongoDB (Atlas): set MONGODB_URI (and MONGODB_DB for a database name). See mongo.ts.
  *  - Redis over HTTPS (Upstash, which Vercel offers as "Redis" under Storage): set KV_REST_API_URL and
  *    KV_REST_API_TOKEN (or UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN). This is the one for production,
  *    because a serverless host keeps no files between requests.
@@ -11,17 +12,11 @@ import { dirname, join } from "node:path";
  * Without either, there is no store and the admin area says so.
  */
 
-export type Arg = string | number;
-export type Cmd = Arg[];
-export type Reply = string | number | null | (string | null)[];
+import { connectMongo, createMongoKv } from "./mongo";
+import { StoreError, type Arg, type Cmd, type Kv, type Reply } from "./store-types";
 
-export interface Kv {
-  readonly kind: "redis" | "file";
-  /** Runs the commands in order, as one request; resolves with each command's reply. */
-  run(cmds: Cmd[]): Promise<Reply[]>;
-}
-
-export class StoreError extends Error {}
+export { StoreError };
+export type { Arg, Cmd, Kv, Reply };
 
 // ---------------------------------------------------------------------------------------------------------------------
 // the commands, for the file backend (and for tests): the same behaviour as Redis for exactly this subset
@@ -220,16 +215,17 @@ function redisStore(url: string, token: string): Kv {
 
 let cached: { sig: string; kv: Kv | null } | undefined;
 
-/** The store this server uses, or null when none is set up. */
+/** The store this server uses, or null when none is set up. MongoDB wins over Redis, Redis over the file. */
 export function getKv(): Kv | null {
   const env = process.env;
+  const mongo = (env.MONGODB_URI || "").trim();
   const url = env.KV_REST_API_URL || env.UPSTASH_REDIS_REST_URL || "";
   const token = env.KV_REST_API_TOKEN || env.UPSTASH_REDIS_REST_TOKEN || "";
   const file = env.LW_STORE === "file" || (env.NODE_ENV !== "production" && !env.VERCEL);
   const path = env.LW_STORE_PATH || join(process.cwd(), ".data", "store.json");
-  const sig = `${url}|${token}|${file}|${path}`;
+  const sig = `${mongo}|${env.MONGODB_DB || ""}|${url}|${token}|${file}|${path}`;
   if (cached?.sig === sig) return cached.kv;
-  const kv = url && token ? redisStore(url, token) : file ? fileStore(path) : null;
+  const kv = mongo ? createMongoKv(() => connectMongo(mongo, env.MONGODB_DB)) : url && token ? redisStore(url, token) : file ? fileStore(path) : null;
   cached = { sig, kv };
   return kv;
 }

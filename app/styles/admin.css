@@ -208,6 +208,15 @@ body:has(.adm) {
   border-color: var(--navy);
   box-shadow: 0 0 0 3px rgba(34, 66, 95, 0.16);
 }
+.adm .adm-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--navy);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 .adm .hint {
   color: var(--faint);
   font-size: 0.8125rem;

@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 /** The signed-in shell. Without a valid session nothing below is rendered: the visitor is sent to the sign-in page. */
 export default async function PanelLayout({ children }: Readonly<{ children: ReactNode }>) {
-  if (!adminStatus().ready) redirect("/admin/login");
+  if (!(await adminStatus()).ready) redirect("/admin/login");
   const session = await currentSession();
   if (!session) redirect("/admin/login");
   let fresh = 0;

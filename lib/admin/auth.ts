@@ -1,11 +1,14 @@
-import { base32Decode, decoyHash, isPasswordHash, randomToken, safeEqual, sha256, sign, totpMatch, unsign, verifyPassword } from "./crypto";
+import { createAccount, storedAccount } from "./account";
+import { base32Decode, decoyHash, isPasswordHash, passwordProblem, randomToken, safeEqual, sha256, sign, totpMatch, unsign, verifyPassword } from "./crypto";
 import { cmd, getKv, pipe, storeKind, StoreError } from "./kv";
 
 /**
  * Signing in to the admin area.
  *
- *  - One owner account: ADMIN_EMAIL, ADMIN_PASSWORD_HASH (a scrypt hash, made by `npm run admin:setup`) and
- *    optionally ADMIN_TOTP_SECRET (two-step sign-in with an authenticator app). Nothing is stored in plain text.
+ *  - One owner account, from one of two places: the host's settings (ADMIN_EMAIL, ADMIN_PASSWORD_HASH, ADMIN_SESSION_SECRET,
+ *    made by `npm run admin:setup`), or, when none of those is set, the account made on the sign-in page the first time
+ *    /admin is opened with a store connected (see account.ts). Optionally ADMIN_TOTP_SECRET adds two-step sign-in with an
+ *    authenticator app. Nothing is stored in plain text: only a scrypt hash of the password.
  *  - Sign-in is one form (e-mail, password, code) with one answer for every kind of failure, so it does not say
  *    which part was wrong. A wrong e-mail address still costs a full password check (no timing difference).
  *  - Attempts are limited per address (8 in 15 minutes) and for the account as a whole (30 an hour); the counters
@@ -25,25 +28,66 @@ export function sessionHours(): number {
   return Number.isFinite(n) && n >= 1 && n <= 72 ? n : 8;
 }
 
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function readEnv() {
+  const email = env("ADMIN_EMAIL").toLowerCase();
+  const hash = env("ADMIN_PASSWORD_HASH");
+  const secret = env("ADMIN_SESSION_SECRET");
+  const totp = env("ADMIN_TOTP_SECRET").replace(/\s+/g, "").toUpperCase();
+  const bad: string[] = [];
+  if (!EMAIL.test(email)) bad.push("ADMIN_EMAIL");
+  if (!isPasswordHash(hash)) bad.push("ADMIN_PASSWORD_HASH");
+  if (secret.length < 32) bad.push("ADMIN_SESSION_SECRET");
+  const bytes = totp ? base32Decode(totp) : null;
+  const totpBad = !!totp && (!bytes || bytes.length < 10);
+  // any of the three set means the account comes from the settings (and must then be complete)
+  const fromSettings = !!(env("ADMIN_EMAIL") || env("ADMIN_PASSWORD_HASH") || env("ADMIN_SESSION_SECRET"));
+  return { email, hash, secret, totp, bad, totpBad, fromSettings };
+}
+
+export type Config = { email: string; hash: string; secret: string; totp: string; source: "settings" | "store" };
+
+/** The account that signs in, or null when there is none (yet). Throws a StoreError if the store has to be asked and cannot be. */
+export async function loadConfig(): Promise<Config | null> {
+  const e = readEnv();
+  if (e.totpBad) return null;
+  if (e.fromSettings) return e.bad.length ? null : { email: e.email, hash: e.hash, secret: e.secret, totp: e.totp, source: "settings" };
+  if (!storeKind()) return null;
+  const a = await storedAccount();
+  return a ? { email: a.email.toLowerCase(), hash: a.hash, secret: a.secret, totp: e.totp, source: "store" } : null;
+}
+
 export type AdminStatus = {
+  /** An account exists and sign-in works. */
   ready: boolean;
-  /** What is still to set up (names of settings), when not ready. */
+  /** No account yet and a store is connected: the sign-in page offers to make it. */
+  setupNeeded: boolean;
+  /** The setup form must also ask for ADMIN_SETUP_KEY. */
+  needsSetupKey: boolean;
+  /** The store could not be reached just now. */
+  unavailable: boolean;
+  /** What is still to set up (names of settings), when neither signed in nor ready for setup. */
   missing: string[];
   twoFactor: boolean;
-  storage: "redis" | "file" | null;
+  storage: "redis" | "file" | "mongo" | null;
+  source: "settings" | "store" | null;
 };
 
-export function adminStatus(): AdminStatus {
-  const missing: string[] = [];
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env("ADMIN_EMAIL"))) missing.push("ADMIN_EMAIL");
-  if (!isPasswordHash(env("ADMIN_PASSWORD_HASH"))) missing.push("ADMIN_PASSWORD_HASH");
-  if (env("ADMIN_SESSION_SECRET").length < 32) missing.push("ADMIN_SESSION_SECRET");
-  const totp = env("ADMIN_TOTP_SECRET");
-  const bytes = totp ? base32Decode(totp) : null;
-  if (totp && (!bytes || bytes.length < 10)) missing.push("ADMIN_TOTP_SECRET");
+export async function adminStatus(): Promise<AdminStatus> {
+  const e = readEnv();
   const storage = storeKind();
-  if (!storage) missing.push("a store (Redis: KV_REST_API_URL and KV_REST_API_TOKEN)");
-  return { ready: missing.length === 0, missing, twoFactor: !!totp && !missing.includes("ADMIN_TOTP_SECRET"), storage };
+  const base: AdminStatus = { ready: false, setupNeeded: false, needsSetupKey: !!env("ADMIN_SETUP_KEY"), unavailable: false, missing: [], twoFactor: false, storage, source: null };
+  const missing = [...(e.fromSettings ? e.bad : []), ...(e.totpBad ? ["ADMIN_TOTP_SECRET"] : [])];
+  if (!storage) missing.push("a store (MongoDB: MONGODB_URI, or Redis: KV_REST_API_URL and KV_REST_API_TOKEN)");
+  if (missing.length) return { ...base, missing };
+  if (e.fromSettings) return { ...base, ready: true, twoFactor: !!e.totp, source: "settings" };
+  try {
+    return (await storedAccount()) ? { ...base, ready: true, twoFactor: !!e.totp, source: "store" } : { ...base, setupNeeded: true };
+  } catch (error) {
+    if (error instanceof StoreError) return { ...base, unavailable: true };
+    throw error;
+  }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -79,7 +123,7 @@ export function describeAgent(ua: string): string {
 // the log
 // ---------------------------------------------------------------------------------------------------------------------
 
-export type AuditKind = "signin" | "failed" | "blocked" | "signout" | "signout_all";
+export type AuditKind = "signin" | "failed" | "blocked" | "signout" | "signout_all" | "setup";
 export type AuditEvent = { t: number; kind: AuditKind; ip: string; ua: string; detail?: string };
 const LOG = "lw:auth:log";
 const LOG_MAX = 200;
@@ -119,15 +163,15 @@ const FAIL = "That e-mail address, password or code is not correct.";
 export type LoginResult = { ok: true; token: string; maxAge: number } | { ok: false; status: number; message: string; retryAfter?: number };
 
 export async function login(input: { email: unknown; password: unknown; code: unknown }, ctx: { ip: string; ua: string }): Promise<LoginResult> {
-  const status = adminStatus();
-  if (!status.ready) return { ok: false, status: 503, message: "Sign-in is not set up on this server." };
-
   const email = typeof input.email === "string" ? input.email.trim().toLowerCase().slice(0, 254) : "";
   const password = typeof input.password === "string" ? input.password.slice(0, 512) : "";
   const code = typeof input.code === "string" ? input.code.replace(/\s+/g, "").slice(0, 12) : "";
-  const isOwner = email !== "" && safeEqual(email, env("ADMIN_EMAIL").toLowerCase());
 
   try {
+    const cfg = await loadConfig();
+    if (!cfg) return { ok: false, status: 503, message: "Sign-in is not set up on this server." };
+    const isOwner = email !== "" && safeEqual(email, cfg.email);
+
     // count this attempt first (before any work), so a flood of parallel attempts cannot get past the limit
     const ipKey = `lw:rl:ip:${sha256(ctx.ip).slice(0, 32)}`;
     const accountKey = "lw:rl:account";
@@ -143,14 +187,14 @@ export async function login(input: { email: unknown; password: unknown; code: un
     }
 
     // the password is always checked, against a decoy when the e-mail is wrong, so the time taken tells nothing
-    const passwordOk = await verifyPassword(password, isOwner ? env("ADMIN_PASSWORD_HASH") : await decoyHash());
+    const passwordOk = await verifyPassword(password, isOwner ? cfg.hash : await decoyHash());
     if (!isOwner || !passwordOk) {
       await audit("failed", ctx, isOwner ? "wrong password" : "unknown e-mail address");
       return { ok: false, status: 401, message: FAIL };
     }
 
-    if (status.twoFactor) {
-      const step = totpMatch(env("ADMIN_TOTP_SECRET"), code);
+    if (cfg.totp) {
+      const step = totpMatch(cfg.totp, code);
       if (step === null) {
         await audit("failed", ctx, code ? "wrong code" : "no code given");
         return { ok: false, status: 401, message: FAIL };
@@ -165,9 +209,56 @@ export async function login(input: { email: unknown; password: unknown; code: un
 
     await pipe([["DEL", ipKey]]);
     await audit("signin", ctx);
-    return { ok: true, ...issueSession(env("ADMIN_EMAIL").toLowerCase()) };
+    return { ok: true, ...issueSession(cfg.email, cfg.secret) };
   } catch (error) {
     if (error instanceof StoreError) return { ok: false, status: 503, message: "Sign-in is unavailable for a moment. Please try again." };
+    throw error;
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// the first-run setup: make the account on the sign-in page
+// ---------------------------------------------------------------------------------------------------------------------
+
+const SETUP_LIMIT = 10;
+const SETUP_WINDOW = 60 * 60;
+
+/**
+ * Makes the admin account (once) and signs it in. Only possible while there is no account and a store is connected; the
+ * account is written with "only if absent", so the first request wins and the form is closed for good afterwards.
+ * ADMIN_SETUP_KEY, when set on the host, must be given too (so nobody else can make the account in the first minutes).
+ */
+export async function setupAccount(input: { email: unknown; password: unknown; confirm: unknown; key: unknown }, ctx: { ip: string; ua: string }): Promise<LoginResult> {
+  try {
+    const status = await adminStatus();
+    if (status.unavailable) return { ok: false, status: 503, message: "The store is unavailable for a moment. Please try again." };
+    if (status.ready) return { ok: false, status: 409, message: "The admin account has already been made. Please sign in." };
+    if (!status.setupNeeded) return { ok: false, status: 503, message: "Connect a store first (see the README), then reload this page." };
+
+    // counted before any work, like sign-in attempts
+    const limitKey = `lw:rl:setup:${sha256(ctx.ip).slice(0, 32)}`;
+    const [count] = await pipe([["INCR", limitKey], ["EXPIRE", limitKey, SETUP_WINDOW, "NX"]]);
+    if (Number(count) > SETUP_LIMIT) return { ok: false, status: 429, message: "Too many attempts. Please wait an hour and try again.", retryAfter: SETUP_WINDOW };
+
+    const setupKey = env("ADMIN_SETUP_KEY");
+    if (setupKey && !safeEqual(typeof input.key === "string" ? input.key.trim() : "", setupKey)) {
+      await audit("failed", ctx, "wrong setup key");
+      return { ok: false, status: 403, message: "That setup key is not correct." };
+    }
+    const email = typeof input.email === "string" ? input.email.trim().toLowerCase().slice(0, 254) : "";
+    if (!EMAIL.test(email)) return { ok: false, status: 400, message: "Enter a valid e-mail address." };
+    const password = typeof input.password === "string" ? input.password : "";
+    if (typeof input.confirm !== "string" || input.confirm !== password) return { ok: false, status: 400, message: "The two passwords do not match." };
+    const problem = passwordProblem(password, email);
+    if (problem) return { ok: false, status: 400, message: problem };
+
+    const account = await createAccount(email, password);
+    if (!account) return { ok: false, status: 409, message: "The admin account has already been made. Please sign in." };
+    await audit("setup", ctx, "account created");
+    await audit("signin", ctx);
+    return { ok: true, ...issueSession(account.email, account.secret) };
+  } catch (error) {
+    if (error instanceof StoreError) return { ok: false, status: 503, message: "The store is unavailable for a moment. Please try again." };
     throw error;
   }
 }
@@ -179,10 +270,10 @@ export async function login(input: { email: unknown; password: unknown; code: un
 export type Session = { sub: string; iat: number; exp: number; sid: string };
 const REVOKED = "lw:auth:revoked-before";
 
-export function issueSession(email: string, now = Date.now()): { token: string; maxAge: number } {
+export function issueSession(email: string, secret: string, now = Date.now()): { token: string; maxAge: number } {
   const maxAge = Math.round(sessionHours() * 3600);
   const session: Session = { sub: email, iat: now, exp: now + maxAge * 1000, sid: randomToken(12) };
-  return { token: sign(session, env("ADMIN_SESSION_SECRET")), maxAge };
+  return { token: sign(session, secret), maxAge };
 }
 
 /**
@@ -191,11 +282,13 @@ export function issueSession(email: string, now = Date.now()): { token: string; 
  * cannot be asked (the caller must not let anyone in then).
  */
 export async function readSession(token: string | undefined, now = Date.now()): Promise<Session | null> {
-  if (!token || !adminStatus().ready) return null;
-  const s = unsign<Session>(token, env("ADMIN_SESSION_SECRET"));
+  if (!token) return null;
+  const cfg = await loadConfig();
+  if (!cfg) return null;
+  const s = unsign<Session>(token, cfg.secret);
   if (!s || typeof s.sid !== "string" || typeof s.iat !== "number" || typeof s.exp !== "number" || typeof s.sub !== "string") return null;
   if (s.exp <= now || s.iat > now + 60_000 || s.exp - s.iat > 72 * 3600_000 + 1000) return null;
-  if (!safeEqual(s.sub, env("ADMIN_EMAIL").toLowerCase())) return null;
+  if (!safeEqual(s.sub, cfg.email)) return null;
   const [revokedBefore, ended] = (await cmd(["MGET", REVOKED, `lw:auth:dead:${s.sid}`])) as (string | null)[];
   if (ended) return null;
   if (revokedBefore && Number(revokedBefore) >= s.iat) return null;
