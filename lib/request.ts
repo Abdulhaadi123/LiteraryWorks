@@ -17,13 +17,23 @@ function cleanIp(value: string): string {
 
 /**
  * The visitor's address, from the header the HOST sets itself (so a visitor cannot forge it): Vercel's
- * x-vercel-forwarded-for, Netlify's x-nf-client-connection-ip. Any other host: name the header in TRUSTED_IP_HEADER
- * (Cloudflare: cf-connecting-ip; Amplify behind CloudFront: cloudfront-viewer-address). With none of these it falls back to
- * x-real-ip, then the first x-forwarded-for entry, which a visitor can forge unless the proxy in front overwrites it.
+ * x-vercel-forwarded-for, Netlify's x-nf-client-connection-ip, and, on AWS Lambda (Amplify Hosting), CloudFront's
+ * cloudfront-viewer-address. Any other host: name the header in TRUSTED_IP_HEADER (Cloudflare: cf-connecting-ip). With none
+ * of these (or the header missing) it falls back to x-real-ip, then the first x-forwarded-for entry, which a visitor can forge
+ * unless the proxy in front overwrites it.
  */
 export function clientIp(headers: Headers): string {
   const named = env("TRUSTED_IP_HEADER").toLowerCase();
-  const own = named || (process.env.VERCEL ? "x-vercel-forwarded-for" : process.env.NETLIFY ? "x-nf-client-connection-ip" : "");
+  const own =
+    named ||
+    (process.env.VERCEL
+      ? "x-vercel-forwarded-for"
+      : process.env.NETLIFY
+        ? "x-nf-client-connection-ip"
+        : // CloudFront adds this header itself, and only on a distribution that passes it on
+          process.env.AWS_LAMBDA_FUNCTION_NAME
+          ? "cloudfront-viewer-address"
+          : "");
   const raw = (own && headers.get(own)) || headers.get("x-real-ip") || headers.get("x-forwarded-for") || "";
   return cleanIp(raw).slice(0, 64) || "unknown";
 }

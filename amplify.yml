@@ -2,8 +2,9 @@
 # Amplify does NOT give the server runtime the variables set in its console, so the build writes the ones the site reads
 # into .env.production (Amplify's own documented way). That file lives in the deployed build, so anyone who can read the
 # build artifacts can read these values: use a database user that can only touch this site's database.
-# Set them under App settings > Environment variables: MONGODB_URI, ANTHROPIC_API_KEY, NEXT_PUBLIC_SITE_URL, the SendGrid
-# ones, and TRUSTED_IP_HEADER (see lib/request.ts; behind Amplify's CloudFront use cloudfront-viewer-address).
+# The only settings the site needs are the two in .env (MONGODB_URI and ANTHROPIC_API_KEY), set under App settings >
+# Environment variables. The site's own address (from AWS_APP_ID and AWS_BRANCH, see next.config.ts) and the visitor's
+# address (CloudFront's header, see lib/request.ts) are worked out by the code; a custom domain: set NEXT_PUBLIC_SITE_URL.
 version: 1
 frontend:
   phases:

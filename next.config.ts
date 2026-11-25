@@ -19,9 +19,24 @@ const adminHeaders = [
   { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" },
 ];
 
+/**
+ * The site's own address, when NEXT_PUBLIC_SITE_URL is not set: the host tells the build. Amplify's default address is made
+ * of its app id and branch; Netlify gives its main address in URL. (Only those two hosts are recognised, so a stray URL
+ * variable elsewhere is never taken for it; with none of this, the settings' own value, or localhost for development, stays.)
+ */
+function builtSiteUrl(): string {
+  const e = process.env;
+  if (e.NEXT_PUBLIC_SITE_URL) return e.NEXT_PUBLIC_SITE_URL;
+  if (e.AWS_APP_ID && e.AWS_BRANCH) return `https://${e.AWS_BRANCH.replace(/[^A-Za-z0-9-]/g, "-")}.${e.AWS_APP_ID}.amplifyapp.com`;
+  if (e.NETLIFY === "true" && e.URL) return e.URL;
+  return "";
+}
+const siteUrlForBuild = builtSiteUrl();
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  ...(siteUrlForBuild ? { env: { NEXT_PUBLIC_SITE_URL: siteUrlForBuild } } : {}),
   async headers() {
     return [
       { source: "/:path*", headers: security },

@@ -1,7 +1,7 @@
 # Netlify: Next.js 16 needs no plugin line (Netlify's OpenNext adapter is used automatically). This file only pins Node.
-# Set the settings from .env.example under Site configuration > Environment variables (MONGODB_URI, ANTHROPIC_API_KEY,
-# the SendGrid ones, and NEXT_PUBLIC_SITE_URL = the site's own address). On Netlify the visitor's address comes from
-# x-nf-client-connection-ip by itself (lib/request.ts).
+# The only settings the site needs are the two in .env (MONGODB_URI and ANTHROPIC_API_KEY): add them under Site
+# configuration > Environment variables ("Import from a .env file" does both at once). The site's own address (Netlify's
+# URL, see next.config.ts) and the visitor's address (x-nf-client-connection-ip, see lib/request.ts) are worked out by the code.
 [build]
   command = "npm run build"
 
