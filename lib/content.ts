@@ -557,20 +557,32 @@ export const caseForService: Record<string, string> = {
 /** Everything the case studies were built with, once each. */
 export const techUsed: string[] = [...new Set(cases.flatMap((c) => c.tech))];
 
-/** The company behind the brand, and where it is (as the literaryworx.com site gives it: a city, no street address). */
+/** The company behind the brand and how to reach it (the details the company gave: phone, e-mail, office). */
 export const company = {
   legalName: "Literary Worx LLC",
-  email: "info@literaryworx.com",
+  email: "contact@literaryworx.com",
+  phone: "(469) 608-9687",
+  /** The same number for tel: links and structured data. */
+  phoneHref: "tel:+14696089687",
+  phoneE164: "+14696089687",
 };
 
+const street = "4414 Centerview";
+const postalCode = "78228";
+const fullAddress = `${street}, San Antonio, TX ${postalCode}`;
+
 export const location = {
+  street,
+  postalCode,
   city: "San Antonio",
   region: "Texas",
   regionCode: "TX",
   country: "US",
   label: "San Antonio, Texas",
-  mapEmbed: "https://www.google.com/maps?q=San+Antonio%2C+Texas&z=11&output=embed",
-  mapLink: "https://www.google.com/maps/search/?api=1&query=San+Antonio%2C+Texas",
+  /** The whole address on one line. */
+  address: fullAddress,
+  mapEmbed: `https://www.google.com/maps?q=${encodeURIComponent(fullAddress)}&z=15&output=embed`,
+  mapLink: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`,
 };
 
 /** Our own products, as literaryworx.com presents them (figures and wording from that site; nothing added here). */

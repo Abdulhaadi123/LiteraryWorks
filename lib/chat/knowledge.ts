@@ -33,7 +33,7 @@ function build() {
 
   parts.push(`# Company
 Literary Worx is a brand of ${company.legalName}, based in ${location.label}. It designs and builds AI automation, web and mobile apps and cloud systems for U.S. businesses.
-Email: ${company.email}. Contact form: /contact. There is no published phone number or street address.`);
+Email: ${company.email}. Phone: ${company.phone}. Office: ${location.address}. Contact form: /contact (the page also shows the phone, the e-mail and the office).`);
 
   parts.push(`# Ways to engage (the free 1-hour audit is the only published price; the 14-day audit and every build are quoted per business)
 ${ladder.map((o) => `## ${o.name}: ${o.price} (${o.unit})${o.note ? `. ${o.note}` : ""}

@@ -4,7 +4,7 @@ import { company, location, products } from "@/lib/content";
 
 /**
  * Who stands behind the brand: the legal company, where it is based, who it serves and how to reach it, as a ruled
- * fact sheet. Only facts the site already states; no street address or phone number is published.
+ * fact sheet. Only facts the site already states.
  */
 export function CompanyFacts({ tone = "white", contact = true }: { tone?: "white" | "mist"; /** The "Contact the team" button (left out on the contact page itself). */ contact?: boolean }) {
   const rows: { label: string; value: React.ReactNode }[] = [
@@ -14,7 +14,7 @@ export function CompanyFacts({ tone = "white", contact = true }: { tone?: "white
       label: "Headquarters",
       value: (
         <a href={location.mapLink} target="_blank" rel="noopener noreferrer">
-          {location.label}, United States
+          {location.address}
           <span className="sr-only"> (opens Google Maps in a new tab)</span>
         </a>
       ),
@@ -33,6 +33,7 @@ export function CompanyFacts({ tone = "white", contact = true }: { tone?: "white
         </span>
       )),
     },
+    { label: "Phone", value: <a href={company.phoneHref}>{company.phone}</a> },
     { label: "Email", value: <a href={`mailto:${company.email}`}>{company.email}</a> },
   ];
 

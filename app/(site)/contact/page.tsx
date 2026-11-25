@@ -1,4 +1,5 @@
 import { CompanyFacts } from "@/components/CompanyFacts";
+import { ContactCard } from "@/components/ContactCard";
 import { ContactForm } from "@/components/ContactForm";
 import { Faq, PageHero, SectionHead } from "@/components/ui";
 import { company, faqs, location } from "@/lib/content";
@@ -6,7 +7,7 @@ import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
   "Contact",
-  "Book your free 1-hour AI audit, or tell us about a project. We typically reply within one business day.",
+  "Book your free 1-hour AI audit, or tell us about a project: write to us, call (469) 608-9687, or visit us in San Antonio, Texas. We typically reply within one business day.",
   "/contact",
 );
 
@@ -40,6 +41,7 @@ export default function ContactPage() {
                 <span>A working session, not a sales call. You leave with a clear next step.</span>
               </li>
             </ol>
+            <ContactCard />
           </div>
           <ContactForm />
         </div>
@@ -64,6 +66,20 @@ export default function ContactPage() {
               <div>
                 <dt>Company</dt>
                 <dd>{company.legalName}</dd>
+              </div>
+              <div>
+                <dt>Address</dt>
+                <dd>
+                  {location.street}
+                  <br />
+                  {location.city}, {location.regionCode} {location.postalCode}
+                </dd>
+              </div>
+              <div>
+                <dt>Phone</dt>
+                <dd>
+                  <a href={company.phoneHref}>{company.phone}</a>
+                </dd>
               </div>
               <div>
                 <dt>Email</dt>

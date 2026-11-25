@@ -916,3 +916,76 @@
     mask-image: none;
   }
 }
+
+/* ---- the contact page's "Talk to a person" card: a photo and the three ways to reach us ---- */
+.contact-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: clamp(1.75rem, 3vw, 2.5rem);
+  padding: 1.1rem 1.35rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.contact-card-photo {
+  flex: none;
+  width: 6.5rem;
+  height: 6.5rem;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow:
+    0 0 0 1px var(--line),
+    var(--shadow-sm);
+  object-fit: cover;
+  object-position: 50% 28%;
+}
+.contact-card-body {
+  min-width: 0;
+}
+.contact-card-kicker {
+  margin: 0 0 0.55rem;
+  color: var(--green-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.contact-card ul {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.contact-card li {
+  display: grid;
+  grid-template-columns: 3.3rem minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: baseline;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.contact-card li > span:first-child {
+  color: var(--faint);
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.contact-card a {
+  color: var(--navy);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  text-underline-offset: 0.2em;
+}
+.contact-card a:hover {
+  text-decoration: underline;
+}
+@media (max-width: 29.99rem) {
+  .contact-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

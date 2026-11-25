@@ -29,8 +29,9 @@ export function Footer() {
           <p>AI, software and cloud systems for U.S. businesses. Written plainly, built carefully, handed over documented.</p>
           <p className="footer-loc">
             <a href={location.mapLink} target="_blank" rel="noopener noreferrer">
-              {location.label}
+              {location.street}, {location.city}, {location.regionCode} {location.postalCode}
             </a>
+            <a href={company.phoneHref}>{company.phone}</a>
             <a href={`mailto:${company.email}`}>{company.email}</a>
           </p>
         </div>
