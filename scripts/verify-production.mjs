@@ -13,8 +13,9 @@
 //      service page, the audit and about pages) builds without an error, changes the copy as the
 //      page scrolls, draws a picture that moves with the scroll, moves on to its next object with the copy, and keeps ONE shared canvas that
 //      moves from scene to scene; the model stays clear of the copy and of the header on small and wide windows
-//   3. phone: no motion, no three.js, GSAP or Lenis code is downloaded, the hero picture loads, the plain list takes
-//      the deck's place, no sideways scrolling, a small script budget
+//   3. phone: no motion class and no GSAP or Lenis; the home hero draws live with three.js (html.live3d: the picture on the
+//      first screen above the words), every other page loads no 3D code; the plain page (`/?3d=off`) keeps a small script
+//      budget; the plain list takes the deck's place, no sideways scrolling
 //   4. reduced motion: the static layout, again without those libraries
 //   5. JavaScript off: everything is visible
 //   5b. a browser without WebGL: the scenes step aside at once and the static page takes over
@@ -503,22 +504,43 @@ async function main() {
 
     // 3. phone
     console.log("\nPhone (390x844)");
-    for (const path of ["/", "/services", "/services/ai-automation", "/work"]) {
+    // (the home page's hero draws live on a phone: html.live3d, three.js but no GSAP or Lenis. `/?3d=off` is the plain page that every
+    // other page, and the home page where the device may not cope, keeps)
+    for (const path of ["/", "/?3d=off", "/services", "/services/ai-automation", "/work"]) {
       const page = await visit(chrome, path, { width: 390, height: 844, mobile: true });
       await sleep(1200);
       const s = await sceneState(page);
       check(!s.motion, `${path}: no motion class on a phone`);
-      const libs = await libraries(page);
-      check(libs.length === 0, `${path}: no three.js, GSAP or Lenis is downloaded`, libs.join(", "));
+      if (path === "/") {
+        // the scene starts when the page has loaded and the browser is idle: wait for it (or for it to step aside, with no WebGL)
+        for (let i = 0; i < 160; i++) {
+          if (await page.ev("!!document.querySelector('#story.xp-live, #story.xp-failed')")) break;
+          await sleep(250);
+        }
+        const state = await page.ev("({ live: !!document.querySelector('#story.xp-live'), failed: !!document.querySelector('#story.xp-failed'), cls: document.documentElement.className })");
+        check(state.live || state.failed, "/: the hero's live 3D starts on a phone (or steps aside at once)", JSON.stringify(state));
+        const live = await libraries(page);
+        check(!live.includes("GSAP") && !live.includes("ScrollTrigger") && !live.includes("Lenis"), "/: no GSAP or Lenis is downloaded on a phone", live.join(", "));
+        check(!state.live || live.includes("three.js"), "/: the live scene draws with three.js", live.join(", "));
+        if (state.live) {
+          const geo = await page.ev("(() => { const c = document.querySelector('#story .xp-canvas canvas'); const b = document.querySelector('#story .xp-canvas').getBoundingClientRect(); const w = document.querySelector('#story .xp-phases').getBoundingClientRect(); return { canvas: !!c && c.clientWidth > 300, above: b.bottom <= w.top + 1, first: b.bottom < innerHeight }; })()");
+          check(geo.canvas && geo.above && geo.first, "/: the live picture is on the first screen, above the words", JSON.stringify(geo));
+        }
+      } else {
+        const libs = await libraries(page);
+        check(libs.length === 0, `${path}: no three.js, GSAP or Lenis is downloaded`, libs.join(", "));
+      }
       const wide = await page.ev("document.documentElement.scrollWidth - innerWidth");
       check(wide <= 1, `${path}: no sideways scrolling`, `${wide}px too wide`);
+      if (path === "/?3d=off") {
+        const kb = await page.ev("Math.round(performance.getEntriesByType('resource').filter((r) => /\\.js(\\?|$)/.test(r.name) && r.initiatorType !== 'fetch').reduce((n, r) => n + r.encodedBodySize, 0) / 1024)");
+        console.log(`        (script on a phone, plain page: ${kb} kB)`);
+        check(kb <= SCRIPT_BUDGET_KB, `the plain page on a phone downloads at most ${SCRIPT_BUDGET_KB} kB of script`, `${kb} kB`);
+        check(!(await page.ev("document.documentElement.classList.contains('live3d')")), "/?3d=off: no live 3D");
+      }
       if (path === "/") {
         const picture = await page.ev("(() => { const i = document.querySelector('.xp-poster img'); return !!i && i.complete && i.naturalWidth > 0; })()");
         check(picture, "the hero picture (a render of the real 3D scene) loads");
-        // (the page's own fetches of the same files, made by the library check above, are not downloads)
-        const kb = await page.ev("Math.round(performance.getEntriesByType('resource').filter((r) => /\\.js(\\?|$)/.test(r.name) && r.initiatorType !== 'fetch').reduce((n, r) => n + r.encodedBodySize, 0) / 1024)");
-        console.log(`        (script on a phone: ${kb} kB)`);
-        check(kb <= SCRIPT_BUDGET_KB, `the phone downloads at most ${SCRIPT_BUDGET_KB} kB of script`, `${kb} kB`);
         await shot(page, "home-phone.png");
         // an in-page link lands on its section (it did not while the sections below the first screen were laid out lazily)
         await page.ev("document.querySelector('a[href$=\"#method\"]')?.click()");

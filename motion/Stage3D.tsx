@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { loadMotion, motionOn } from "./gsap";
+import { live3dOn, loadMotion, motionOn } from "./gsap";
 import type { LabelSpec, SceneData, SceneName } from "./types";
 
 let webgl: boolean | undefined;
@@ -22,7 +22,8 @@ function webglOk(): boolean {
  * The picture of a pinned, scroll-driven 3D scene: one shared WebGL canvas (three.js) moves in here while the
  * scene is on screen, with tags that follow parts of the model, joined to it by leader lines. The section around
  * it (components/Xp.tsx) is a tall runway with a sticky stage; the scroll position is the scene's only input,
- * smoothed so a fast flick still plays out. Nothing here runs on phones, tablets or under reduced motion: the
+ * smoothed so a fast flick still plays out. Nothing here runs on phones, tablets or under reduced motion (except the home
+ * hero, which draws live on a phone or tablet too, without GSAP: html.live3d, see motion/head.ts): the
  * section is then a plain static block and neither three.js nor GSAP is fetched. If WebGL is not available the
  * scene steps aside the same way (`xp-failed`), at once, before anything is built.
  *
@@ -34,14 +35,16 @@ export function Stage3D({ scene, labels, aria, data }: { scene: SceneName; label
   useEffect(() => {
     const host = wrap.current;
     const section = host?.closest<HTMLElement>(".xp");
-    if (!host || !section || !motionOn()) return;
+    // the home hero on a phone or tablet draws live too (html.live3d), but only that one scene and without GSAP
+    const hero = !!section && live3dOn() && section.id === "story" && section.hasAttribute("data-auto");
+    if (!host || !section || !(motionOn() || hero)) return;
     if (!webglOk()) {
       section.classList.add("xp-failed");
       return;
     }
     let disposed = false;
     let teardown: (() => void) | undefined;
-    void loadMotion().then(async (ok) => {
+    void (motionOn() ? loadMotion() : Promise.resolve(true)).then(async (ok) => {
       if (!ok || disposed) return;
       const { mountStage } = await import("./mountStage");
       if (!disposed) teardown = mountStage(section, host, scene, labels, data);

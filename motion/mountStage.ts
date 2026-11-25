@@ -107,6 +107,13 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
   let tagW: number[] = [];
   const measure = () => {
     const w = host.clientWidth;
+    // on a phone or tablet the picture has a block of its own below the copy (the home hero's live 3D): all of it is the stage
+    if (window.matchMedia("(max-width: 63.99rem)").matches) {
+      // (a little room at both sides: objects in perspective reach past the edges of their frame, and nothing may be cut off)
+      lay = { left: w * 0.05, right: w * 0.95, top: 4, bottom: host.clientHeight - 4 };
+      tagW = items.map((li) => li.offsetWidth || 160);
+      return;
+    }
     const right = Math.min(w - EDGE, (w + MAX_CONTENT) / 2);
     const copy = phases[0]?.el.getBoundingClientRect();
     const copyRight = copy && copy.width ? copy.right - host.getBoundingClientRect().left : w * 0.4;
@@ -375,7 +382,14 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
       if (!e) return;
       near.disconnect();
       const onScreen = e.boundingClientRect.top < window.innerHeight && e.boundingClientRect.bottom > 0;
-      if (onScreen) requestAnimationFrame(() => window.setTimeout(() => void start(), 0));
+      if (!document.documentElement.classList.contains("motion")) {
+        // a phone or tablet (the home hero's live 3D): the page's own load comes first, then the scene starts when the browser is idle
+        const later = () => {
+          if (!disposed) idleId = ric(() => void start());
+        };
+        if (document.readyState === "complete") later();
+        else window.addEventListener("load", later, { once: true });
+      } else if (onScreen) requestAnimationFrame(() => window.setTimeout(() => void start(), 0));
       else idleId = ric(() => void start());
     },
     { rootMargin: "160% 0px" },

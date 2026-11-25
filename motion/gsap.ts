@@ -17,6 +17,13 @@ export const motionOn = (): boolean =>
   typeof document !== "undefined" && document.documentElement.classList.contains("motion");
 
 /**
+ * True on the home page of a phone or tablet where the hero's live 3D runs (the head script sets html.live3d): the scene
+ * is drawn there without GSAP or the scroll engine, which stay desktop-only.
+ */
+export const live3dOn = (): boolean =>
+  typeof document !== "undefined" && document.documentElement.classList.contains("live3d");
+
+/**
  * Pacing of the pinned scenes. A scrubbed timeline that follows the scroll 1:1 is over in a blink when someone
  * scrolls fast, so the playhead takes SCRUB seconds to catch up: short, so the picture keeps up with the hand.
  */

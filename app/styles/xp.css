@@ -531,3 +531,143 @@ html.motion .xp.xp-auto.xp-live:not(.xp-failed) .xp-controls {
     padding-block: 4.6rem 3.6rem;
   }
 }
+
+/* ============ the home hero's live 3D on phones and tablets (html.live3d, set by motion/head.ts on the home page only) ============
+   The same four beats and the same studio as on a wide screen, in a layout of blocks: the picture first, right under the
+   header, then the beat bars, then the words (every beat in the same place, one showing at a time). No scroll engine: the page scrolls as it
+   always did and the story plays by itself while it is on screen. The still picture shows until the scene is ready, and the
+   plain static block (above) is what a failed scene or a device that cannot cope keeps. */
+@media (max-width: 63.99rem) {
+  html.live3d #story.xp:not(.xp-failed) {
+    height: auto;
+  }
+  html.live3d #story:not(.xp-failed) .xp-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    row-gap: 0;
+    padding: calc(var(--header) + 0.5rem) 0 1.5rem;
+    overflow: hidden;
+    background:
+      radial-gradient(70% 34% at 50% 26%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 72%),
+      linear-gradient(180deg, #d9e5f1 0%, #e8eff6 52%, #f3f6fa 100%);
+  }
+  html.live3d #story:not(.xp-failed) .xp-copy {
+    display: block;
+    grid-row: 3;
+    position: relative;
+    z-index: 3;
+  }
+  /* every beat's words in the same cell, so the block keeps the height of the longest and nothing below it moves */
+  html.live3d #story:not(.xp-failed) .xp-phases {
+    display: grid;
+  }
+  html.live3d #story:not(.xp-failed) .xp-phase {
+    grid-area: 1 / 1;
+    order: 0;
+    width: min(100% - 2 * var(--gutter), 40rem);
+    margin: 0 auto;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(0, 1rem, 0);
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+  }
+  html.live3d #story:not(.xp-failed) .xp-phase.is-leaving {
+    transform: translate3d(0, -0.8rem, 0);
+  }
+  html.live3d #story:not(.xp-failed) .xp-phase.is-on {
+    opacity: 1;
+    transform: none;
+    pointer-events: none;
+    transition:
+      opacity 0.6s ease 0.28s,
+      transform 0.75s var(--ease-out) 0.28s;
+  }
+  html.live3d #story:not(.xp-failed) .xp-phase.is-on > * {
+    pointer-events: auto;
+  }
+  /* the finished picture of the last beat belongs to the static layout: the live scene shows the product itself */
+  html.live3d #story:not(.xp-failed) .poster-open {
+    display: none;
+  }
+  /* the picture: the still until the scene is ready, then the scene drawn in the same place */
+  html.live3d #story:not(.xp-failed) .xp-poster {
+    grid-area: 1 / 1;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    order: 0;
+    width: auto;
+    margin: 0;
+    transition: opacity 0.9s ease;
+  }
+  html.live3d #story:not(.xp-failed) .poster {
+    width: auto;
+    height: auto;
+    max-width: min(100% - 2 * var(--gutter), 34rem);
+    max-height: 100%;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  html.live3d #story.xp-live .xp-poster {
+    opacity: 0;
+  }
+  html.live3d #story:not(.xp-failed) .xp-canvas {
+    grid-area: 1 / 1;
+    position: relative;
+    z-index: 2;
+    display: block;
+    height: clamp(15rem, 80vw, 26rem);
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    /* what stands on the floor may run past the bottom (the cables of the hub): it fades out instead of ending in a hard line */
+    -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
+  }
+  html.live3d #story.xp-live .xp-canvas {
+    opacity: 1;
+  }
+  html.live3d #story:not(.xp-failed) .xp-controls {
+    grid-row: 2;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: 0 var(--gutter) 0.75rem;
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity 0.4s ease,
+      visibility 0s linear 0.4s;
+  }
+  html.live3d #story.xp-live:not(.xp-failed) .xp-controls {
+    visibility: visible;
+    opacity: 1;
+    transition:
+      opacity 0.6s ease 0.5s,
+      visibility 0s;
+  }
+  html.live3d #story .xp-step-bar {
+    width: 2.75rem;
+  }
+  /* the words are a little more compact than on the static page, so the picture and the headline share the first screen */
+  html.live3d #story:not(.xp-failed) .h-hero {
+    font-size: clamp(2rem, 8.6vw, 2.7rem);
+  }
+  html.live3d #story:not(.xp-failed) .xp-phase .lead {
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+  html.live3d #story:not(.xp-failed) .xp-phase .cta-row {
+    gap: 0.6rem;
+  }
+  html.live3d #story:not(.xp-failed) .xp-phase .cta-row .btn {
+    padding-inline: 1.1rem;
+    font-size: 0.93rem;
+  }
+}
