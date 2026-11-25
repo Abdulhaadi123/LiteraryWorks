@@ -1,23 +1,11 @@
-import Link from "next/link";
-import { PageHero } from "@/components/ui";
+import { NotFoundView } from "@/components/NotFoundView";
+import { SiteChrome } from "@/components/SiteChrome";
 
+/** An address that matches no page at all: the root layout is only the document, so this brings the site's frame itself. */
 export default function NotFound() {
   return (
-    <PageHero
-      kicker="404"
-      title={
-        <>
-          This page is <em>not here</em>
-        </>
-      }
-      lead="The address may be wrong, or the page may have moved. These will get you back on track."
-    >
-      <Link className="btn btn-navy" href="/">
-        Go home
-      </Link>
-      <Link className="btn btn-line" href="/services">
-        Our services
-      </Link>
-    </PageHero>
+    <SiteChrome>
+      <NotFoundView />
+    </SiteChrome>
   );
 }

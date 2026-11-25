@@ -25,7 +25,7 @@ export default function PrivacyPage() {
           </p>
           <h2>Who processes it</h2>
           <p>
-            Messages are delivered to us by an email delivery provider (Twilio SendGrid), which also sends you a short confirmation that we received your message, and this website is delivered by a hosting provider. They process data on our behalf to provide those services, and the hosting provider may keep ordinary technical logs, such as IP addresses and pages requested, for security and reliability.
+            Messages are saved in a private inbox on this website (in a hosted data store, readable only by our team after a protected sign-in), and are delivered to us by an email delivery provider (Twilio SendGrid), which also sends you a short confirmation that we received your message. This website is delivered by a hosting provider. They process data on our behalf to provide those services, and the hosting provider may keep ordinary technical logs, such as IP addresses and pages requested, for security and reliability.
           </p>
           <h2>The website assistant</h2>
           <p>

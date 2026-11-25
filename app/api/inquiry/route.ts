@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { markNotified, saveInquiry, storeReady, type StoredInquiry } from "@/lib/admin/inquiries";
 import { topics } from "@/lib/topics";
 import { confirmationEmail, oneLine, teamEmail, type ChatTurn, type Inquiry } from "@/lib/mail/inquiry-email";
 
@@ -75,30 +76,54 @@ export async function POST(request: Request) {
   }
 
   const { SENDGRID_API_KEY, CONTACT_TO_EMAIL, CONTACT_FROM_EMAIL } = process.env;
-  if (!SENDGRID_API_KEY || !CONTACT_TO_EMAIL || !CONTACT_FROM_EMAIL) {
+  const emailOn = !!(SENDGRID_API_KEY && CONTACT_TO_EMAIL && CONTACT_FROM_EMAIL);
+  const inboxOn = storeReady();
+  if (!emailOn && !inboxOn) {
     return fail("Our inquiry inbox is not configured yet. Please try again later.", 503);
   }
-  const fromName = process.env.CONTACT_FROM_NAME || "Literary Worx";
-  const team = CONTACT_TO_EMAIL.split(",").map((e) => e.trim()).filter(Boolean);
 
-  // the notice to the team decides the answer: the message only counts as sent once SendGrid has accepted it
-  const notice = teamEmail(inquiry);
-  const sent = await sendMail(SENDGRID_API_KEY, {
-    to: team,
-    from: { email: CONTACT_FROM_EMAIL, name: `${fromName} website` },
-    replyTo: { email: inquiry.email, name: oneLine(inquiry.name) },
-    ...notice,
-    category: "inquiry",
-  });
-  if (sent === "unreachable") return fail("We could not reach our email service. Please try again later.", 502);
-  if (sent !== "ok") return fail("We could not deliver your message. Please try again later.", 502);
+  // 1. the message is kept in the admin inbox first (it is quick, and then it is safe whatever happens to the e-mail)
+  const country = request.headers.get("x-vercel-ip-country") ?? "";
+  let saved: StoredInquiry | null = null;
+  if (inboxOn) {
+    try {
+      saved = await saveInquiry({ ...inquiry, notified: emailOn ? false : null, country: /^[A-Z]{2}$/.test(country) ? country : undefined });
+    } catch (error) {
+      console.error("The inquiry could not be saved to the admin inbox:", error instanceof Error ? error.message : error);
+    }
+  }
+
+  // 2. the team is told by e-mail. When the inbox has the message, a failed e-mail no longer loses it.
+  let notified = false;
+  let sent: "ok" | "refused" | "unreachable" = "ok";
+  const fromName = process.env.CONTACT_FROM_NAME || "Literary Worx";
+  const team = (CONTACT_TO_EMAIL ?? "").split(",").map((e) => e.trim()).filter(Boolean);
+  if (emailOn) {
+    const notice = teamEmail(inquiry);
+    sent = await sendMail(SENDGRID_API_KEY!, {
+      to: team,
+      from: { email: CONTACT_FROM_EMAIL!, name: `${fromName} website` },
+      replyTo: { email: inquiry.email, name: oneLine(inquiry.name) },
+      ...notice,
+      category: "inquiry",
+    });
+    notified = sent === "ok";
+    if (saved && notified) await markNotified(saved.id, true).catch(() => {});
+  }
+
+  // the message counts as received once the inbox or the e-mail has it
+  if (!saved && !notified) {
+    if (!emailOn) return fail("We could not save your message. Please try again later.", 503);
+    if (sent === "unreachable") return fail("We could not reach our email service. Please try again later.", 502);
+    return fail("We could not deliver your message. Please try again later.", 502);
+  }
 
   // the confirmation to the visitor is a courtesy: if it fails, their message has still reached us
-  if (process.env.CONTACT_SEND_CONFIRMATION !== "false") {
+  if (emailOn && process.env.CONTACT_SEND_CONFIRMATION !== "false") {
     const reply = confirmationEmail(inquiry, process.env.CONTACT_REPLY_EMAIL || team[0]);
-    await sendMail(SENDGRID_API_KEY, {
+    await sendMail(SENDGRID_API_KEY!, {
       to: [inquiry.email],
-      from: { email: CONTACT_FROM_EMAIL, name: fromName },
+      from: { email: CONTACT_FROM_EMAIL!, name: fromName },
       replyTo: { email: process.env.CONTACT_REPLY_EMAIL || team[0], name: fromName },
       ...reply,
       category: "inquiry-confirmation",

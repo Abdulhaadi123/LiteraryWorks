@@ -93,9 +93,9 @@ Honest limits: the numbers come from one laptop and a software renderer for the 
 
 ## Inquiry form
 
-`/contact` posts to `/api/inquiry`, which validates the fields and sends two emails through SendGrid's Mail Send API (no SDK, one `fetch`):
+`/contact` posts to `/api/inquiry`, which validates the fields, **saves the message in the admin inbox** (see "Admin area" below) and then sends two emails through SendGrid's Mail Send API (no SDK, one `fetch`). A message counts as received once the inbox or the team email has it, so a SendGrid outage no longer loses one (the inbox marks it "team e-mail did not go out"); with only one of the two set up, that one is used; with neither the API answers 503.
 
-- **To the team** (`CONTACT_TO_EMAIL`, a comma-separated list is fine): the interest, name, email, company, time received (San Antonio time) and the message, with a Reply button. Its reply-to is the visitor, so replying answers them directly. The form reports success only once SendGrid has accepted this email (202).
+- **To the team** (`CONTACT_TO_EMAIL`, a comma-separated list is fine): the interest, name, email, company, time received (San Antonio time) and the message, with a Reply button. Its reply-to is the visitor, so replying answers them directly.
 - **To the visitor**: a short confirmation with what happens next. It repeats nothing they typed except their first name, so the form cannot be used to send a stranger a message of someone else's choosing. If it fails, the visitor still sees success, since their message has reached us. Turn it off with `CONTACT_SEND_CONFIRMATION=false`.
 
 The templates are in `lib/mail/inquiry-email.ts`: table layout with inline styles (what email clients render reliably), an HTML and a plain-text part each, every visitor field escaped, and no images, remote fonts or tracking (click and open tracking are switched off in the request).
@@ -108,7 +108,35 @@ The API also limits one address to 8 requests in ten minutes (in memory: a real 
 
 The round button in the corner of every page opens the assistant (`components/chat/`). It answers questions about the services, case studies, prices and the AI audit from the site's own content (`lib/chat/knowledge.ts` builds it from `lib/content.ts`, `lib/services.ts` and `lib/service-pages.ts`, so a change to the site changes what it knows), streams the answer word by word, suggests follow-up questions, and offers "Book a free AI audit" or a short "Ask us to contact you" form, which sends an inquiry through `/api/inquiry` with the conversation attached. The panel's code loads only when a visitor reaches for the button, so pages are no heavier. The conversation is kept in the browser tab (sessionStorage) and nowhere else.
 
-`/api/chat` calls Claude (Anthropic's Messages API through the official `@anthropic-ai/sdk`, model `claude-opus-5-5` at low effort for a fast first word, with Anthropic's server-side fallback if a safety check declines a request). The instructions and the knowledge are one fixed block that Anthropic caches; the page the visitor is on is sent after it, so "this service" means the right one. It keeps the last 12 messages, refuses messages over 800 characters and requests from other sites, and limits one address to 24 messages in ten minutes (in memory, like the inquiry form). Set `ANTHROPIC_API_KEY` (with a monthly spend limit in the Anthropic Console); `ANTHROPIC_MODEL` and `ANTHROPIC_MAX_TOKENS` are optional. Without the key the assistant answers with a pointer to the contact form. Above the button, a question changes with the page (`lib/chat/teasers.ts`); tapping it opens the chat and asks it, and closing it keeps it away for the visit.
+`/api/chat` calls Claude (Anthropic's Messages API through the official `@anthropic-ai/sdk`, model `claude-opus-5-5` at low effort for a fast first word, with Anthropic's server-side fallback if a safety check declines a request). The instructions and the knowledge are one fixed block that Anthropic caches; the page the visitor is on is sent after it, so "this service" means the right one. It keeps the last 12 messages, refuses messages over 2000 characters and requests from other sites, and limits one address to 24 messages in ten minutes (in memory, like the inquiry form). Set `ANTHROPIC_API_KEY` (with a monthly spend limit in the Anthropic Console); `ANTHROPIC_MODEL` and `ANTHROPIC_MAX_TOKENS` are optional. Without the key the assistant answers with a pointer to the contact form. Above the button, a question changes with the page (`lib/chat/teasers.ts`); tapping it opens the chat and asks it, and closing it keeps it away for the visit.
+
+## Admin area
+
+`/admin` is a small private panel for what the website receives (`app/admin/`, `components/admin/`, `lib/admin/`, `app/api/admin/`, styles in `app/styles/admin.css`). It has its own shell and stylesheet: none of the public site's header, footer or stylesheet is drawn (the root layout is only the document; the public pages sit in the `app/(site)` group, which adds `components/SiteChrome.tsx`), it is kept out of search engines (noindex meta and header, `Disallow: /admin`, not in the sitemap) and out of frames, and nothing under it is ever cached.
+
+- **Overview:** unread, last 7 and 30 days, all time; a 14-day column chart (hover or focus a column; "View as a table" has the numbers); what people ask about; the latest messages.
+- **Inquiries:** every message from the contact form and from the assistant (with the conversation before it), newest first, with status tabs (New, Read, Replied, Archived), search, a topic filter, paging, **Export CSV** (spreadsheet formulas in a message are defused), a status for each, a private note, a "Reply by e-mail" button and delete (with a confirmation). Opening a new message marks it read.
+- **Security:** what protects the area, this session, "Sign out everywhere", and the last 40 sign-ins, failed attempts and blocks (time, address, device).
+
+### Setting it up
+
+1. `npm run admin:setup` asks for an e-mail address and a password (12+ characters, hidden as you type; or `-- --generate` makes one) and prints `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `ADMIN_SESSION_SECRET` and `ADMIN_TOTP_SECRET`, plus the key for an authenticator app (Google or Microsoft Authenticator, 1Password, Authy: "Add account", "Enter a setup key"). Add the four settings on Vercel (Project Settings, Environment Variables). `-- --write .env.local` puts them in a local file instead; `-- --no-2fa` leaves two-step sign-in out (not recommended).
+2. Add a store: Vercel, Storage, **Redis** (Upstash); connecting it to the project adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`. (Locally, with none set, `.data/store.json` is used; the folder is git-ignored. `LW_STORE=file` does the same on a server that keeps its disk.)
+3. Redeploy, open `/admin` and sign in. Until all of it is set the sign-in page says what is missing.
+
+Messages sent before the store is connected are not in the inbox (they only went by e-mail). Nothing links to `/admin` from the public site.
+
+### How sign-in is protected
+
+- **Password:** only a scrypt hash (N=65536, r=8, a random salt per hash) is stored, in the settings, never the password. A wrong e-mail address costs the same time as a wrong password (a decoy hash is checked), and every failure gets the same sentence, so it does not say which part was wrong.
+- **Two-step:** a six-digit time-based code (RFC 6238, checked against the standard's test vectors), one step of clock slack, and a code works **once** (the step is remembered for two minutes). Lost the phone? Make a new key with `admin:setup` and replace `ADMIN_TOTP_SECRET` and `ADMIN_PASSWORD_HASH`.
+- **Limits:** 8 attempts in 15 minutes from one address and 30 an hour on the account, counted in the store before any work is done (so a flood of parallel requests cannot get past it) and shared by every server instance. Over the limit the answer is 429 with `Retry-After`, even for the right password.
+- **Session:** a signed cookie (HMAC-SHA256) that is `HttpOnly`, `SameSite=Strict`, `Secure` with the `__Host-` prefix in production, valid 8 hours (`ADMIN_SESSION_HOURS`). Signing out ends that session on the server (not only in the browser), and "Sign out everywhere" ends every session made so far. A made-up, expired, re-signed or over-long token is refused.
+- **Same-site only:** every change (sign-in, status, note, delete, sign-out) must carry an `Origin` header of the site's own host, on top of `SameSite=Strict`. Visitors' text is rendered as text (never as markup).
+- **Record:** sign-ins, failures (with the reason, shown only to you), blocks and sign-outs go to a log of the last 200 events.
+- **Address:** the visitor's address is taken from `x-vercel-forwarded-for` (set by Vercel and not forgeable there), then `x-real-ip`, then `x-forwarded-for`. Behind another proxy, make sure it overwrites those headers; the account-wide limit holds either way.
+
+`node scripts/verify-admin.mjs` checks all of this against a running server over HTTP (`ADMIN_EMAIL`, `ADMIN_PASSWORD`, optionally `ADMIN_TOTP_SECRET` and `ADMIN_SESSION_SECRET`; start with an empty store, since it adds messages and uses up attempts).
 
 ## Verify a build
 

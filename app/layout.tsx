@@ -1,14 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
-import { ChatLauncher } from "@/components/chat/ChatLauncher";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
-import { MobileCta } from "@/components/MobileCta";
 import { ogImage, siteName, siteUrl } from "@/lib/seo";
 import { headScript } from "@/motion/head";
-import { MotionRoot } from "@/motion/MotionRoot";
-import "./globals.css";
 
 /**
  * Inter, the typeface Sparkix and FAYD use: one variable file (27 KB: weights 400 to 800 and the Western European
@@ -53,17 +47,8 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       <head>
         <script dangerouslySetInnerHTML={{ __html: headScript }} />
       </head>
-      <body>
-        <a className="skip-link" href="#main">
-          Skip to content
-        </a>
-        <Header />
-        <main id="main">{children}</main>
-        <Footer />
-        <MobileCta />
-        <ChatLauncher />
-        <MotionRoot />
-      </body>
+      {/* the frame (header, footer, assistant, motion) is components/SiteChrome.tsx, used by the public pages; the admin area has its own */}
+      <body>{children}</body>
     </html>
   );
 }

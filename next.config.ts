@@ -9,12 +9,25 @@ const security = [
   { key: "Strict-Transport-Security", value: "max-age=31536000" },
 ];
 
+/** The admin area and its API: never stored, never framed, never indexed, no referrer sent. */
+const adminHeaders = [
+  { key: "Cache-Control", value: "no-store, max-age=0" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+  { key: "Referrer-Policy", value: "no-referrer" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" },
+];
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   async headers() {
     return [
       { source: "/:path*", headers: security },
+      { source: "/admin/:path*", headers: adminHeaders },
+      { source: "/admin", headers: adminHeaders },
+      { source: "/api/admin/:path*", headers: adminHeaders },
       // the pictures and brand files are not content-hashed: a day in the cache, then refreshed in the background
       { source: "/scene/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }] },
       { source: "/brand/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }] },
