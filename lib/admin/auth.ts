@@ -94,23 +94,7 @@ export async function adminStatus(): Promise<AdminStatus> {
 // who is asking
 // ---------------------------------------------------------------------------------------------------------------------
 
-/** The visitor's address. Behind Vercel the platform sets these headers itself, so they cannot be forged. */
-export function clientIp(headers: Headers): string {
-  const raw = headers.get("x-vercel-forwarded-for") || headers.get("x-real-ip") || headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-  return raw.trim().slice(0, 64) || "unknown";
-}
-
-/** True when the request comes from a page of this same site (the Origin header is the site's own host). */
-export function sameOrigin(headers: Headers): boolean {
-  const origin = headers.get("origin");
-  const host = headers.get("x-forwarded-host") || headers.get("host");
-  if (!origin || !host) return false;
-  try {
-    return new URL(origin).host === host.split(",")[0].trim();
-  } catch {
-    return false;
-  }
-}
+export { clientCountry, clientIp, sameOrigin } from "../request";
 
 /** "Chrome on Windows" from a User-Agent string. */
 export function describeAgent(ua: string): string {

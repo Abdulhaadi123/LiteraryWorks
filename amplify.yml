@@ -1,0 +1,26 @@
+# AWS Amplify Hosting (Next.js SSR: the app's platform must be "WEB_COMPUTE", which Amplify picks for a Next.js app).
+# Amplify does NOT give the server runtime the variables set in its console, so the build writes the ones the site reads
+# into .env.production (Amplify's own documented way). That file lives in the deployed build, so anyone who can read the
+# build artifacts can read these values: use a database user that can only touch this site's database.
+# Set them under App settings > Environment variables: MONGODB_URI, ANTHROPIC_API_KEY, NEXT_PUBLIC_SITE_URL, the SendGrid
+# ones, and TRUSTED_IP_HEADER (see lib/request.ts; behind Amplify's CloudFront use cloudfront-viewer-address).
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - nvm install 22
+        - nvm use 22
+        - npm ci --ignore-scripts
+    build:
+      commands:
+        - env | grep -E '^(MONGODB_|ADMIN_|ANTHROPIC_|SENDGRID_|CONTACT_|NEXT_PUBLIC_|TRUSTED_IP_HEADER|LW_)' >> .env.production || true
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*

@@ -150,6 +150,19 @@ node scripts/perf-report.mjs http://127.0.0.1:3000
 
 The scripts need only Node 22 and Chrome (set `CHROME_PATH` if it is not found; set `SOFTWARE_GL=1` or `CI=true` when there is no GPU). `verify-production.mjs` checks: every page in the sitemap (title, one `h1`); on desktop every pinned 3D scene on the site (it builds, the copy changes as you scroll, the picture is drawn and moves with the scroll, one shared canvas sits in the scene on screen, no failed requests, nothing requested from another site); every scroll reveal on the home page completes and its services grid loads its nine pictures; the case studies reel on the home page; that the picture stays clear of the copy and the header at four window sizes; that moving between pages rebuilds the scenes without leaking canvases or WebGL contexts, and that resizing keeps the picture the size of its stage; the phone and reduced-motion fallbacks (no 3D or animation libraries downloaded, the hero picture loads, the plain list takes a deck's place, a script budget, no sideways scroll, an in-page link lands on its section, Back returns to the same place); JavaScript off; a browser with WebGL switched off (the static layout takes over at once); and the API's validation and rate limit. It saves screenshots to `previews/`. `.github/workflows/production-verify.yml` runs it and the speed report on every push and pull request.
 
+## Hosting
+
+The site is a standard Next.js app (`npm run build`, then `npm run start`), with no host-specific package. It is set up for three hosts; on all of them the settings are the ones in `.env.example` (put them under the host's environment variables, never in git: `.env` and every `.env.*` file except the example are git-ignored), and `NEXT_PUBLIC_SITE_URL` must be the site's own address.
+
+| Host | What to do |
+| --- | --- |
+| **Vercel** | Import the repository; set the variables; deploy. Nothing else (the visitor's address and country come from Vercel's own headers). |
+| **Netlify** | Import the repository. Next.js 16 needs no plugin (Netlify's OpenNext adapter is used automatically); `netlify.toml` only pins Node 22. Set the variables under Site configuration, Environment variables. The visitor's address comes from `x-nf-client-connection-ip` by itself. |
+| **AWS Amplify Hosting** | Import the repository (Amplify picks the `WEB_COMPUTE` platform for a Next.js app). `amplify.yml` installs with `npm ci`, writes the variables the site reads into `.env.production` (Amplify gives the server runtime no console variables otherwise; the file ends up in the build, so give the database user only this site's database) and builds. Set `TRUSTED_IP_HEADER=cloudfront-viewer-address` (and allow that header in the distribution's origin request policy) so the sign-in limits see the visitor's address. |
+| **Any Node server** | `npm ci && npm run build && npm run start` behind HTTPS. Name the header your proxy sets for the visitor's address in `TRUSTED_IP_HEADER` (Cloudflare: `cf-connecting-ip`). |
+
+Every host needs the same two things for the admin inbox: `MONGODB_URI` (Atlas, Network Access open to the host: `0.0.0.0/0` on a serverless host, since its addresses change) and a first visit to `/admin` to make the account. The request helpers (`lib/request.ts`) read the visitor's address from the host's own header, accept a request as "from this site" when its `Origin` matches the `Host` or `NEXT_PUBLIC_SITE_URL`, and are used by the inquiry form, the assistant and the admin area alike. Two things to check on a host other than Vercel: the function time limit (the assistant streams an answer for up to about 30 seconds), and that the host serves HTTPS (the admin cookie is `Secure`).
+
 ## Before launch
 
 - [ ] Set the real domain (`NEXT_PUBLIC_SITE_URL`) and the SendGrid variables, authenticate the sending domain in SendGrid, and send one test message from the live form.

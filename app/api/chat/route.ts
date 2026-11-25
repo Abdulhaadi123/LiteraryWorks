@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { instructions, META_CLOSE, META_OPEN, pageNote } from "@/lib/chat/prompt";
+import { clientIp, sameOrigin } from "@/lib/request";
 
 /**
  * The website assistant. It streams the answer from Claude (Anthropic's Messages API, through the official SDK) to the
@@ -34,7 +35,7 @@ function limited(address: string, now = Date.now()) {
   if (hits.size > 5000) for (const [k, v] of hits) if (!v.some((t) => now - t < WINDOW_MS)) hits.delete(k);
   return over;
 }
-const addressOf = (request: Request) => (request.headers.get("x-forwarded-for")?.split(",")[0] || request.headers.get("x-real-ip") || "unknown").trim().slice(0, 64);
+const addressOf = (request: Request) => clientIp(request.headers);
 
 type Turn = { role: "user" | "assistant"; content: string };
 
@@ -81,11 +82,7 @@ function readPage(input: unknown): string {
 function sameSite(request: Request) {
   const origin = request.headers.get("origin");
   if (!origin) return true;
-  try {
-    return new URL(origin).host === (request.headers.get("x-forwarded-host") || request.headers.get("host"));
-  } catch {
-    return false;
-  }
+  return sameOrigin(request.headers);
 }
 
 let client: Anthropic | null = null;

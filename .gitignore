@@ -4,9 +4,10 @@ out/
 build/
 dist/
 *.tsbuildinfo
+# every env file except the example (.env.production is what Amplify's build writes)
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 .DS_Store
 npm-debug.log*
 

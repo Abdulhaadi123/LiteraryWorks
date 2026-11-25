@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { markNotified, saveInquiry, storeReady, type StoredInquiry } from "@/lib/admin/inquiries";
+import { clientCountry, clientIp } from "@/lib/request";
 import { topics } from "@/lib/topics";
 import { confirmationEmail, oneLine, teamEmail, type ChatTurn, type Inquiry } from "@/lib/mail/inquiry-email";
 
@@ -34,7 +35,7 @@ function limited(address: string, now = Date.now()) {
   if (hits.size > 5000) for (const [k, v] of hits) if (!v.some((t) => now - t < WINDOW_MS)) hits.delete(k);
   return over;
 }
-const addressOf = (request: Request) => (request.headers.get("x-forwarded-for")?.split(",")[0] || request.headers.get("x-real-ip") || "unknown").trim().slice(0, 64);
+const addressOf = (request: Request) => clientIp(request.headers);
 
 export async function POST(request: Request) {
   if (limited(addressOf(request))) return fail("Too many messages from this address. Please try again in a few minutes.", 429, { "Retry-After": "600" });
@@ -83,11 +84,10 @@ export async function POST(request: Request) {
   }
 
   // 1. the message is kept in the admin inbox first (it is quick, and then it is safe whatever happens to the e-mail)
-  const country = request.headers.get("x-vercel-ip-country") ?? "";
   let saved: StoredInquiry | null = null;
   if (inboxOn) {
     try {
-      saved = await saveInquiry({ ...inquiry, notified: emailOn ? false : null, country: /^[A-Z]{2}$/.test(country) ? country : undefined });
+      saved = await saveInquiry({ ...inquiry, notified: emailOn ? false : null, country: clientCountry(request.headers) });
     } catch (error) {
       console.error("The inquiry could not be saved to the admin inbox:", error instanceof Error ? error.message : error);
     }
