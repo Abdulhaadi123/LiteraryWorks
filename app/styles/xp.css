@@ -532,16 +532,18 @@ html.motion .xp.xp-auto.xp-live:not(.xp-failed) .xp-controls {
   }
 }
 
-/* ============ the home hero's live 3D on phones and tablets (html.live3d, set by motion/head.ts on the home page only) ============
-   The same four beats and the same studio as on a wide screen, in a layout of blocks: the picture first, right under the
-   header, then the beat bars, then the words (every beat in the same place, one showing at a time). No scroll engine: the page scrolls as it
-   always did and the story plays by itself while it is on screen. The still picture shows until the scene is ready, and the
+/* ============ the live 3D on phones and tablets (html.live3d, set by motion/head.ts on every page that has a scene) ============
+   The same beats and the same studio as on a wide screen, in a layout of blocks. A story that plays by itself (the home page,
+   the services page, a service's page, the audit and about pages): the picture first, right under the header, then the beat bars,
+   then the words (every beat in the same place, one showing at a time). The case studies' book, which follows the scroll on a wide
+   screen, keeps a tall runway with a sticky stage: the picture on top, the words below it, and the scroll turns the pages. No
+   scroll engine (no GSAP): the page scrolls as it always did. The still picture shows until the scene is ready, and the
    plain static block (above) is what a failed scene or a device that cannot cope keeps. */
 @media (max-width: 63.99rem) {
-  html.live3d #story.xp:not(.xp-failed) {
+  html.live3d .xp-auto.xp:not(.xp-failed) {
     height: auto;
   }
-  html.live3d #story:not(.xp-failed) .xp-stage {
+  html.live3d .xp-auto:not(.xp-failed) .xp-stage {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto;
@@ -552,17 +554,17 @@ html.motion .xp.xp-auto.xp-live:not(.xp-failed) .xp-controls {
       radial-gradient(70% 34% at 50% 26%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 72%),
       linear-gradient(180deg, #d9e5f1 0%, #e8eff6 52%, #f3f6fa 100%);
   }
-  html.live3d #story:not(.xp-failed) .xp-copy {
+  html.live3d .xp-auto:not(.xp-failed) .xp-copy {
     display: block;
     grid-row: 3;
     position: relative;
     z-index: 3;
   }
   /* every beat's words in the same cell, so the block keeps the height of the longest and nothing below it moves */
-  html.live3d #story:not(.xp-failed) .xp-phases {
+  html.live3d .xp-auto:not(.xp-failed) .xp-phases {
     display: grid;
   }
-  html.live3d #story:not(.xp-failed) .xp-phase {
+  html.live3d .xp-auto:not(.xp-failed) .xp-phase {
     grid-area: 1 / 1;
     order: 0;
     width: min(100% - 2 * var(--gutter), 40rem);
@@ -576,10 +578,10 @@ html.motion .xp.xp-auto.xp-live:not(.xp-failed) .xp-controls {
       opacity 0.3s ease,
       transform 0.3s ease;
   }
-  html.live3d #story:not(.xp-failed) .xp-phase.is-leaving {
+  html.live3d .xp-auto:not(.xp-failed) .xp-phase.is-leaving {
     transform: translate3d(0, -0.8rem, 0);
   }
-  html.live3d #story:not(.xp-failed) .xp-phase.is-on {
+  html.live3d .xp-auto:not(.xp-failed) .xp-phase.is-on {
     opacity: 1;
     transform: none;
     pointer-events: none;
@@ -587,15 +589,15 @@ html.motion .xp.xp-auto.xp-live:not(.xp-failed) .xp-controls {
       opacity 0.6s ease 0.28s,
       transform 0.75s var(--ease-out) 0.28s;
   }
-  html.live3d #story:not(.xp-failed) .xp-phase.is-on > * {
+  html.live3d .xp-auto:not(.xp-failed) .xp-phase.is-on > * {
     pointer-events: auto;
   }
   /* the finished picture of the last beat belongs to the static layout: the live scene shows the product itself */
-  html.live3d #story:not(.xp-failed) .poster-open {
+  html.live3d .xp-auto:not(.xp-failed) .poster-open {
     display: none;
   }
   /* the picture: the still until the scene is ready, then the scene drawn in the same place */
-  html.live3d #story:not(.xp-failed) .xp-poster {
+  html.live3d .xp-auto:not(.xp-failed) .xp-poster {
     grid-area: 1 / 1;
     z-index: 1;
     display: flex;
@@ -606,7 +608,7 @@ html.motion .xp.xp-auto.xp-live:not(.xp-failed) .xp-controls {
     margin: 0;
     transition: opacity 0.9s ease;
   }
-  html.live3d #story:not(.xp-failed) .poster {
+  html.live3d .xp-auto:not(.xp-failed) .poster {
     width: auto;
     height: auto;
     max-width: min(100% - 2 * var(--gutter), 34rem);
@@ -615,10 +617,10 @@ html.motion .xp.xp-auto.xp-live:not(.xp-failed) .xp-controls {
     border-radius: 0;
     box-shadow: none;
   }
-  html.live3d #story.xp-live .xp-poster {
+  html.live3d .xp-auto.xp-live .xp-poster {
     opacity: 0;
   }
-  html.live3d #story:not(.xp-failed) .xp-canvas {
+  html.live3d .xp-auto:not(.xp-failed) .xp-canvas {
     grid-area: 1 / 1;
     position: relative;
     z-index: 2;
@@ -630,10 +632,10 @@ html.motion .xp.xp-auto.xp-live:not(.xp-failed) .xp-controls {
     -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
     mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
   }
-  html.live3d #story.xp-live .xp-canvas {
+  html.live3d .xp-auto.xp-live .xp-canvas {
     opacity: 1;
   }
-  html.live3d #story:not(.xp-failed) .xp-controls {
+  html.live3d .xp-auto:not(.xp-failed) .xp-controls {
     grid-row: 2;
     position: relative;
     display: flex;
@@ -645,29 +647,144 @@ html.motion .xp.xp-auto.xp-live:not(.xp-failed) .xp-controls {
       opacity 0.4s ease,
       visibility 0s linear 0.4s;
   }
-  html.live3d #story.xp-live:not(.xp-failed) .xp-controls {
+  html.live3d .xp-auto.xp-live:not(.xp-failed) .xp-controls {
     visibility: visible;
     opacity: 1;
     transition:
       opacity 0.6s ease 0.5s,
       visibility 0s;
   }
-  html.live3d #story .xp-step-bar {
+  html.live3d .xp-auto .xp-step-bar {
     width: 2.75rem;
   }
   /* the words are a little more compact than on the static page, so the picture and the headline share the first screen */
-  html.live3d #story:not(.xp-failed) .h-hero {
+  html.live3d .xp-auto:not(.xp-failed) .h-hero {
     font-size: clamp(2rem, 8.6vw, 2.7rem);
   }
-  html.live3d #story:not(.xp-failed) .xp-phase .lead {
+  html.live3d .xp-auto:not(.xp-failed) .xp-phase .lead {
     font-size: 0.98rem;
     line-height: 1.55;
   }
-  html.live3d #story:not(.xp-failed) .xp-phase .cta-row {
+  html.live3d .xp-auto:not(.xp-failed) .xp-phase .cta-row {
     gap: 0.6rem;
   }
-  html.live3d #story:not(.xp-failed) .xp-phase .cta-row .btn {
+  html.live3d .xp-auto:not(.xp-failed) .xp-phase .cta-row .btn {
     padding-inline: 1.1rem;
     font-size: 0.93rem;
+  }
+
+  /* the services page's ten beats and the case studies' book are decks: shown where the scene runs, and the plain list is not */
+  html.live3d .xp-deck:not(.xp-failed) {
+    display: block;
+  }
+  html.live3d .xp-deck:not(.xp-failed) + .deck-fallback {
+    display: none;
+  }
+  /* an inner page's scene shows all of its chapters while it runs (the plain page keeps only the headline block) */
+  html.live3d .xp-compact:not(.xp-failed) .xp-phase:not(:first-child) {
+    display: block;
+  }
+  /* the beat bars share the width, so ten of them (the services page) fit as well as four */
+  html.live3d .xp-auto .xp-steps {
+    width: 100%;
+    max-width: 30rem;
+    gap: 0.3rem;
+  }
+  html.live3d .xp-auto .xp-steps li {
+    flex: 0 1 2.75rem;
+    min-width: 0;
+  }
+  html.live3d .xp-auto .xp-step,
+  html.live3d .xp-auto .xp-step-bar {
+    width: 100%;
+  }
+  html.live3d .xp-auto:not(.xp-failed) .xp-phase .checks {
+    margin-top: 1rem;
+  }
+
+  /* the case studies' book: a tall runway with a sticky stage (motion/mountStage.ts reads the scroll itself, no GSAP) */
+  html.live3d .xp-deck:not(.xp-auto):not(.xp-failed) {
+    height: calc(100svh + var(--xp-vh, 360) * 1svh);
+  }
+  html.live3d .xp-deck:not(.xp-auto):not(.xp-failed) .xp-stage {
+    position: sticky;
+    top: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    row-gap: 0;
+    height: 100svh;
+    /* (the bottom edge leaves room for the booking button that floats over a phone's page) */
+    padding: calc(var(--header) + 0.25rem) 0 5rem;
+    overflow: hidden;
+    background:
+      radial-gradient(70% 34% at 50% 26%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 72%),
+      linear-gradient(180deg, #d9e5f1 0%, #e8eff6 52%, #f3f6fa 100%);
+  }
+  html.live3d .xp-deck:not(.xp-auto):not(.xp-failed) .xp-canvas {
+    grid-row: 1;
+    position: relative;
+    z-index: 2;
+    display: block;
+    height: clamp(11rem, 30svh, 19rem);
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 80%, transparent 100%);
+  }
+  html.live3d .xp-deck:not(.xp-auto).xp-live .xp-canvas {
+    opacity: 1;
+  }
+  html.live3d .xp-deck:not(.xp-auto):not(.xp-failed) .xp-copy {
+    display: block;
+    grid-row: 2;
+    position: relative;
+    z-index: 3;
+    min-height: 0;
+  }
+  html.live3d .xp-deck:not(.xp-auto):not(.xp-failed) .xp-phases {
+    display: block;
+    position: relative;
+    height: 100%;
+  }
+  /* every beat's words in the same place, shown one at a time (their opacity follows the scroll, set by the scene's script) */
+  html.live3d .xp-deck:not(.xp-auto):not(.xp-failed) .xp-phase {
+    position: absolute;
+    inset: 0 0 auto 0;
+    width: min(100% - 2 * var(--gutter), 40rem);
+    margin: 0 auto;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+  html.live3d .xp-deck:not(.xp-auto):not(.xp-failed) .xp-phase:first-child {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* a case's words are longer than a story beat's: a smaller headline, a summary of at most three lines (the case's page has all of it) */
+  html.live3d .xp-deck:not(.xp-auto):not(.xp-failed) .h-lg {
+    font-size: clamp(1.4rem, 6.2vw, 1.75rem);
+  }
+  html.live3d .xp-deck:not(.xp-auto):not(.xp-failed) .xp-phase .lead {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.98rem;
+    line-height: 1.5;
+  }
+  html.live3d .xp-deck:not(.xp-auto):not(.xp-failed) .xp-phase > * + * {
+    margin-top: 0.8rem;
+  }
+  html.live3d .xp-deck:not(.xp-auto):not(.xp-failed) .metrics {
+    margin-top: 0.9rem;
+  }
+}
+/* a short phone: the case's figures give way, so its words and button always fit */
+@media (max-width: 63.99rem) and (max-height: 44rem) {
+  html.live3d .xp-deck:not(.xp-auto):not(.xp-failed) .metrics {
+    display: none;
   }
 }

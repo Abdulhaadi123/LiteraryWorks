@@ -6,8 +6,8 @@ import type { LabelSpec, SceneData, SceneFactory, SceneHandle, SceneLayout, Scen
 
 /**
  * The runtime of a pinned 3D scene (the scroll, the labels, the progress track, the drawing quality). It is its own
- * chunk, fetched by Stage3D.tsx only where motion is on, so phones and tablets never download it. All scenes draw
- * with one shared renderer: its canvas moves into whichever scene's stage is on screen.
+ * chunk, fetched by Stage3D.tsx only where motion is on (or on a phone's live scene, html.live3d), so a phone's plain page
+ * never downloads it. All scenes draw with one shared renderer: its canvas moves into whichever scene's stage is on screen.
  */
 
 /** Each scene is its own chunk, fetched when its section is about to be reached (and never on phones). */
@@ -36,6 +36,8 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
   const query = new URLSearchParams(window.location.search);
   // a story that plays by itself (the home page's hero) is driven by a clock, not by the scroll
   const auto = section.hasAttribute("data-auto");
+  // a phone or tablet has no scroll engine (GSAP): a scene that follows the scroll (the case studies' book) reads the scroll itself
+  const native = !auto && !document.documentElement.classList.contains("motion");
   const items = Array.from(host.querySelectorAll<HTMLElement>("[data-xp-label]"));
   const lines = Array.from(host.querySelectorAll<SVGPolylineElement>("[data-xp-line]"));
   const dots = Array.from(host.querySelectorAll<SVGCircleElement>("[data-xp-dot]"));
@@ -107,7 +109,7 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
   let tagW: number[] = [];
   const measure = () => {
     const w = host.clientWidth;
-    // on a phone or tablet the picture has a block of its own below the copy (the home hero's live 3D): all of it is the stage
+    // on a phone or tablet the picture has a block of its own (the live 3D, html.live3d): all of it is the stage
     if (window.matchMedia("(max-width: 63.99rem)").matches) {
       // (a little room at both sides: objects in perspective reach past the edges of their frame, and nothing may be cut off)
       lay = { left: w * 0.05, right: w * 0.95, top: 4, bottom: host.clientHeight - 4 };
@@ -228,9 +230,52 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
     draw();
   };
 
+  /**
+   * Without GSAP (a phone or tablet): the scroll position of the runway is the scene's progress, and the playhead follows it
+   * with a short lag, like the desktop's scrub, so a flick still plays out. Nothing runs while the section is far from the screen.
+   */
+  const followScroll = (): (() => void) => {
+    let target = 0;
+    let raf = 0;
+    let last = 0;
+    const read = () => {
+      const r = section.getBoundingClientRect();
+      const run = r.height - stageEl.offsetHeight;
+      target = run > 0 ? clamp01(-r.top / run) : 0;
+    };
+    const step = (now: number) => {
+      raf = 0;
+      read();
+      const dt = Math.min(64, last ? now - last : 16);
+      last = now;
+      state.p += (target - state.p) * (1 - Math.exp(-dt / (SCRUB * 300)));
+      if (Math.abs(target - state.p) < 0.0004) {
+        state.p = target;
+        last = 0;
+      } else raf = requestAnimationFrame(step);
+      onProgress();
+    };
+    const kick = () => {
+      if (raf) return;
+      const r = section.getBoundingClientRect();
+      if (r.bottom < -window.innerHeight || r.top > 2 * window.innerHeight) return;
+      raf = requestAnimationFrame(step);
+    };
+    read();
+    state.p = target;
+    window.addEventListener("scroll", kick, { passive: true });
+    window.addEventListener("resize", kick);
+    return () => {
+      window.removeEventListener("scroll", kick);
+      window.removeEventListener("resize", kick);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  };
+
   // the scroll drives `state.p`; the playhead follows it with a lag (SCRUB), so a flick still plays out
   // (a story that plays by itself has no runway to scroll through: motion/autoplay.ts drives it instead)
-  const tween = auto
+  const unfollow = native ? followScroll() : undefined;
+  const tween = auto || native
     ? null
     : gsap.to(state, {
         p: 1,
@@ -238,12 +283,13 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
         onUpdate: onProgress,
         scrollTrigger: { trigger: section, start: runwayStart(section, top), end: "bottom bottom", scrub: SCRUB, invalidateOnRefresh: true },
       });
-  if (!auto) paintCopy(0);
+  if (!auto) paintCopy(state.p);
 
   /** No WebGL, or the scene would not load: step aside, the plain static section takes over. */
   const fail = () => {
     tween?.scrollTrigger?.kill();
     tween?.kill();
+    unfollow?.();
     autoplay?.dispose();
     autoplay = null;
     for (const { el } of phases) {
@@ -383,7 +429,7 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
       near.disconnect();
       const onScreen = e.boundingClientRect.top < window.innerHeight && e.boundingClientRect.bottom > 0;
       if (!document.documentElement.classList.contains("motion")) {
-        // a phone or tablet (the home hero's live 3D): the page's own load comes first, then the scene starts when the browser is idle
+        // a phone or tablet (the live 3D, html.live3d): the page's own load comes first, then the scene starts when the browser is idle
         const later = () => {
           if (!disposed) idleId = ric(() => void start());
         };
@@ -427,6 +473,7 @@ export function mountStage(section: HTMLElement, host: HTMLElement, scene: Scene
     resizer?.disconnect();
     tween?.scrollTrigger?.kill();
     tween?.kill();
+    unfollow?.();
     autoplay?.dispose();
     autoplay = null;
     delete (window as unknown as { __lwSeek?: unknown }).__lwSeek;

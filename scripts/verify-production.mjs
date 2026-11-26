@@ -13,9 +13,10 @@
 //      service page, the audit and about pages) builds without an error, changes the copy as the
 //      page scrolls, draws a picture that moves with the scroll, moves on to its next object with the copy, and keeps ONE shared canvas that
 //      moves from scene to scene; the model stays clear of the copy and of the header on small and wide windows
-//   3. phone: no motion class and no GSAP or Lenis; the home hero draws live with three.js (html.live3d: the picture on the
-//      first screen above the words), every other page loads no 3D code; the plain page (`/?3d=off`) keeps a small script
-//      budget; the plain list takes the deck's place, no sideways scrolling
+//   3. phone: no motion class and no GSAP or Lenis; every page that has a scene on a wide screen draws it live with three.js
+//      (html.live3d: the picture on the first screen above the words; the case studies' book follows the scroll on a sticky
+//      stage), a page without one loads no 3D code; the plain page (`?3d=off`) keeps a small script budget and the plain list
+//      takes the deck's place; no sideways scrolling
 //   4. reduced motion: the static layout, again without those libraries
 //   5. JavaScript off: everything is visible
 //   5b. a browser without WebGL: the scenes step aside at once and the static page takes over
@@ -532,27 +533,50 @@ async function main() {
 
     // 3. phone
     console.log("\nPhone (390x844)");
-    // (the home page's hero draws live on a phone: html.live3d, three.js but no GSAP or Lenis. `/?3d=off` is the plain page that every
-    // other page, and the home page where the device may not cope, keeps)
-    for (const path of ["/", "/?3d=off", "/services", "/services/ai-automation", "/work"]) {
+    // (every page with a scene draws it live on a phone: html.live3d, three.js but no GSAP or Lenis. `?3d=off` is the plain page that
+    // a device that may not cope keeps; a page without a scene loads no 3D code at all)
+    const livePages = ["/", "/services", "/services/ai-automation", "/about", "/ai-audit", "/work"];
+    for (const path of ["/", "/?3d=off", "/services", "/services?3d=off", "/services/ai-automation", "/about", "/ai-audit", "/work", "/work?3d=off", "/contact"]) {
       const page = await visit(chrome, path, { width: 390, height: 844, mobile: true });
       await sleep(1200);
       const s = await sceneState(page);
       check(!s.motion, `${path}: no motion class on a phone`);
-      if (path === "/") {
+      if (livePages.includes(path)) {
         // the scene starts when the page has loaded and the browser is idle: wait for it (or for it to step aside, with no WebGL)
         for (let i = 0; i < 160; i++) {
-          if (await page.ev("!!document.querySelector('#story.xp-live, #story.xp-failed')")) break;
+          if (await page.ev("!!document.querySelector('.xp.xp-live, .xp.xp-failed')")) break;
           await sleep(250);
         }
-        const state = await page.ev("({ live: !!document.querySelector('#story.xp-live'), failed: !!document.querySelector('#story.xp-failed'), cls: document.documentElement.className })");
-        check(state.live || state.failed, "/: the hero's live 3D starts on a phone (or steps aside at once)", JSON.stringify(state));
+        const state = await page.ev("({ live: !!document.querySelector('.xp.xp-live'), failed: !!document.querySelector('.xp.xp-failed'), cls: document.documentElement.className })");
+        check(state.live || state.failed, `${path}: the live 3D starts on a phone (or steps aside at once)`, JSON.stringify(state));
         const live = await libraries(page);
-        check(!live.includes("GSAP") && !live.includes("ScrollTrigger") && !live.includes("Lenis"), "/: no GSAP or Lenis is downloaded on a phone", live.join(", "));
-        check(!state.live || live.includes("three.js"), "/: the live scene draws with three.js", live.join(", "));
+        check(!live.includes("GSAP") && !live.includes("ScrollTrigger") && !live.includes("Lenis"), `${path}: no GSAP or Lenis is downloaded on a phone`, live.join(", "));
+        check(!state.live || live.includes("three.js"), `${path}: the live scene draws with three.js`, live.join(", "));
         if (state.live) {
-          const geo = await page.ev("(() => { const c = document.querySelector('#story .xp-canvas canvas'); const b = document.querySelector('#story .xp-canvas').getBoundingClientRect(); const w = document.querySelector('#story .xp-phases').getBoundingClientRect(); return { canvas: !!c && c.clientWidth > 300, above: b.bottom <= w.top + 1, first: b.bottom < innerHeight }; })()");
-          check(geo.canvas && geo.above && geo.first, "/: the live picture is on the first screen, above the words", JSON.stringify(geo));
+          const geo = await page.ev("(() => { const c = document.querySelector('.xp .xp-canvas canvas'); const b = document.querySelector('.xp .xp-canvas').getBoundingClientRect(); const w = document.querySelector('.xp .xp-phases').getBoundingClientRect(); return { canvas: !!c && c.clientWidth > 300, above: b.bottom <= w.top + 1, first: b.bottom < innerHeight }; })()");
+          check(geo.canvas && geo.above && geo.first, `${path}: the live picture is on the first screen, above the words`, JSON.stringify(geo));
+          const only = await page.ev("document.querySelectorAll('canvas').length === 1");
+          check(only, `${path}: one canvas`);
+          await shot(page, `phone-${path === "/" ? "home" : path.slice(1).replace(/\//g, "-")}.png`);
+        }
+        if (state.live && path === "/work") {
+          // the book follows the scroll without GSAP: the stage stays on the screen, one beat of words shows at a time, and the beat moves on
+          const run = await page.ev("(() => { const d = document.querySelector('.xp-deck'); return { top: d.getBoundingClientRect().top + scrollY, len: d.offsetHeight - innerHeight }; })()");
+          const titles = new Set();
+          let pinned = true;
+          let single = true;
+          for (const f of [0.04, 0.3, 0.55, 0.8, 0.97]) {
+            await page.ev(`window.scrollTo(0, ${run.top} + ${run.len} * ${f})`);
+            await sleep(1800);
+            // (between two beats the words of one fade out and the next fade in, one after the other: never two at once)
+            const st = await page.ev("(() => { const g = document.querySelector('.xp-deck .xp-stage').getBoundingClientRect(); const on = [...document.querySelectorAll('.xp-deck .xp-phase')].filter((e) => Number(getComputedStyle(e).opacity) > 0.05).map((e) => (e.querySelector('h1,h2')?.textContent || '').trim()); return { top: Math.round(g.top), on }; })()");
+            pinned = pinned && Math.abs(st.top) <= 2;
+            single = single && st.on.length <= 1;
+            st.on.forEach((t) => titles.add(t));
+          }
+          check(pinned, "/work: the stage stays pinned while the book turns");
+          check(single, "/work: never two beats of words at once");
+          check(titles.size >= 4, "/work: the words move on from case to case as the page scrolls", [...titles].join(" | "));
         }
       } else {
         const libs = await libraries(page);
@@ -560,11 +584,11 @@ async function main() {
       }
       const wide = await page.ev("document.documentElement.scrollWidth - innerWidth");
       check(wide <= 1, `${path}: no sideways scrolling`, `${wide}px too wide`);
-      if (path === "/?3d=off") {
+      if (path.endsWith("?3d=off")) {
         const kb = await page.ev("Math.round(performance.getEntriesByType('resource').filter((r) => /\\.js(\\?|$)/.test(r.name) && r.initiatorType !== 'fetch').reduce((n, r) => n + r.encodedBodySize, 0) / 1024)");
         console.log(`        (script on a phone, plain page: ${kb} kB)`);
         check(kb <= SCRIPT_BUDGET_KB, `the plain page on a phone downloads at most ${SCRIPT_BUDGET_KB} kB of script`, `${kb} kB`);
-        check(!(await page.ev("document.documentElement.classList.contains('live3d')")), "/?3d=off: no live 3D");
+        check(!(await page.ev("document.documentElement.classList.contains('live3d')")), `${path}: no live 3D`);
       }
       if (path === "/") {
         const picture = await page.ev("(() => { const i = document.querySelector('.xp-poster img'); return !!i && i.complete && i.naturalWidth > 0; })()");
@@ -594,7 +618,7 @@ async function main() {
         const back = await page.ev("Math.round(document.querySelector('#method').getBoundingClientRect().top)");
         check(lazy && Math.abs(back - was) < 60, "Back after opening a service returns to the same place", `lazy ${lazy}, #method at ${was}px, after Back ${back}px`);
       }
-      if (path === "/services" || path === "/work") {
+      if (path === "/services?3d=off" || path === "/work?3d=off") {
         const list = await page.ev("(() => { const f = document.querySelector('.deck-fallback'); const d = document.querySelector('.xp-deck'); return { list: !!f && f.offsetHeight > 200, deck: !!d && getComputedStyle(d).display !== 'none' }; })()");
         check(list.list && !list.deck, `${path}: the plain list is shown and the 3D deck is not`, JSON.stringify(list));
       }

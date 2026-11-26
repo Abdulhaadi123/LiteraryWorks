@@ -17,8 +17,8 @@ export const motionOn = (): boolean =>
   typeof document !== "undefined" && document.documentElement.classList.contains("motion");
 
 /**
- * True on the home page of a phone or tablet where the hero's live 3D runs (the head script sets html.live3d): the scene
- * is drawn there without GSAP or the scroll engine, which stay desktop-only.
+ * True on a page of a phone or tablet where the live 3D runs (the head script sets html.live3d): the scenes are drawn there
+ * without GSAP or the scroll engine, which stay desktop-only.
  */
 export const live3dOn = (): boolean =>
   typeof document !== "undefined" && document.documentElement.classList.contains("live3d");

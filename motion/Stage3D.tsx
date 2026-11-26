@@ -22,8 +22,8 @@ function webglOk(): boolean {
  * The picture of a pinned, scroll-driven 3D scene: one shared WebGL canvas (three.js) moves in here while the
  * scene is on screen, with tags that follow parts of the model, joined to it by leader lines. The section around
  * it (components/Xp.tsx) is a tall runway with a sticky stage; the scroll position is the scene's only input,
- * smoothed so a fast flick still plays out. Nothing here runs on phones, tablets or under reduced motion (except the home
- * hero, which draws live on a phone or tablet too, without GSAP: html.live3d, see motion/head.ts): the
+ * smoothed so a fast flick still plays out. Nothing here runs on phones, tablets or under reduced motion (except the scenes
+ * of the pages that have one, which draw live on a phone or tablet too, without GSAP: html.live3d, see motion/head.ts): the
  * section is then a plain static block and neither three.js nor GSAP is fetched. If WebGL is not available the
  * scene steps aside the same way (`xp-failed`), at once, before anything is built.
  *
@@ -35,9 +35,9 @@ export function Stage3D({ scene, labels, aria, data }: { scene: SceneName; label
   useEffect(() => {
     const host = wrap.current;
     const section = host?.closest<HTMLElement>(".xp");
-    // the home hero on a phone or tablet draws live too (html.live3d), but only that one scene and without GSAP
-    const hero = !!section && live3dOn() && section.id === "story" && section.hasAttribute("data-auto");
-    if (!host || !section || !(motionOn() || hero)) return;
+    // on a phone or tablet the scenes draw live too (html.live3d, set for the pages that have one), without GSAP
+    const phone = !!section && live3dOn();
+    if (!host || !section || !(motionOn() || phone)) return;
     if (!webglOk()) {
       section.classList.add("xp-failed");
       return;
